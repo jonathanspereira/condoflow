@@ -1,11 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldAlert, UserCheck, Info } from "lucide-react";
+import { ShieldAlert, UserCheck, Info, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function EntryPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-slate-50 p-4">
+      <Link
+        href="/"
+        className="absolute left-4 top-4 md:left-8 md:top-8 flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Link>
       <div className="w-full max-w-4xl grid gap-6 md:grid-cols-2">
         
         {/* Opção: Registro Anônimo */}
@@ -53,7 +60,7 @@ export default function EntryPage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/login">Fazer Login</Link>
+              <Link href="/login/morador">Fazer Login</Link>
             </Button>
           </CardFooter>
         </Card>

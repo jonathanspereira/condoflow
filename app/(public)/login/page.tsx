@@ -1,84 +1,65 @@
-"use client"
-
-import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, ArrowLeft } from "lucide-react"
+import { ArrowLeft, User, UserCog } from "lucide-react"
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
-
-  async function onSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
-    setIsLoading(true)
-
-    // Aqui entrará a lógica de autenticação (NextAuth ou similar)
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 2000)
-  }
-
   return (
-    <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0">
-      
-      {/* Botão de Voltar */}
+    <div className="container relative min-h-screen flex items-center justify-center px-4">
       <Link
-        href="/ocorrencia"
+        href="/"
         className="absolute left-4 top-4 md:left-8 md:top-8 flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Voltar
       </Link>
 
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-        <Card className="shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center font-bold">Acesse sua conta</CardTitle>
-            <CardDescription className="text-center">
-              Entre com seu e-mail e senha para gerenciar suas ocorrências.
+      <div className="grid w-full max-w-4xl gap-6 md:grid-cols-2">
+        <Card className="border-2 hover:border-slate-300 transition-all">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+              <User className="h-6 w-6 text-slate-600" />
+            </div>
+            <CardTitle className="text-2xl">Login do Morador</CardTitle>
+            <CardDescription>
+              Acompanhe suas ocorrências, protocolos e atualizações em tempo real.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            <form onSubmit={onSubmit}>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="nome@exemplo.com"
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Senha</Label>
-                    <Link 
-                      href="/recuperar-senha" 
-                      className="text-xs text-primary hover:underline"
-                    >
-                      Esqueceu a senha?
-                    </Link>
-                  </div>
-                  <Input id="password" type="password" disabled={isLoading} required />
-                </div>
-                <Button className="w-full" type="submit" disabled={isLoading}>
-                  {isLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Entrar
-                </Button>
-              </div>
-            </form>
+          <CardContent className="text-sm text-slate-500">
+            <ul className="list-disc list-inside space-y-2">
+              <li>Visualização do histórico pessoal</li>
+              <li>Acompanhamento de respostas</li>
+              <li>Notificações das ocorrências</li>
+            </ul>
           </CardContent>
-          <CardFooter className="flex flex-col">
-            <p className="mt-2 text-xs text-center text-muted-foreground">
-              Ainda não tem acesso? Contate a administração do seu condomínio.
-            </p>
+          <CardFooter>
+            <Button asChild className="w-full" variant="outline">
+              <Link href="/login/morador">Entrar como Morador</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card className="border-2 border-primary shadow-lg hover:border-primary/80 transition-all">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <UserCog className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Login do Síndico</CardTitle>
+            <CardDescription>
+              Acesse o painel para administrar as ocorrências do condomínio.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-sm text-slate-500">
+            <ul className="list-disc list-inside space-y-2">
+              <li>Gestão centralizada de chamados</li>
+              <li>Atualizações e respostas aos moradores</li>
+              <li>Controle de múltiplos blocos e prédios</li>
+            </ul>
+          </CardContent>
+          <CardFooter>
+            <Button asChild className="w-full">
+              <Link href="/login/sindico">Entrar como Síndico</Link>
+            </Button>
           </CardFooter>
         </Card>
       </div>

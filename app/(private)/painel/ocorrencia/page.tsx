@@ -53,7 +53,7 @@ export default function EntryPage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/login">Fazer Login</Link>
+              <Link href="/login/sindico">Fazer Login</Link>
             </Button>
           </CardFooter>
         </Card>
