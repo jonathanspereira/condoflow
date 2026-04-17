@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Building2, Clock, PlusCircle, Search, UserCog, ShieldCheck } from "lucide-react";
+import { Building2, Clock, PlusCircle, Search, User, UserCog, ShieldCheck } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -11,12 +11,20 @@ export default function LandingPage() {
           <Building2 className="h-6 w-6" />
           <span>CondoFlow</span>
         </div>
-        <Button asChild variant="ghost">
-          <Link href="/login/sindico">
-            <UserCog className="mr-2 h-4 w-4" />
-            Área do Síndico
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="ghost">
+            <Link href="/login/morador">
+              <User className="mr-2 h-4 w-4" />
+              Área do Morador
+            </Link>
+          </Button>
+          <Button asChild variant="ghost">
+            <Link href="/login/sindico">
+              <UserCog className="mr-2 h-4 w-4" />
+              Área do Síndico
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <main className="flex-1">
@@ -78,7 +86,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 border-t text-center text-sm text-slate-400">
-        <p>© 2024 CondoFlow. Sistema de Gestão de Ocorrências.</p>
+        <p>© 2026 CondoFlow. Sistema de Gestão de Ocorrências.</p>
       </footer>
     </div>
   );
