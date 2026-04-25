@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, use } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -53,7 +53,10 @@ const ocorrenciasMock = [
   }
 ]
 
-export default function CondominioDetalhes({ params }: { params: { id: string } }) {
+export default function CondominioDetalhes({ params }: { params: Promise<{ id: string }> }) {
+  // Desembrulhando params para compatibilidade com Next.js 16
+  const { id } = use(params)
+  
   const [selectedOcorrencia, setSelectedOcorrencia] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
 
@@ -64,11 +67,10 @@ export default function CondominioDetalhes({ params }: { params: { id: string } 
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header com Navegação */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Solar das Palmeiras</h1>
-          <p className="text-muted-foreground text-sm tracking-tight">ID do Condomínio: {params.id}</p>
+          <h1 className="text-2xl font-bold tracking-tight">Gestão do Condomínio</h1>
+          <p className="text-muted-foreground text-sm">ID Interno: <span className="font-mono">{id}</span></p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">Relatórios</Button>
@@ -76,7 +78,6 @@ export default function CondominioDetalhes({ params }: { params: { id: string } 
         </div>
       </div>
 
-      {/* Stats Rápidos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="shadow-sm">
           <CardContent className="pt-6 flex items-center justify-between">
@@ -99,7 +100,7 @@ export default function CondominioDetalhes({ params }: { params: { id: string } 
         <Card className="shadow-sm">
           <CardContent className="pt-6 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-green-600 font-bold">Concluídas (Mês)</p>
+              <p className="text-sm font-medium text-green-600 font-bold">Concluídas</p>
               <h3 className="text-2xl font-bold text-green-700">24</h3>
             </div>
             <CheckCircle className="text-green-500 h-8 w-8 opacity-20" />
@@ -107,7 +108,6 @@ export default function CondominioDetalhes({ params }: { params: { id: string } 
         </Card>
       </div>
 
-      {/* Filtros e Busca */}
       <div className="flex gap-4 items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -118,7 +118,6 @@ export default function CondominioDetalhes({ params }: { params: { id: string } 
         </Button>
       </div>
 
-      {/* Lista de Ocorrências */}
       <Tabs defaultValue="todas">
         <TabsList>
           <TabsTrigger value="todas">Todas</TabsTrigger>
@@ -146,7 +145,7 @@ export default function CondominioDetalhes({ params }: { params: { id: string } 
                 </div>
 
                 <div className="flex items-center gap-4">
-                   <Badge className={oc.status === 'ABERTO' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' : 'bg-blue-100 text-blue-700 hover:bg-blue-100'}>
+                   <Badge className={oc.status === 'ABERTO' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}>
                     {oc.status.replace("_", " ")}
                    </Badge>
                    <Button variant="ghost" size="icon" onClick={() => handleOpenResponder(oc)}>
@@ -162,7 +161,6 @@ export default function CondominioDetalhes({ params }: { params: { id: string } 
         </TabsContent>
       </Tabs>
 
-      {/* MODAL DE RESPOSTA (Issue #14) */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="sm:max-w-md">
           <SheetHeader>
@@ -191,30 +189,23 @@ export default function CondominioDetalhes({ params }: { params: { id: string } 
             <div className="space-y-2">
               <Label>Resposta Oficial</Label>
               <Textarea 
-                placeholder="Informe ao morador as providências tomadas..." 
+                placeholder="Informe ao morador as providências..." 
                 className="min-h-[120px]"
               />
-              <p className="text-[10px] text-muted-foreground italic">
-                O morador poderá consultar esta resposta usando o número de protocolo.
-              </p>
             </div>
 
             <div className="space-y-2">
-              <Label>Anexar Comprovativo</Label>
-              <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 hover:bg-slate-50 cursor-pointer transition-colors border-slate-200">
+              <Label>Anexar Foto</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 hover:bg-slate-50 cursor-pointer border-slate-200">
                 <Camera className="h-6 w-6 text-slate-400" />
-                <span className="text-xs text-slate-500 font-medium">Anexar foto da conclusão</span>
+                <span className="text-xs text-slate-500 font-medium">Foto de conclusão</span>
               </div>
             </div>
           </div>
 
           <SheetFooter className="flex-col sm:flex-row gap-3">
-            <Button variant="outline" className="w-full" onClick={() => setIsSheetOpen(false)}>
-              Cancelar
-            </Button>
-            <Button className="w-full gap-2">
-              <Send className="h-4 w-4" /> Enviar Resposta
-            </Button>
+            <Button variant="outline" className="w-full" onClick={() => setIsSheetOpen(false)}>Cancelar</Button>
+            <Button className="w-full gap-2"><Send className="h-4 w-4" /> Salvar</Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
