@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Link from "next/link" // Importante para a navegação
 import { 
   Table, 
   TableBody, 
@@ -16,23 +17,21 @@ import { Input } from "@/components/ui/input"
 import { 
   Search, 
   Eye, 
-  AlertCircle, 
   MessageSquare,
   Filter
 } from "lucide-react"
 
+// MOCK DE DADOS
 const MOCK_DATA = [
   {
-    id: "1",
-    protocolo: "CF-2026-A12",
+    id: "CF-2026-A12",
     titulo: "Lâmpada queimada no corredor",
     status: "CONCLUIDO",
     data: "20/04/2026",
     categoria: "Manutenção"
   },
   {
-    id: "2",
-    protocolo: "CF-2026-B05",
+    id: "CF-2026-B05",
     titulo: "Barulho excessivo apto 502",
     status: "EM_EXECUCAO",
     data: "22/04/2026",
@@ -47,8 +46,8 @@ export default function MinhasOcorrencias() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Minhas Ocorrências</h1>
-          <p className="text-muted-foreground">Acompanhe o progresso dos seus relatos.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Minhas Ocorrências</h1>
+          <p className="text-muted-foreground text-sm">Acompanhe o progresso dos seus relatos.</p>
         </div>
         <Button className="gap-2">
           <MessageSquare className="h-4 w-4" />
@@ -95,7 +94,7 @@ export default function MinhasOcorrencias() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border bg-white">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50">
@@ -107,23 +106,26 @@ export default function MinhasOcorrencias() {
               </TableHeader>
               <TableBody>
                 {MOCK_DATA.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-mono text-xs font-bold">{item.protocolo}</TableCell>
+                  <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                    <TableCell className="font-mono text-xs font-bold text-primary">{item.id}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-medium">{item.titulo}</span>
-                        <span className="text-xs text-muted-foreground">{item.categoria}</span>
+                        <span className="font-medium text-slate-900">{item.titulo}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase font-semibold">{item.categoria}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={item.status === "CONCLUIDO" ? "default" : "secondary"}>
-                        {item.status}
+                      <Badge variant={item.status === "CONCLUIDO" ? "default" : "secondary"} className="text-[10px]">
+                        {item.status.replace("_", " ")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      {/* LINK PARA A TELA DINÂMICA [ID] */}
+                      <Link href={`/minhas-ocorrencias/${item.id}`}>
+                        <Button variant="ghost" size="icon" className="hover:text-primary">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}
