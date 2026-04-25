@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle2, Copy, Check, ArrowRight, Printer } from "lucide-react"
+import { CheckCircle2, Copy, Check, ArrowRight, Printer, ArrowLeft } from "lucide-react"
 
 export default function SucessoOcorrencia() {
   const [copied, setCopied] = useState(false)
@@ -17,21 +17,30 @@ export default function SucessoOcorrencia() {
   }
 
   return (
-    <div className="container max-w-2xl py-20 px-4">
+    <main className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0">
+      <Link
+        href="/"
+        className="absolute left-4 top-4 md:left-8 md:top-8 flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Link>
+
+      <div className="mx-auto flex w-full max-w-xl flex-col justify-center space-y-4 px-4">
       <Card className="border-t-8 border-t-green-500 shadow-xl">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle2 className="h-10 w-10 text-green-600" />
+        <CardHeader className="text-center pb-1">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
           </div>
-          <CardTitle className="text-3xl font-bold text-slate-900">Enviado com Sucesso!</CardTitle>
+          <CardTitle className="text-2xl font-bold text-slate-900">Enviado com Sucesso!</CardTitle>
           <p className="text-muted-foreground">Sua ocorrência foi registrada e o síndico já foi notificado.</p>
         </CardHeader>
 
-        <CardContent className="space-y-6 pt-6">
-          <div className="bg-slate-50 border rounded-lg p-6 text-center">
+        <CardContent className="space-y-5 pt-4">
+          <div className="bg-slate-50 border rounded-lg p-4 text-center">
             <span className="text-sm font-medium text-slate-500 uppercase tracking-wider">Seu Código de Protocolo</span>
             <div className="flex items-center justify-center gap-3 mt-2">
-              <code className="text-4xl font-mono font-bold text-primary tracking-tighter">
+              <code className="text-3xl font-mono font-bold text-primary tracking-tighter">
                 {protocolo}
               </code>
               <Button 
@@ -57,27 +66,28 @@ export default function SucessoOcorrencia() {
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col sm:flex-row gap-3 pt-6 border-t">
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/">
-              Voltar para Início
+        <CardFooter className="flex flex-col sm:flex-row gap-3 pt-5 border-t">
+          <Button asChild variant="outline" className="w-full sm:flex-1">
+            <Link href="/ocorrencia/anonima">
+              Nova Ocorrência
             </Link>
           </Button>
-          <Button asChild className="w-full">
+          <Button asChild className="w-full sm:flex-1">
             <Link href="/ocorrencia/consulta">
-              Consultar Agora
+              Nova Consulta
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </CardFooter>
       </Card>
       
-      <div className="mt-8 text-center">
-        <Button variant="ghost" size="sm" className="text-slate-400" onClick={() => window.print()}>
+      <div className="text-center">
+        <Button variant="ghost" size="sm" className="text-slate-400" onClick={() => globalThis.print()}>
           <Printer className="mr-2 h-4 w-4" />
           Imprimir comprovante
         </Button>
       </div>
-    </div>
+      </div>
+    </main>
   )
 }

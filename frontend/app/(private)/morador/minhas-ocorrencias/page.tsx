@@ -121,7 +121,7 @@ export default function MinhasOcorrencias() {
                     </TableCell>
                     <TableCell className="text-right">
                       {/* LINK PARA A TELA DINÂMICA [ID] */}
-                      <Link href={`/minhas-ocorrencias/${item.id}`}>
+                      <Link href={`/morador/minhas-ocorrencias/${item.id}`}>
                         <Button variant="ghost" size="icon" className="hover:text-primary">
                           <Eye className="h-4 w-4" />
                         </Button>

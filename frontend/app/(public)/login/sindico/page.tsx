@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowLeft, Loader2 } from "lucide-react"
 
 export default function LoginSindicoPage() {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   async function onSubmit(event: React.SyntheticEvent) {
@@ -17,6 +19,7 @@ export default function LoginSindicoPage() {
 
     setTimeout(() => {
       setIsLoading(false)
+      router.push("/sindico/condominio")
     }, 2000)
   }
 

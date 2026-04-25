@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowLeft, Loader2 } from "lucide-react"
 
 export default function LoginMoradorPage() {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   async function onSubmit(event: React.SyntheticEvent) {
@@ -17,13 +19,14 @@ export default function LoginMoradorPage() {
 
     setTimeout(() => {
       setIsLoading(false)
+      router.push("/morador/dashboard")
     }, 2000)
   }
 
   return (
     <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0">
       <Link
-        href="/ocorrencia"
+        href="/"
         className="absolute left-4 top-4 md:left-8 md:top-8 flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />

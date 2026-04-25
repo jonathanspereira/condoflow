@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -23,6 +24,7 @@ type FormValuesInput = z.input<typeof formSchema>
 type FormValuesOutput = z.output<typeof formSchema>
 
 export default function RegistrarOcorrencia({ isAnonimo = false }) {
+  const router = useRouter()
   const form = useForm<FormValuesInput, unknown, FormValuesOutput>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -37,6 +39,9 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
   function onSubmit(values: FormValuesOutput) {
     console.log("Dados da ocorrência:", values)
     // Aqui faremos a chamada para o Prisma/API depois
+    if (isAnonimo) {
+      router.push("/ocorrencia/sucesso")
+    }
   }
 
   return (
