@@ -4,13 +4,17 @@ import React, { useState } from "react"
 import { 
   Plus, 
   Search, 
-  MoreHorizontal, 
   Building2, 
   Key, 
   MapPin, 
   User,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Edit3,
+  Trash2,
+  Users,
+  Mail,
+  Home
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,25 +37,11 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-// MOCK INICIAL DE CONDOMÍNIOS NO SISTEMA
 const CONDOMINIOS_SaaS = [
-  {
-    id: "1",
-    nome: "Solar das Palmeiras",
-    codigo: "SOLAR-123",
-    sindico: "jonathan@email.com",
-    cidade: "Recife - PE",
-    status: "Ativo",
-  },
-  {
-    id: "2",
-    nome: "Residencial Vista Mar",
-    codigo: "MAR-99",
-    sindico: "marcos@sindico.com",
-    cidade: "Jaboatão - PE",
-    status: "Inativo",
-  }
+  { id: "1", nome: "Solar das Palmeiras", codigo: "SOLAR-123", sindico: "jonathan@email.com", cidade: "Recife - PE", status: "Ativo" },
+  { id: "2", nome: "Residencial Vista Mar", codigo: "MAR-99", sindico: "marcos@sindico.com", cidade: "Jaboatão - PE", status: "Inativo" }
 ]
 
 export default function GestaoCondominios() {
@@ -59,130 +49,173 @@ export default function GestaoCondominios() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gestão de Condomínios</h1>
-          <p className="text-slate-500">Cadastre e gerencie as instâncias de clientes do sistema.</p>
+          <h1 className="text-3xl font-bold text-slate-900">Gestão Global</h1>
+          <p className="text-slate-500 text-sm">Controle de instâncias e unidades do ecossistema.</p>
         </div>
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 gap-2 shadow-lg shadow-emerald-600/20">
-              <Plus size={18} /> Novo Condomínio
+            <Button className="bg-emerald-600 hover:bg-emerald-700 gap-2 font-bold uppercase text-xs tracking-wider">
+              <Plus size={16} /> Novo Condomínio
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
-              <DialogDescription>
-                Insira os dados do prédio e gere o código de acesso para os moradores.
-              </DialogDescription>
+              <DialogTitle>Novo Condomínio</DialogTitle>
+              <DialogDescription>Cadastre a base do cliente no SaaS.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="nome">Nome do Condomínio</Label>
-                <Input id="nome" placeholder="Ex: Edifício Horizonte" />
+                <Label>Nome do Condomínio</Label>
+                <Input placeholder="Ex: Edf. Alpha" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="codigo">Código de Acesso</Label>
-                  <Input id="codigo" placeholder="HORIZ-10" className="font-mono uppercase" />
+                  <Label>Código Único (IDs)</Label>
+                  <Input placeholder="ALPHA-01" className="uppercase font-mono" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="cidade">Cidade/UF</Label>
-                  <Input id="cidade" placeholder="Recife - PE" />
+                  <Label>Síndico (E-mail)</Label>
+                  <Input type="email" placeholder="admin@condo.com" />
                 </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="sindico">E-mail do Síndico Responsável</Label>
-                <Input id="sindico" type="email" placeholder="sindico@email.com" />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline">Cancelar</Button>
-              <Button className="bg-emerald-600 hover:bg-emerald-700">Criar Instância</Button>
+              <Button className="bg-emerald-600 w-full">Finalizar Cadastro</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Toolbar de Busca */}
-      <div className="flex items-center gap-2 bg-white p-4 rounded-xl border shadow-sm">
-        <Search className="text-slate-400" size={20} />
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm">
+        <Search className="ml-2 text-slate-400" size={18} />
         <Input 
-          placeholder="Buscar por nome, código ou síndico..." 
-          className="border-none shadow-none focus-visible:ring-0 text-base"
+          placeholder="Filtrar base de dados..." 
+          className="border-none shadow-none focus-visible:ring-0"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
       </div>
 
-      {/* Tabela de Dados */}
+      {/* Tabela Principal */}
       <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-slate-50">
-            <TableRow>
-              <TableHead className="w-[300px]">Condomínio</TableHead>
-              <TableHead>Código ID</TableHead>
-              <TableHead>Síndico Responsável</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {CONDOMINIOS_SaaS.map((condo) => (
-              <TableRow key={condo.id} className="hover:bg-slate-50/50 transition-colors">
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="bg-slate-100 p-2 rounded-lg">
-                      <Building2 size={18} className="text-slate-600" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900">{condo.nome}</p>
-                      <p className="text-xs text-slate-500 flex items-center gap-1">
-                        <MapPin size={10} /> {condo.cidade}
-                      </p>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="font-mono bg-slate-50 text-slate-700 border-slate-200">
-                    <Key size={12} className="mr-1" /> {condo.codigo}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <User size={14} /> {condo.sindico}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {condo.status === "Ativo" ? (
-                    <div className="flex items-center gap-1.5 text-emerald-600 font-medium text-sm">
-                      <CheckCircle2 size={16} /> Ativo
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 text-slate-400 font-medium text-sm">
-                      <XCircle size={16} /> Inativo
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal size={18} />
-                  </Button>
-                </TableCell>
+        <TooltipProvider>
+          <Table>
+            <TableHeader className="bg-slate-50/50">
+              <TableRow>
+                <TableHead className="font-bold text-slate-700">Condomínio / Local</TableHead>
+                <TableHead className="font-bold text-slate-700">Código</TableHead>
+                <TableHead className="font-bold text-slate-700">Responsável</TableHead>
+                <TableHead className="font-bold text-slate-700">Status</TableHead>
+                <TableHead className="text-right font-bold text-slate-700">Ações</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      
-      <div className="flex justify-between items-center text-sm text-slate-500 px-2">
-        <p>Mostrando {CONDOMINIOS_SaaS.length} condomínios ativos na plataforma.</p>
-        <div className="flex gap-2">
-           <Button variant="outline" size="sm" disabled>Anterior</Button>
-           <Button variant="outline" size="sm" disabled>Próximo</Button>
-        </div>
+            </TableHeader>
+            <TableBody>
+              {CONDOMINIOS_SaaS.map((condo) => (
+                <TableRow key={condo.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-slate-900 p-2 rounded text-emerald-500"><Building2 size={16}/></div>
+                      <div>
+                        <p className="font-bold text-slate-900 leading-tight">{condo.nome}</p>
+                        <p className="text-[10px] text-slate-500 uppercase">{condo.cidade}</p>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="font-mono text-[10px] border-slate-300">{condo.codigo}</Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-slate-600">{condo.sindico}</TableCell>
+                  <TableCell>
+                    {condo.status === "Ativo" 
+                      ? <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Ativo</Badge>
+                      : <Badge variant="secondary" className="text-slate-400 opacity-50">Inativo</Badge>
+                    }
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      {/* MODAL DE UNIDADES */}
+                      <Dialog>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-emerald-600">
+                                <Users size={18} />
+                              </Button>
+                            </DialogTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent>Gerenciar Unidades/Proprietários</TooltipContent>
+                        </Tooltip>
+                        <DialogContent className="sm:max-w-[600px]">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                               <Home className="text-emerald-600" /> Unidades: {condo.nome}
+                            </DialogTitle>
+                            <DialogDescription>Vincule proprietários às unidades deste condomínio.</DialogDescription>
+                          </DialogHeader>
+                          
+                          <div className="space-y-4 py-4">
+                            <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-lg border border-dashed border-slate-300">
+                               <div className="space-y-1">
+                                 <Label className="text-[10px] uppercase font-bold text-slate-500">Unidade</Label>
+                                 <Input placeholder="Ex: 402" className="h-8" />
+                               </div>
+                               <div className="space-y-1 col-span-2">
+                                 <Label className="text-[10px] uppercase font-bold text-slate-500">Nome do Proprietário</Label>
+                                 <div className="flex gap-2">
+                                    <Input placeholder="Nome Completo" className="h-8" />
+                                    <Button size="sm" className="bg-emerald-600 h-8 px-2"><Plus size={14}/></Button>
+                                 </div>
+                               </div>
+                               <div className="col-span-3 space-y-1">
+                                 <Label className="text-[10px] uppercase font-bold text-slate-500">E-mail do Proprietário</Label>
+                                 <Input type="email" placeholder="proprietario@email.com" className="h-8" />
+                               </div>
+                            </div>
+
+                            <div className="max-h-[200px] overflow-y-auto border rounded-md">
+                               <Table>
+                                 <TableBody>
+                                    <TableRow className="text-xs">
+                                      <TableCell className="font-bold">Apto 101</TableCell>
+                                      <TableCell>Ricardo Oliveira</TableCell>
+                                      <TableCell className="text-slate-400 italic">ricardo@email.com</TableCell>
+                                      <TableCell className="text-right"><Button variant="ghost" size="sm" className="text-red-500 h-6 w-6 p-0"><Trash2 size={12}/></Button></TableCell>
+                                    </TableRow>
+                                 </TableBody>
+                               </Table>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-blue-600">
+                            <Edit3 size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Editar Condomínio</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-600">
+                            <Trash2 size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Excluir Instância</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TooltipProvider>
       </div>
     </div>
   )
