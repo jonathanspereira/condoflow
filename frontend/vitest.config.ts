@@ -8,8 +8,16 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    // Adicione isso para garantir que o coverage ignore arquivos da raiz
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+    },
+  },
+  resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      // Usando __dirname para garantir o caminho absoluto correto
+      '@': path.resolve(__dirname, './'),
     },
   },
 })
