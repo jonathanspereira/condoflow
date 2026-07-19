@@ -1,4 +1,10 @@
 package com.jonathanspereira.condoflow.condominium.repository;
 
-public class CondominiumRepository {
+import com.jonathanspereira.condoflow.condominium.entity.Condominium;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface CondominiumRepository extends JpaRepository<Condominium, String> {
+    // Spring Data JPA já provê save(), findAll(), findById(), deleteById()
 }
