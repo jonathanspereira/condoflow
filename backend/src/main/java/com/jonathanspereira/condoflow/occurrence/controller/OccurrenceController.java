@@ -22,4 +22,10 @@ public class OccurrenceController {
         OccurrenceResponseDTO response = service.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @GetMapping("/protocol/{protocol}")
+    public ResponseEntity<OccurrenceResponseDTO> getByProtocol(@PathVariable String protocol) {
+        OccurrenceResponseDTO response = service.findByProtocol(protocol);
+        return ResponseEntity.ok(response);
+    }
 }

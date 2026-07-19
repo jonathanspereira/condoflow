@@ -38,4 +38,11 @@ public class OccurrenceService {
         // 4. Retorna os dados mapeados para o frontend (incluindo o protocolo gerado)
         return new OccurrenceResponseDTO(saved);
     }
+
+    public OccurrenceResponseDTO findByProtocol(String protocol) {
+        Occurrence occurrence = occurrenceRepository.findByProtocol(protocol)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada para o protocolo informado."));
+
+        return new OccurrenceResponseDTO(occurrence);
+    }
 }
