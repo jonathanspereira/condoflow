@@ -1,4 +1,7 @@
 package com.jonathanspereira.condoflow.user.entity;
 
-public class Role {
+public enum Role {
+    SUPER_ADMIN,
+    SYNDIC,
+    RESIDENT
 }
