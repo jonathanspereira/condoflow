@@ -1,4 +1,8 @@
 package com.jonathanspereira.condoflow.occurrence.entity;
 
-public class OccurrenceStatus {
+public enum OccurrenceStatus {
+    OPEN,
+    IN_PROGRESS,
+    RESOLVED,
+    CLOSED
 }
