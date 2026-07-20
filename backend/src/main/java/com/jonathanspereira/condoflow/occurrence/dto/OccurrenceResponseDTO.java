@@ -14,7 +14,7 @@ public record OccurrenceResponseDTO(
 ) {
     public OccurrenceResponseDTO(Occurrence entity) {
         this(
-                entity.getId(),
+                String.valueOf(entity.getId()),
                 entity.getProtocol(),
                 entity.getTitle(),
                 entity.getDescription(),

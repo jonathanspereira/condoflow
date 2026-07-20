@@ -1,6 +1,5 @@
 package com.jonathanspereira.condoflow.common.security;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,10 +15,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
+
+    // Construtor manual para a injeção da dependência
+    public SecurityConfig(SecurityFilter securityFilter) {
+        this.securityFilter = securityFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -27,15 +30,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Rotas públicas (Acesso Anônimo, Issue #6 e #2)
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
-
-                        // Rotas exclusivas de Super Admin (Issue #14 e #15)
                         .requestMatchers("/api/v1/condominiums/**").hasRole("SUPER_ADMIN")
-
-                        // Rotas que exigem qualquer login
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
@@ -49,6 +47,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Senhas salvas criptografadas
+        return new BCryptPasswordEncoder();
     }
 }

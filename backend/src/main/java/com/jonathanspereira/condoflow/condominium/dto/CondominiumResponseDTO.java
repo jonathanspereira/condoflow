@@ -11,6 +11,6 @@ public record CondominiumResponseDTO(
 ) {
     // Construtor utilitário para converter da Entidade para o DTO
     public CondominiumResponseDTO(Condominium entity) {
-        this(entity.getId(), entity.getName(), entity.getAddress(), entity.getCreatedAt());
+        this(String.valueOf(entity.getId()), entity.getName(), entity.getAddress(), entity.getCreatedAt());
     }
 }

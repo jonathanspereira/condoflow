@@ -1,0 +1,5 @@
+com/jonathanspereira/condoflow/auth/controller/AuthController.class
+com/jonathanspereira/condoflow/common/exception/GlobalExceptionHandler.class
+com/jonathanspereira/condoflow/condominium/controller/CondominiumController.class
+com/jonathanspereira/condoflow/auth/dto/AuthResponseDTO.class
+com/jonathanspereira/condoflow/auth/dto/AuthRequestDTO.class
