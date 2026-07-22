@@ -21,7 +21,7 @@ public class OccurrenceService {
 
     public OccurrenceResponseDTO create(OccurrenceRequestDTO dto) {
         // 1. Valida se o condomínio existe
-        Condominium condominium = condominiumRepository.findById(dto.condominiumId())
+        Condominium condominium = condominiumRepository.findById(Long.valueOf(dto.condominiumId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Condomínio não encontrado."));
 
         // 2. Cria a entidade

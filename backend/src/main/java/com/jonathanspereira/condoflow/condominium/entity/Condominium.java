@@ -1,15 +1,13 @@
 package com.jonathanspereira.condoflow.condominium.entity;
 
+import jakarta.persistence.*;
 import lombok.Data;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity
+@Table(name = "condominium")
 public class Condominium {
 
     @Id

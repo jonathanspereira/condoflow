@@ -1,21 +1,27 @@
 package com.jonathanspereira.condoflow.user.dto;
 
+import com.jonathanspereira.condoflow.user.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
-public record UserRequestDTO(
+@Data
+public class UserRequestDTO {
+
         @NotBlank(message = "O nome é obrigatório")
-        String name,
+        private String name;
 
-        @NotBlank(message = "O e-mail é obrigatório")
-        @Email(message = "Formato de e-mail inválido")
-        String email,
+        @Email(message = "Email inválido")
+        @NotBlank(message = "O email é obrigatório")
+        private String email;
 
         @NotBlank(message = "A senha é obrigatória")
-        @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
-        String password,
+        private String password;
 
-        @NotBlank(message = "O ID do condomínio é obrigatório para síndicos")
-        String condominiumId
-) {}
+        @NotNull(message = "A role (cargo) é obrigatória")
+        private Role role;
+
+        // Pode ser nulo se for outro Super Admin, mas obrigatório para Síndicos e Moradores
+        private Long condominiumId;
+}

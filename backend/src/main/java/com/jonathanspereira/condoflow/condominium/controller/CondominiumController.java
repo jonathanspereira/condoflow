@@ -14,34 +14,34 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/condominiums")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Ajuste depois para a URL exata do frontend
+@CrossOrigin(origins = "*")
 public class CondominiumController {
 
-    private final CondominiumService service;
+    // A declaração correta da dependência fica aqui no topo da classe
+    private final CondominiumService condominiumService;
 
     @PostMapping
-    public ResponseEntity<CondominiumResponseDTO> create(@RequestBody @Valid CondominiumRequestDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
+    public ResponseEntity<CondominiumResponseDTO> create(@RequestBody @Valid CondominiumRequestDTO requestDTO) {
+        CondominiumResponseDTO response = condominiumService.create(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
     public ResponseEntity<List<CondominiumResponseDTO>> findAll() {
-        return ResponseEntity.ok(service.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CondominiumResponseDTO> findById(@PathVariable String id) {
-        return ResponseEntity.ok(service.findById(id));
+        List<CondominiumResponseDTO> response = condominiumService.findAll();
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CondominiumResponseDTO> update(@PathVariable String id, @RequestBody @Valid CondominiumRequestDTO dto) {
-        return ResponseEntity.ok(service.update(id, dto));
+    public ResponseEntity<CondominiumResponseDTO> update(@PathVariable Long id, @RequestBody @Valid CondominiumRequestDTO requestDTO) {
+        // Agora ele chama o service da classe corretamente
+        CondominiumResponseDTO response = condominiumService.update(id, requestDTO);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        condominiumService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

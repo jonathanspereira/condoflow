@@ -1,18 +1,14 @@
 package com.jonathanspereira.condoflow.occurrence.entity;
 
+import jakarta.persistence.*;
 import lombok.Data;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
+
 import java.time.LocalDateTime;
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 
 @Data
 @Entity
+@Table(name = "occurrence")
 public class Occurrence {
 
     @Id
