@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: condoflow_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: condoflow_db
+      POSTGRES_USER: condoflow_user
+      POSTGRES_PASSWORD: condoflow_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - condoflow-data:/var/lib/postgresql/data
+    networks:
+      - condoflow-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: condoflow_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+    depends_on:
+      - db
+    networks:
+      - condoflow-net
+
+volumes:
+  condoflow-data:
+
+networks:
+  condoflow-net:
+    driver: bridge

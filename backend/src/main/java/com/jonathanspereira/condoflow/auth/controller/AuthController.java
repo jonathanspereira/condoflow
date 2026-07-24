@@ -2,12 +2,10 @@ package com.jonathanspereira.condoflow.auth.controller;
 
 import com.jonathanspereira.condoflow.auth.dto.AuthRequestDTO;
 import com.jonathanspereira.condoflow.auth.dto.AuthResponseDTO;
-import com.jonathanspereira.condoflow.auth.service.TokenService;
-import com.jonathanspereira.condoflow.user.entity.User;
+import com.jonathanspereira.condoflow.auth.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,16 +14,11 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final TokenService tokenService;
+    private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO data) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
-        var auth = this.authenticationManager.authenticate(usernamePassword);
-
-        var token = tokenService.generateToken((User) auth.getPrincipal());
-
-        return ResponseEntity.ok(new AuthResponseDTO(token));
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody @Valid AuthRequestDTO requestDTO) {
+        AuthResponseDTO response = authService.login(requestDTO);
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,3 +1,13 @@
 package com.jonathanspereira.condoflow.auth.dto;
 
-public record AuthResponseDTO(String token) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class AuthResponseDTO {
+    private String token;
+    private String name;
+    private String email;
+    private String role;
+}
