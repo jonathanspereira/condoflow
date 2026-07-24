@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ShieldCheck, Lock, Mail, ArrowRight, Loader2 } from "lucide-react"
+import { ShieldCheck, Lock, Mail, ArrowRight, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,17 +10,49 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 
 export default function AdminLogin() {
   const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setIsLoading(true)
-    
-    // Simulação de delay de autenticação
-    setTimeout(() => {
-      setIsLoading(false)
+    setErrorMessage("")
+
+    try {
+      // Usando a variável de ambiente configurada ou fallback para localhost
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1"
+
+      const response = await fetch(`${apiUrl}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Credenciais inválidas. Verifique seu e-mail e senha.")
+      }
+
+      const data = await response.json()
+
+      // Salvamos o token JWT e dados do usuário no localStorage
+      localStorage.setItem("condoflow_token", data.token)
+      localStorage.setItem("condoflow_user", JSON.stringify({
+        name: data.name,
+        email: data.email,
+        role: data.role
+      }))
+
+      // Redireciona para o painel administrativo
       router.push("/admin/dashboard")
-    }, 1500)
+    } catch (error: any) {
+      setErrorMessage(error.message || "Erro ao conectar com o servidor.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -44,11 +76,18 @@ export default function AdminLogin() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl text-white">Autenticação</CardTitle>
             <CardDescription className="text-slate-500 text-xs">
-              Insira suas credenciais de nível 1 para acessar o painel.
+              Insira suas credenciais para acessar o painel.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
+              {errorMessage && (
+                <div className="bg-red-500/15 border border-red-500/30 text-red-400 p-3 rounded-lg text-xs flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-slate-300 text-xs uppercase font-bold tracking-widest">E-mail Admin</Label>
                 <div className="relative group">
@@ -56,6 +95,8 @@ export default function AdminLogin() {
                   <Input 
                     id="email" 
                     type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="nome@condoflow.com" 
                     className="bg-slate-950 border-slate-800 text-white pl-10 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-500 h-11"
                     required
@@ -66,13 +107,15 @@ export default function AdminLogin() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="pass" className="text-slate-300 text-xs uppercase font-bold tracking-widest">Senha</Label>
-                  <Button variant="link" className="text-[10px] text-emerald-500 p-0 h-auto">Esqueceu a chave?</Button>
+                  <Button variant="link" type="button" className="text-[10px] text-emerald-500 p-0 h-auto">Esqueceu a chave?</Button>
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
                   <Input 
                     id="pass" 
                     type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="bg-slate-950 border-slate-800 text-white pl-10 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-500 h-11"
                     required
                   />
