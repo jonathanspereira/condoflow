@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:16-alpine
@@ -10,9 +12,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - condoflow-data:/var/lib/postgresql/data
-    networks:
-      - condoflow-net
+      - postgres_data:/var/lib/postgresql/data
 
   backend:
     build:
@@ -28,8 +28,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=condoflow_password
     depends_on:
       - db
-    networks:
-      - condoflow-net
 
   frontend:
     build:
@@ -40,15 +38,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
     depends_on:
       - backend
-    networks:
-      - condoflow-net
 
 volumes:
-  condoflow-data:
-
-networks:
-  condoflow-net:
-    driver: bridge
+  postgres_data:
