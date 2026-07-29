@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,8 +24,9 @@ public class CondominiumService {
         Condominium condominium = new Condominium();
 
         condominium.setName(requestDTO.getName());
+        condominium.setCnpj(requestDTO.getCnpj());
         condominium.setAddress(requestDTO.getAddress());
-        condominium.setCreatedAt(LocalDateTime.now());
+        condominium.setCreatedAt(LocalDateTime.now(ZoneId.systemDefault()));
 
         Condominium savedCondominium = condominiumRepository.save(condominium);
         return new CondominiumResponseDTO(savedCondominium);
@@ -47,6 +49,7 @@ public class CondominiumService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Condomínio não encontrado"));
 
         condominium.setName(dto.getName());
+        condominium.setCnpj(dto.getCnpj());
         condominium.setAddress(dto.getAddress());
 
         Condominium updatedCondominium = condominiumRepository.save(condominium);

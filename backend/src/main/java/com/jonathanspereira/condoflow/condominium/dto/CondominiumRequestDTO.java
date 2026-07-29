@@ -9,6 +9,9 @@ public class CondominiumRequestDTO {
     @NotBlank(message = "O nome é obrigatório")
     private String name;
 
+    @NotBlank(message = "O CNPJ é obrigatório")
+    private String cnpj;
+
     @NotBlank(message = "O endereço é obrigatório")
     private String address;
 

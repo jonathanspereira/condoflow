@@ -16,6 +16,8 @@ public class Condominium {
 
     private String name;
 
+    private String cnpj;
+
     private String address;
 
     private LocalDateTime createdAt;

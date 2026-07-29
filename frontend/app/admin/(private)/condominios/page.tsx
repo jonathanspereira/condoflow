@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
-import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 interface Condominium {
   id: number
@@ -185,10 +185,7 @@ export default function GestaoCondominios() {
   const [emailSindico, setEmailSindico] = useState("")
 
   // Estados para gerenciar unidades e o campo de busca de proprietário
-  const [unidadesList, setUnidadesList] = useState<UnidadeProprietario[]>([
-    { unidade: "Apto 101", proprietario: "Carlos Eduardo", email: "carlos@email.com" },
-    { unidade: "Apto 202", proprietario: "Ana Beatriz", email: "ana@email.com" }
-  ])
+  const [unidadesList, setUnidadesList] = useState<UnidadeProprietario[]>([])
   const [buscaProprietario, setBuscaProprietario] = useState("")
   const [unidadeInput, setUnidadeInput] = useState("")
   const [nomeProprietario, setNomeProprietario] = useState("")
@@ -542,8 +539,8 @@ export default function GestaoCondominios() {
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="outline" className="font-mono text-[10px] border-slate-300 px-3 bg-slate-50 shadow-sm">
-                         <Key size={10} className="mr-2 text-emerald-600" /> {condo.cnpj}
+                       <Badge variant="outline" className="inline-flex items-center gap-2 font-mono text-[10px] border-slate-300 px-3 bg-slate-50 shadow-sm whitespace-nowrap">
+                         <Key size={10} className="shrink-0 text-emerald-600" /> <span>{condo.cnpj}</span>
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-slate-600 font-medium">

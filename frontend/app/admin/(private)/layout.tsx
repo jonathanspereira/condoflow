@@ -6,10 +6,8 @@ import { usePathname } from "next/navigation"
 import { 
   ShieldCheck, 
   Building2, 
-  Users, 
   LayoutDashboard, 
   LogOut, 
-  BarChart3,
   ChevronRight, // Ícone para abrir
   ChevronLeft,  // Ícone para fechar
   Globe
@@ -21,11 +19,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const MENU_ADMIN = [
   { name: "Visão Geral", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Condomínios", href: "/admin/condominios", icon: Building2 },
-  { name: "Usuários & Síndicos", href: "/admin/usuarios", icon: Users },
-  { name: "Relatórios SaaS", href: "/admin/reports", icon: BarChart3 },
 ]
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname()
   // 1. Estado começando como TRUE para colapsar por padrão
   const [isCollapsed, setIsCollapsed] = useState(true)
@@ -81,7 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           : "hover:bg-slate-900 hover:text-slate-200"
                       } ${isCollapsed ? "justify-center px-0" : "px-3"}`}
                     >
-                      <item.icon size={18} className="shrink-0" />
+                      {item.icon && <item.icon size={18} className="shrink-0" />}
                       {!isCollapsed && <span className="animate-in slide-in-from-left-2 duration-300">{item.name}</span>}
                     </Link>
                   </TooltipTrigger>
