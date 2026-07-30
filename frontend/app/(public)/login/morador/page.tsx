@@ -12,15 +12,42 @@ import { ArrowLeft, Loader2 } from "lucide-react"
 export default function LoginMoradorPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
     setIsLoading(true)
+    setErrorMsg("")
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Salva o token JWT no localStorage (mesmo padrão usado no restante do app)
+        if (data.token) {
+          localStorage.setItem("condoflow_token", data.token)
+        }
+
+        router.push("/morador/dashboard")
+      } else {
+        setErrorMsg("E-mail ou senha inválidos. Verifique suas credenciais.")
+      }
+   } catch (error) {
+      console.error("Erro ao conectar com o servidor:", error)
+      setErrorMsg("Não foi possível conectar ao servidor. Tente novamente mais tarde.") // <-- Alterado para setErrorMsg
+    } finally {
       setIsLoading(false)
-      router.push("/morador/dashboard")
-    }, 2000)
+    }
   }
 
   return (
@@ -44,12 +71,19 @@ export default function LoginMoradorPage() {
           <CardContent className="grid gap-4">
             <form onSubmit={onSubmit}>
               <div className="grid gap-4">
+                {errorMsg && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 text-xs p-2.5 rounded-md text-center font-medium">
+                    {errorMsg}
+                  </div>
+                )}
                 <div className="grid gap-2">
                   <Label htmlFor="email">E-mail</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="nome@exemplo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
                     required
                   />
@@ -64,9 +98,16 @@ export default function LoginMoradorPage() {
                       Esqueceu a senha?
                     </Link>
                   </div>
-                  <Input id="password" type="password" disabled={isLoading} required />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading} 
+                    required 
+                  />
                 </div>
-                <Button className="w-full" type="submit" disabled={isLoading}>
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" type="submit" disabled={isLoading}>
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
