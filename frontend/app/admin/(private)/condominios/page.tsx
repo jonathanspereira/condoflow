@@ -16,7 +16,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Mail
+  Mail,
+  Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -49,16 +50,21 @@ interface Condominium {
 }
 
 interface UnidadeProprietario {
+  id?: number
   unidade: string
   proprietario: string
   email: string
+  role?: string
 }
 
 // --- COMPONENTE DE IMPORTAÇÃO EM MASSA (CSV REAL) ---
-function ImportadorUnidades({ condoNome, onImport }: { condoNome: string, onImport: (novasUnidades: UnidadeProprietario[]) => void }) {
+function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number, condoNome: string, onImport: () => void }) {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<UnidadeProprietario[]>([])
+  const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : ""
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -81,7 +87,8 @@ function ImportadorUnidades({ condoNome, onImport }: { condoNome: string, onImpo
             parsedData.push({
               unidade: colunas[0].trim(),
               proprietario: colunas[1].trim(),
-              email: colunas[2].trim()
+              email: colunas[2].trim(),
+              role: "PROPRIETARY"
             })
           }
         }
@@ -101,6 +108,34 @@ function ImportadorUnidades({ condoNome, onImport }: { condoNome: string, onImpo
     a.click()
   }
 
+  const handleConfirmImport = async () => {
+    setIsUploading(true)
+    try {
+      for (const item of preview) {
+        await fetch(`http://localhost:8080/api/v1/condominiums/${condoId}/units`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({
+            unit: item.unidade,
+            name: item.proprietario,
+            email: item.email,
+            role: "PROPRIETARY"
+          })
+        })
+      }
+      onImport()
+      setFile(null)
+      setPreview([])
+    } catch (error) {
+      console.error("Erro ao importar unidades em massa:", error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   return (
     <div className="space-y-4 border-t pt-6 mt-4">
       <div className="flex items-center justify-between">
@@ -116,7 +151,7 @@ function ImportadorUnidades({ condoNome, onImport }: { condoNome: string, onImpo
           className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
         >
           <FileUp size={28} className="text-slate-400 mb-2" />
-          <p className="text-xs font-medium text-slate-600">Clique para selecionar o arquivo .csv de moradores</p>
+          <p className="text-xs font-medium text-slate-600">Clique para selecionar o arquivo .csv de proprietários</p>
           <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".csv" className="hidden" />
         </div>
       ) : (
@@ -152,13 +187,11 @@ function ImportadorUnidades({ condoNome, onImport }: { condoNome: string, onImpo
           )}
 
           <Button 
-            onClick={() => {
-              onImport(preview)
-              setFile(null)
-              setPreview([])
-            }}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold h-9 text-xs"
+            onClick={handleConfirmImport}
+            disabled={isUploading}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold h-9 text-xs gap-2"
           >
+            {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
             Confirmar Importação de {preview.length} Unidades
           </Button>
         </div>
@@ -190,6 +223,7 @@ export default function GestaoCondominios() {
   const [unidadeInput, setUnidadeInput] = useState("")
   const [nomeProprietario, setNomeProprietario] = useState("")
   const [emailProprietario, setEmailProprietario] = useState("")
+  const [isSavingUnit, setIsSavingUnit] = useState(false)
   
   const [editIndexUnidade, setEditIndexUnidade] = useState<number | null>(null)
 
@@ -208,6 +242,22 @@ export default function GestaoCondominios() {
       }
     } catch (error) {
       console.error("Erro ao buscar condomínios:", error)
+    }
+  }
+
+  const fetchUnitsForCondo = async (condoId: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${condoId}/units`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setUnidadesList(data)
+      }
+    } catch (error) {
+      console.error("Erro ao buscar unidades:", error)
     }
   }
 
@@ -307,28 +357,49 @@ export default function GestaoCondominios() {
     }
   }
 
-  const handleSaveUnidade = (e: React.FormEvent) => {
+  const handleSaveUnidade = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!unidadeInput || !nomeProprietario) {
+    if (!unidadeInput || !nomeProprietario || !selectedCondo) {
       alert("Preencha a unidade e o nome do proprietário.")
       return
     }
 
-    if (editIndexUnidade !== null) {
-      const novaLista = [...unidadesList]
-      novaLista[editIndexUnidade] = { unidade: unidadeInput, proprietario: nomeProprietario, email: emailProprietario || "N/D" }
-      setUnidadesList(novaLista)
-      setEditIndexUnidade(null)
-    } else {
-      setUnidadesList([
-        ...unidadesList,
-        { unidade: unidadeInput, proprietario: nomeProprietario, email: emailProprietario || "N/D" }
-      ])
-    }
+    setIsSavingUnit(true)
+    try {
+      const payload = {
+        unit: unidadeInput,
+        name: nomeProprietario,
+        email: emailProprietario || "N/D",
+        role: "PROPRIETARY" // Atribuindo a role de proprietário para salvar no banco
+      }
 
-    setUnidadeInput("")
-    setNomeProprietario("")
-    setEmailProprietario("")
+      const url = editIndexUnidade !== null && unidadesList[editIndexUnidade]?.id 
+        ? `http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/units/${unidadesList[editIndexUnidade].id}`
+        : `http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/units`
+
+      const method = editIndexUnidade !== null && unidadesList[editIndexUnidade]?.id ? "PUT" : "POST"
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (response.ok) {
+        fetchUnitsForCondo(selectedCondo.id)
+        setUnidadeInput("")
+        setNomeProprietario("")
+        setEmailProprietario("")
+        setEditIndexUnidade(null)
+      }
+    } catch (error) {
+      console.error("Erro ao salvar proprietário:", error)
+    } finally {
+      setIsSavingUnit(false)
+    }
   }
 
   const handleEditUnidade = (item: UnidadeProprietario) => {
@@ -341,9 +412,23 @@ export default function GestaoCondominios() {
     }
   }
 
-  const handleRemoveUnidade = (index: number) => {
-    const novaLista = unidadesList.filter((_, i) => i !== index)
-    setUnidadesList(novaLista)
+  const handleRemoveUnidade = async (item: UnidadeProprietario) => {
+    if (!selectedCondo || !item.id) return
+    if (!confirm("Tem certeza que deseja excluir esta unidade?")) return
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/units/${item.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        }
+      })
+      if (response.ok) {
+        fetchUnitsForCondo(selectedCondo.id)
+      }
+    } catch (error) {
+      console.error("Erro ao excluir unidade:", error)
+    }
   }
 
   const filteredCondominiums = condominiums.filter(condo => 
@@ -353,9 +438,9 @@ export default function GestaoCondominios() {
   )
 
   const unidadesFiltradas = unidadesList.filter(item =>
-    item.proprietario.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
-    item.unidade.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
-    item.email.toLowerCase().includes(buscaProprietario.toLowerCase())
+    item.proprietario?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
+    item.unidade?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
+    item.email?.toLowerCase().includes(buscaProprietario.toLowerCase())
   )
 
   return (
@@ -555,7 +640,12 @@ export default function GestaoCondominios() {
                       <div className="flex justify-end gap-1">
                         
                         {/* MODAL GESTÃO DE UNIDADES E PROPRIETÁRIOS */}
-                        <Dialog>
+                        <Dialog onOpenChange={(open) => {
+                          if (open) {
+                            setSelectedCondo(condo)
+                            fetchUnitsForCondo(condo.id)
+                          }
+                        }}>
                           <TooltipProvider>
                             <DialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="text-slate-400 hover:text-emerald-600 hover:bg-emerald-50">
@@ -568,7 +658,7 @@ export default function GestaoCondominios() {
                               <DialogTitle className="flex items-center gap-2 text-xl">
                                  <Home className="text-emerald-600" /> Unidades e Proprietários: {condo.name}
                               </DialogTitle>
-                              <DialogDescription>Cadastre unidades, importe via planilha CSV ou filtre por proprietário.</DialogDescription>
+                              <DialogDescription>Cadastre proprietários com perfil PROPRIETARY, importe via planilha CSV ou filtre.</DialogDescription>
                             </DialogHeader>
                             
                             <div className="space-y-6 py-4">
@@ -603,8 +693,10 @@ export default function GestaoCondominios() {
                                  <div className="flex items-end">
                                    <Button 
                                      type="submit"
+                                     disabled={isSavingUnit}
                                      className={`w-full h-[72px] gap-2 font-bold text-xs uppercase ${editIndexUnidade !== null ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
                                    >
+                                     {isSavingUnit && <Loader2 size={16} className="animate-spin" />}
                                      <Plus size={16}/> {editIndexUnidade !== null ? 'Salvar' : 'Add'}
                                    </Button>
                                  </div>
@@ -657,10 +749,7 @@ export default function GestaoCondominios() {
                                                 variant="ghost" 
                                                 size="icon" 
                                                 className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                                                onClick={() => {
-                                                  const originalIndex = unidadesList.findIndex(u => u === item)
-                                                  handleRemoveUnidade(originalIndex)
-                                                }}
+                                                onClick={() => handleRemoveUnidade(item)}
                                               >
                                                 <Trash2 size={14} />
                                               </Button>
@@ -680,8 +769,9 @@ export default function GestaoCondominios() {
                               </div>
 
                               <ImportadorUnidades 
+                                condoId={condo.id}
                                 condoNome={condo.name} 
-                                onImport={(novasUnidades) => setUnidadesList([...unidadesList, ...novasUnidades])} 
+                                onImport={() => fetchUnitsForCondo(condo.id)} 
                               />
                             </div>
                           </DialogContent>
