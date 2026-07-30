@@ -35,7 +35,10 @@ public class SecurityFilter extends OncePerRequestFilter {
             UserDetails user = userRepository.findByEmail(login);
 
             if (user != null) {
-                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                // Força o mapeamento direto das autoridades do usuário para garantir compatibilidade com o hasAuthority("SUPER_ADMIN")
+                var authorities = user.getAuthorities(); 
+
+                var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }

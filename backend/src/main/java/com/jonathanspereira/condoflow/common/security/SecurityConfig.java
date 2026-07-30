@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
-                        .requestMatchers("/api/v1/condominiums/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/api/v1/condominiums/**").hasAuthority("SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
