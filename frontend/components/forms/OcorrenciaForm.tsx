@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Upload, X, FileVideo, FileImage } from "lucide-react"
 
 const formSchema = z.object({
   codigoCondominio: z.string().min(1, "O código do condomínio é obrigatório"),
@@ -20,6 +21,7 @@ const formSchema = z.object({
   descricao: z.string().min(10, "Descreva o problema com mais detalhes"),
   emailNotificacao: z.string().email({ message: "E-mail inválido" }).optional().or(z.literal("")),
   ocultarIdentidade: z.boolean().default(false),
+  midias: z.custom<File[]>().optional(),
 })
 
 type FormValuesInput = z.input<typeof formSchema>
@@ -37,6 +39,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
       descricao: "",
       emailNotificacao: "",
       ocultarIdentidade: false,
+      midias: [],
     },
   })
 
@@ -103,10 +106,12 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="manutencao">Manutenção</SelectItem>
-                          <SelectItem value="barulho">Barulho / Convivência</SelectItem>
-                          <SelectItem value="seguranca">Segurança</SelectItem>
-                          <SelectItem value="outros">Sugestão ou Outros</SelectItem>
+                          <SelectItem value="MANUTENCAO">Manutenção</SelectItem>
+                            <SelectItem value="CONVIVENCIA">Convivência</SelectItem>
+                            <SelectItem value="LIMPEZA">Limpeza</SelectItem>
+                            <SelectItem value="SEGURANCA">Segurança</SelectItem>
+                            <SelectItem value="SUGESTAO">Sugestão</SelectItem>
+                            <SelectItem value="OUTROS">Outros</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -168,6 +173,77 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+
+              {/* CAMPO DE ANEXOS (IMAGENS E VÍDEOS) */}
+              <FormField
+                control={form.control}
+                name="midias"
+                render={({ field }) => {
+                  const arquivos = (field.value as File[]) || []
+
+                  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                    if (e.target.files) {
+                      const novosArquivos = Array.from(e.target.files)
+                      field.onChange([...arquivos, ...novosArquivos])
+                    }
+                  }
+
+                  const removerArquivo = (index: number) => {
+                    const novosArquivos = arquivos.filter((_, i) => i !== index)
+                    field.onChange(novosArquivos)
+                  }
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Anexos (Imagens e Vídeos)</FormLabel>
+                      <FormControl>
+                        <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-lg p-6 hover:bg-slate-50/50 transition-colors cursor-pointer relative">
+                          <input 
+                            type="file" 
+                            id="file-upload" 
+                            className="absolute inset-0 opacity-0 cursor-pointer" 
+                            accept="image/*,video/*"
+                            multiple
+                            onChange={handleFileChange}
+                          />
+                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm font-medium text-slate-700">Clique para enviar ou arraste arquivos</p>
+                          <p className="text-xs text-muted-foreground">PNG, JPG, MP4, MOV</p>
+                        </div>
+                      </FormControl>
+                      
+                      {arquivos.length > 0 && (
+                        <div className="space-y-2 mt-3">
+                          <span className="text-xs font-semibold text-slate-500">Arquivos anexados ({arquivos.length}):</span>
+                          <div className="max-h-36 overflow-y-auto space-y-2 pr-1">
+                            {arquivos.map((file, index) => {
+                              const isVideo = file.type.startsWith("video/")
+                              return (
+                                <div key={index} className="flex items-center justify-between bg-slate-100 p-2 rounded-md text-sm">
+                                  <div className="flex items-center gap-2 overflow-hidden">
+                                    {isVideo ? <FileVideo className="h-4 w-4 text-blue-500 shrink-0" /> : <FileImage className="h-4 w-4 text-green-500 shrink-0" />}
+                                    <span className="truncate text-xs font-medium text-slate-800">{file.name}</span>
+                                  </div>
+                                  <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6 text-slate-500 hover:text-red-600"
+                                    onClick={() => removerArquivo(index)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
 
               {!isAnonimo && (

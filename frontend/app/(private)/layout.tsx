@@ -31,7 +31,6 @@ import { Badge } from "@/components/ui/badge"
 
 // MENU PARA O MORADOR
 const MENU_MORADOR = [
-  { name: "Dashboard", href: "/morador/dashboard", icon: LayoutDashboard },
   { name: "Minhas Ocorrências", href: "/morador/minhas-ocorrencias", icon: ClipboardList },
 ]
 
