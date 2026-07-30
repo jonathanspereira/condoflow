@@ -2,6 +2,10 @@
 
     import jakarta.persistence.*;
     import lombok.Data;
+    import jakarta.persistence.*;
+    import lombok.AllArgsConstructor;
+    import lombok.Data;
+    import lombok.NoArgsConstructor;
 
     import java.time.LocalDateTime;
 
@@ -23,4 +27,7 @@
         private String cnpj; // <-- Garanta que este campo existe na entidade
 
         private String address;
+
+        @Column(name = "created_at")
+        private LocalDateTime createdAt;
     }
