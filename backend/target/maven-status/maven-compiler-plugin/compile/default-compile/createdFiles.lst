@@ -1,4 +1,5 @@
 com/jonathanspereira/condoflow/condominium/dto/CondominiumRequestDTO.class
+com/jonathanspereira/condoflow/unit/service/UnitService.class
 com/jonathanspereira/condoflow/auth/controller/AuthController.class
 com/jonathanspereira/condoflow/common/config/DatabaseSeeder.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceResponseDTO.class
@@ -16,15 +17,20 @@ com/jonathanspereira/condoflow/auth/dto/AuthRequestDTO.class
 com/jonathanspereira/condoflow/condominium/service/CondominiumService.class
 com/jonathanspereira/condoflow/occurrence/entity/Occurrence.class
 com/jonathanspereira/condoflow/user/entity/Role.class
+com/jonathanspereira/condoflow/unit/controller/UnitController.class
 com/jonathanspereira/condoflow/user/service/UserService.class
 com/jonathanspereira/condoflow/user/repository/UserRepository.class
 com/jonathanspereira/condoflow/CondoflowApplication.class
+com/jonathanspereira/condoflow/unit/entity/Unit.class
 com/jonathanspereira/condoflow/condominium/dto/CondominiumResponseDTO.class
 com/jonathanspereira/condoflow/auth/service/AuthService.class
 com/jonathanspereira/condoflow/occurrence/entity/OccurrenceStatus.class
 com/jonathanspereira/condoflow/common/exception/GlobalExceptionHandler.class
+com/jonathanspereira/condoflow/unit/repository/UnitRepository.class
 com/jonathanspereira/condoflow/occurrence/repository/OccurrenceRepository.class
 com/jonathanspereira/condoflow/condominium/repository/CondominiumRepository.class
+com/jonathanspereira/condoflow/unit/dto/UnitResponseDTO.class
 com/jonathanspereira/condoflow/auth/service/TokenService.class
+com/jonathanspereira/condoflow/unit/dto/UnitRequestDTO.class
 com/jonathanspereira/condoflow/condominium/entity/Condominium.class
 com/jonathanspereira/condoflow/user/dto/UserRequestDTO.class

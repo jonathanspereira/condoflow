@@ -1,17 +1,20 @@
 package com.jonathanspereira.condoflow.condominium.dto;
 
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
-import java.time.LocalDateTime;
+import lombok.Data;
 
-public record CondominiumResponseDTO(
-        String id,
-        String name,
-        String cnpj,
-        String address,
-        LocalDateTime createdAt
-) {
-    // Construtor utilitário para converter da Entidade para o DTO
-    public CondominiumResponseDTO(Condominium entity) {
-        this(String.valueOf(entity.getId()), entity.getName(), entity.getCnpj(), entity.getAddress(), entity.getCreatedAt());
+@Data
+public class CondominiumResponseDTO {
+
+    private Long id;
+    private String name;
+    private String cnpj;
+    private String address;
+
+    public CondominiumResponseDTO(Condominium condominium) {
+        this.id = condominium.getId();
+        this.name = condominium.getName();
+        this.cnpj = condominium.getCnpj();
+        this.address = condominium.getAddress();
     }
 }

@@ -55,6 +55,7 @@ interface UnidadeProprietario {
   proprietario: string
   email: string
   role?: string
+  condominiumId?: number
 }
 
 // --- COMPONENTE DE IMPORTAÇÃO EM MASSA (CSV REAL) ---
@@ -88,7 +89,8 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
               unidade: colunas[0].trim(),
               proprietario: colunas[1].trim(),
               email: colunas[2].trim(),
-              role: "PROPRIETARY"
+              role: "PROPRIETARY",
+              condominiumId: condoId
             })
           }
         }
@@ -112,7 +114,7 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
     setIsUploading(true)
     try {
       for (const item of preview) {
-        await fetch(`http://localhost:8080/api/v1/condominiums/${condoId}/units`, {
+        await fetch(`http://localhost:8080/api/v1/units`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -122,7 +124,8 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
             unit: item.unidade,
             name: item.proprietario,
             email: item.email,
-            role: "PROPRIETARY"
+            role: "PROPRIETARY",
+            condominiumId: condoId
           })
         })
       }
@@ -182,8 +185,8 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
-            </div>
+             </Table>
+          </div>
           )}
 
           <Button 
@@ -205,19 +208,16 @@ export default function GestaoCondominios() {
   const [condominiums, setCondominiums] = useState<Condominium[]>([])
   const [busca, setBusca] = useState("")
   
-  // Modais de Cadastro, Edição e Síndico
   const [isNewOpen, setIsNewOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isSindicoOpen, setIsSindicoOpen] = useState(false)
   const [selectedCondo, setSelectedCondo] = useState<Condominium | null>(null)
 
-  // Campos do Formulário de Condomínio
   const [name, setName] = useState("")
   const [cnpj, setCnpj] = useState("")
   const [address, setAddress] = useState("")
   const [emailSindico, setEmailSindico] = useState("")
 
-  // Estados para gerenciar unidades e o campo de busca de proprietário
   const [unidadesList, setUnidadesList] = useState<UnidadeProprietario[]>([])
   const [buscaProprietario, setBuscaProprietario] = useState("")
   const [unidadeInput, setUnidadeInput] = useState("")
@@ -225,7 +225,7 @@ export default function GestaoCondominios() {
   const [emailProprietario, setEmailProprietario] = useState("")
   const [isSavingUnit, setIsSavingUnit] = useState(false)
   
-  const [editIndexUnidade, setEditIndexUnidade] = useState<number | null>(null)
+  const [editIdUnidade, setEditIdUnidade] = useState<number | null>(null)
 
   const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : ""
 
@@ -247,7 +247,8 @@ export default function GestaoCondominios() {
 
   const fetchUnitsForCondo = async (condoId: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${condoId}/units`, {
+      // Rota corrigida para bater no UnitController isolado
+      const response = await fetch(`http://localhost:8080/api/v1/units/condominium/${condoId}`, {
         headers: {
           Authorization: `Bearer ${getToken()}`
         }
@@ -370,14 +371,15 @@ export default function GestaoCondominios() {
         unit: unidadeInput,
         name: nomeProprietario,
         email: emailProprietario || "N/D",
-        role: "PROPRIETARY" // Atribuindo a role de proprietário para salvar no banco
+        role: "PROPRIETARY",
+        condominiumId: selectedCondo.id
       }
 
-      const url = editIndexUnidade !== null && unidadesList[editIndexUnidade]?.id 
-        ? `http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/units/${unidadesList[editIndexUnidade].id}`
-        : `http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/units`
+      const url = editIdUnidade !== null 
+        ? `http://localhost:8080/api/v1/units/${editIdUnidade}`
+        : `http://localhost:8080/api/v1/units`
 
-      const method = editIndexUnidade !== null && unidadesList[editIndexUnidade]?.id ? "PUT" : "POST"
+      const method = editIdUnidade !== null ? "PUT" : "POST"
 
       const response = await fetch(url, {
         method,
@@ -393,7 +395,7 @@ export default function GestaoCondominios() {
         setUnidadeInput("")
         setNomeProprietario("")
         setEmailProprietario("")
-        setEditIndexUnidade(null)
+        setEditIdUnidade(null)
       }
     } catch (error) {
       console.error("Erro ao salvar proprietário:", error)
@@ -403,9 +405,8 @@ export default function GestaoCondominios() {
   }
 
   const handleEditUnidade = (item: UnidadeProprietario) => {
-    const idx = unidadesList.findIndex(u => u === item)
-    if (idx !== -1) {
-      setEditIndexUnidade(idx)
+    if (item.id) {
+      setEditIdUnidade(item.id)
       setUnidadeInput(item.unidade)
       setNomeProprietario(item.proprietario)
       setEmailProprietario(item.email)
@@ -417,7 +418,7 @@ export default function GestaoCondominios() {
     if (!confirm("Tem certeza que deseja excluir esta unidade?")) return
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/units/${item.id}`, {
+      const response = await fetch(`http://localhost:8080/api/v1/units/${item.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${getToken()}`
@@ -582,7 +583,6 @@ export default function GestaoCondominios() {
         </DialogContent>
       </Dialog>
 
-      {/* Toolbar de Busca Global */}
       <div className="flex items-center gap-2 bg-white p-2 rounded-xl border shadow-sm">
         <Search className="ml-2 text-slate-400" size={18} />
         <Input 
@@ -593,7 +593,6 @@ export default function GestaoCondominios() {
         />
       </div>
 
-      {/* Tabela Principal */}
       <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
         <TooltipProvider>
           <Table>
@@ -660,45 +659,45 @@ export default function GestaoCondominios() {
                               </DialogTitle>
                               <DialogDescription>Cadastre proprietários com perfil PROPRIETARY, importe via planilha CSV ou filtre.</DialogDescription>
                             </DialogHeader>
-                            
+                             
                             <div className="space-y-6 py-4">
                               <form onSubmit={handleSaveUnidade} className="grid grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-inner">
                                  <div className="space-y-1.5">
-                                   <Label className="text-[10px] uppercase font-black text-slate-500">Unidade</Label>
-                                   <Input 
-                                     placeholder="Apto 101" 
-                                     className="h-9 text-sm bg-white" 
-                                     value={unidadeInput}
-                                     onChange={(e) => setUnidadeInput(e.target.value)}
-                                   />
+                                  <Label className="text-[10px] uppercase font-black text-slate-500">Unidade</Label>
+                                  <Input 
+                                    placeholder="Apto 101" 
+                                    className="h-9 text-sm bg-white" 
+                                    value={unidadeInput}
+                                    onChange={(e) => setUnidadeInput(e.target.value)}
+                                  />
                                  </div>
                                  <div className="space-y-1.5 col-span-2">
-                                   <Label className="text-[10px] uppercase font-black text-slate-500">Proprietário (Nome e E-mail)</Label>
-                                   <div className="space-y-1">
-                                      <Input 
-                                        placeholder="Nome Completo" 
-                                        className="h-9 text-sm bg-white" 
-                                        value={nomeProprietario}
-                                        onChange={(e) => setNomeProprietario(e.target.value)}
-                                      />
-                                      <Input 
-                                        placeholder="E-mail" 
-                                        type="email" 
-                                        className="h-9 text-sm bg-white" 
-                                        value={emailProprietario}
-                                        onChange={(e) => setEmailProprietario(e.target.value)}
-                                      />
-                                   </div>
+                                  <Label className="text-[10px] uppercase font-black text-slate-500">Proprietário (Nome e E-mail)</Label>
+                                  <div className="space-y-1">
+                                    <Input 
+                                      placeholder="Nome Completo" 
+                                      className="h-9 text-sm bg-white" 
+                                      value={nomeProprietario}
+                                      onChange={(e) => setNomeProprietario(e.target.value)}
+                                    />
+                                    <Input 
+                                      placeholder="E-mail" 
+                                      type="email" 
+                                      className="h-9 text-sm bg-white" 
+                                      value={emailProprietario}
+                                      onChange={(e) => setEmailProprietario(e.target.value)}
+                                    />
+                                  </div>
                                  </div>
                                  <div className="flex items-end">
-                                   <Button 
-                                     type="submit"
-                                     disabled={isSavingUnit}
-                                     className={`w-full h-[72px] gap-2 font-bold text-xs uppercase ${editIndexUnidade !== null ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-                                   >
-                                     {isSavingUnit && <Loader2 size={16} className="animate-spin" />}
-                                     <Plus size={16}/> {editIndexUnidade !== null ? 'Salvar' : 'Add'}
-                                   </Button>
+                                  <Button 
+                                    type="submit"
+                                    disabled={isSavingUnit}
+                                    className={`w-full h-[72px] gap-2 font-bold text-xs uppercase ${editIdUnidade !== null ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                                  >
+                                    {isSavingUnit && <Loader2 size={16} className="animate-spin" />}
+                                    <Plus size={16}/> {editIdUnidade !== null ? 'Salvar' : 'Add'}
+                                  </Button>
                                  </div>
                               </form>
 
@@ -707,7 +706,7 @@ export default function GestaoCondominios() {
                                   <h4 className="text-xs font-bold text-slate-700 uppercase tracking-tight">
                                     Unidades Vinculadas ({unidadesFiltradas.length})
                                   </h4>
-                                  
+                                   
                                   <div className="relative w-full sm:w-64">
                                     <Search className="absolute left-2.5 top-2.5 text-slate-400" size={14} />
                                     <Input 

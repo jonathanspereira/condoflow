@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class CondominiumRequestDTO {
 
-    @NotBlank(message = "O nome é obrigatório")
+    @NotBlank(message = "O nome do condomínio é obrigatório")
     private String name;
 
     @NotBlank(message = "O CNPJ é obrigatório")
@@ -14,5 +14,4 @@ public class CondominiumRequestDTO {
 
     @NotBlank(message = "O endereço é obrigatório")
     private String address;
-
 }

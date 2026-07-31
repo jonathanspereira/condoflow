@@ -1,33 +1,27 @@
-    package com.jonathanspereira.condoflow.condominium.entity;
+package com.jonathanspereira.condoflow.condominium.entity;
 
-    import jakarta.persistence.*;
-    import lombok.Data;
-    import jakarta.persistence.*;
-    import lombok.AllArgsConstructor;
-    import lombok.Data;
-    import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    import java.time.LocalDateTime;
+@Entity
+@Table(name = "tb_condominiums")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Condominium {
 
-    @Data
-    @Entity
-    @Table(name = "condominium")
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public class Condominium {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    @Column(nullable = false)
+    private String name;
 
-        @Column(nullable = false)
-        private String name;
+    @Column(nullable = false, unique = true)
+    private String cnpj;
 
-        @Column(nullable = false, unique = true)
-        private String cnpj; // <-- Garanta que este campo existe na entidade
-
-        private String address;
-
-        @Column(name = "created_at")
-        private LocalDateTime createdAt;
-    }
+    @Column(nullable = false)
+    private String address;
+}
