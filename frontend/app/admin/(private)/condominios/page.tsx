@@ -17,7 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Mail,
-  Loader2
+  Loader2,
+  KeyRound
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,6 +41,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 interface Condominium {
@@ -49,13 +51,18 @@ interface Condominium {
   address: string
 }
 
+// Bate com o UnitResponseDTO do backend
 interface UnidadeProprietario {
   id?: number
   unidade: string
-  proprietario: string
-  email: string
-  role?: string
   condominiumId?: number
+  ownerId?: string
+  ownerName: string
+  ownerEmail: string
+  rented: boolean
+  tenantId?: string
+  tenantName?: string
+  tenantEmail?: string
 }
 
 // --- COMPONENTE DE IMPORTAÇÃO EM MASSA (CSV REAL) ---
@@ -87,9 +94,9 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
           if (colunas.length >= 3) {
             parsedData.push({
               unidade: colunas[0].trim(),
-              proprietario: colunas[1].trim(),
-              email: colunas[2].trim(),
-              role: "PROPRIETARY",
+              ownerName: colunas[1].trim(),
+              ownerEmail: colunas[2].trim(),
+              rented: false,
               condominiumId: condoId
             })
           }
@@ -114,7 +121,7 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
     setIsUploading(true)
     try {
       for (const item of preview) {
-        await fetch(`http://localhost:8080/api/v1/units`, {
+        await fetch(`http://localhost:8080/api/v1/units?condominiumId=${condoId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -122,10 +129,9 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
           },
           body: JSON.stringify({
             unit: item.unidade,
-            name: item.proprietario,
-            email: item.email,
-            role: "PROPRIETARY",
-            condominiumId: condoId
+            ownerName: item.ownerName,
+            ownerEmail: item.ownerEmail,
+            rented: false
           })
         })
       }
@@ -180,14 +186,18 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
                   {preview.map((row, idx) => (
                     <TableRow key={idx} className="text-[11px]">
                       <TableCell className="py-2 font-bold">{row.unidade}</TableCell>
-                      <TableCell className="py-2">{row.proprietario}</TableCell>
-                      <TableCell className="py-2 text-slate-500">{row.email}</TableCell>
+                      <TableCell className="py-2">{row.ownerName}</TableCell>
+                      <TableCell className="py-2 text-slate-500">{row.ownerEmail}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
              </Table>
           </div>
           )}
+
+          <p className="text-[10px] text-slate-400 leading-relaxed">
+            Novos proprietários recebem uma senha temporária de acesso automaticamente. E-mails já cadastrados no sistema são apenas vinculados à unidade.
+          </p>
 
           <Button 
             onClick={handleConfirmImport}
@@ -220,9 +230,14 @@ export default function GestaoCondominios() {
 
   const [unidadesList, setUnidadesList] = useState<UnidadeProprietario[]>([])
   const [buscaProprietario, setBuscaProprietario] = useState("")
+
+  // Campos do formulário de unidade
   const [unidadeInput, setUnidadeInput] = useState("")
   const [nomeProprietario, setNomeProprietario] = useState("")
   const [emailProprietario, setEmailProprietario] = useState("")
+  const [isAlugado, setIsAlugado] = useState(false)
+  const [nomeInquilino, setNomeInquilino] = useState("")
+  const [emailInquilino, setEmailInquilino] = useState("")
   const [isSavingUnit, setIsSavingUnit] = useState(false)
   
   const [editIdUnidade, setEditIdUnidade] = useState<number | null>(null)
@@ -247,7 +262,6 @@ export default function GestaoCondominios() {
 
   const fetchUnitsForCondo = async (condoId: number) => {
     try {
-      // Rota corrigida para bater no UnitController isolado
       const response = await fetch(`http://localhost:8080/api/v1/units/condominium/${condoId}`, {
         headers: {
           Authorization: `Bearer ${getToken()}`
@@ -358,10 +372,24 @@ export default function GestaoCondominios() {
     }
   }
 
+  const resetFormUnidade = () => {
+    setUnidadeInput("")
+    setNomeProprietario("")
+    setEmailProprietario("")
+    setIsAlugado(false)
+    setNomeInquilino("")
+    setEmailInquilino("")
+    setEditIdUnidade(null)
+  }
+
   const handleSaveUnidade = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!unidadeInput || !nomeProprietario || !selectedCondo) {
-      alert("Preencha a unidade e o nome do proprietário.")
+    if (!unidadeInput || !nomeProprietario || !emailProprietario || !selectedCondo) {
+      alert("Preencha unidade, nome e e-mail do proprietário.")
+      return
+    }
+    if (isAlugado && (!nomeInquilino || !emailInquilino)) {
+      alert("Preencha nome e e-mail do inquilino, já que a unidade está marcada como alugada.")
       return
     }
 
@@ -369,15 +397,16 @@ export default function GestaoCondominios() {
     try {
       const payload = {
         unit: unidadeInput,
-        name: nomeProprietario,
-        email: emailProprietario || "N/D",
-        role: "PROPRIETARY",
-        condominiumId: selectedCondo.id
+        ownerName: nomeProprietario,
+        ownerEmail: emailProprietario,
+        rented: isAlugado,
+        tenantName: isAlugado ? nomeInquilino : undefined,
+        tenantEmail: isAlugado ? emailInquilino : undefined,
       }
 
       const url = editIdUnidade !== null 
         ? `http://localhost:8080/api/v1/units/${editIdUnidade}`
-        : `http://localhost:8080/api/v1/units`
+        : `http://localhost:8080/api/v1/units?condominiumId=${selectedCondo.id}`
 
       const method = editIdUnidade !== null ? "PUT" : "POST"
 
@@ -392,10 +421,7 @@ export default function GestaoCondominios() {
 
       if (response.ok) {
         fetchUnitsForCondo(selectedCondo.id)
-        setUnidadeInput("")
-        setNomeProprietario("")
-        setEmailProprietario("")
-        setEditIdUnidade(null)
+        resetFormUnidade()
       }
     } catch (error) {
       console.error("Erro ao salvar proprietário:", error)
@@ -408,8 +434,11 @@ export default function GestaoCondominios() {
     if (item.id) {
       setEditIdUnidade(item.id)
       setUnidadeInput(item.unidade)
-      setNomeProprietario(item.proprietario)
-      setEmailProprietario(item.email)
+      setNomeProprietario(item.ownerName)
+      setEmailProprietario(item.ownerEmail)
+      setIsAlugado(item.rented)
+      setNomeInquilino(item.tenantName || "")
+      setEmailInquilino(item.tenantEmail || "")
     }
   }
 
@@ -439,9 +468,10 @@ export default function GestaoCondominios() {
   )
 
   const unidadesFiltradas = unidadesList.filter(item =>
-    item.proprietario?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
+    item.ownerName?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
     item.unidade?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
-    item.email?.toLowerCase().includes(buscaProprietario.toLowerCase())
+    item.ownerEmail?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
+    item.tenantName?.toLowerCase().includes(buscaProprietario.toLowerCase())
   )
 
   return (
@@ -642,6 +672,7 @@ export default function GestaoCondominios() {
                         <Dialog onOpenChange={(open) => {
                           if (open) {
                             setSelectedCondo(condo)
+                            resetFormUnidade()
                             fetchUnitsForCondo(condo.id)
                           }
                         }}>
@@ -652,53 +683,102 @@ export default function GestaoCondominios() {
                               </Button>
                             </DialogTrigger>
                           </TooltipProvider>
-                          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+                          <DialogContent className="sm:max-w-[760px] max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle className="flex items-center gap-2 text-xl">
                                  <Home className="text-emerald-600" /> Unidades e Proprietários: {condo.name}
                               </DialogTitle>
-                              <DialogDescription>Cadastre proprietários com perfil PROPRIETARY, importe via planilha CSV ou filtre.</DialogDescription>
+                              <DialogDescription>Cadastre proprietários e, se a unidade estiver alugada, o inquilino responsável. Contas de acesso são criadas automaticamente.</DialogDescription>
                             </DialogHeader>
                              
                             <div className="space-y-6 py-4">
-                              <form onSubmit={handleSaveUnidade} className="grid grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-inner">
-                                 <div className="space-y-1.5">
-                                  <Label className="text-[10px] uppercase font-black text-slate-500">Unidade</Label>
-                                  <Input 
-                                    placeholder="Apto 101" 
-                                    className="h-9 text-sm bg-white" 
-                                    value={unidadeInput}
-                                    onChange={(e) => setUnidadeInput(e.target.value)}
-                                  />
-                                 </div>
-                                 <div className="space-y-1.5 col-span-2">
-                                  <Label className="text-[10px] uppercase font-black text-slate-500">Proprietário (Nome e E-mail)</Label>
-                                  <div className="space-y-1">
+                              <form onSubmit={handleSaveUnidade} className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-inner">
+                                <div className="grid grid-cols-4 gap-3">
+                                  <div className="space-y-1.5">
+                                    <Label className="text-[10px] uppercase font-black text-slate-500">Unidade</Label>
                                     <Input 
-                                      placeholder="Nome Completo" 
+                                      placeholder="Apto 101" 
                                       className="h-9 text-sm bg-white" 
-                                      value={nomeProprietario}
-                                      onChange={(e) => setNomeProprietario(e.target.value)}
-                                    />
-                                    <Input 
-                                      placeholder="E-mail" 
-                                      type="email" 
-                                      className="h-9 text-sm bg-white" 
-                                      value={emailProprietario}
-                                      onChange={(e) => setEmailProprietario(e.target.value)}
+                                      value={unidadeInput}
+                                      onChange={(e) => setUnidadeInput(e.target.value)}
                                     />
                                   </div>
-                                 </div>
-                                 <div className="flex items-end">
+                                  <div className="space-y-1.5 col-span-2">
+                                    <Label className="text-[10px] uppercase font-black text-slate-500">Proprietário (Nome e E-mail)</Label>
+                                    <div className="space-y-1">
+                                      <Input 
+                                        placeholder="Nome Completo" 
+                                        className="h-9 text-sm bg-white" 
+                                        value={nomeProprietario}
+                                        onChange={(e) => setNomeProprietario(e.target.value)}
+                                      />
+                                      <Input 
+                                        placeholder="E-mail" 
+                                        type="email" 
+                                        className="h-9 text-sm bg-white" 
+                                        value={emailProprietario}
+                                        onChange={(e) => setEmailProprietario(e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex items-end">
+                                    <Button 
+                                      type="submit"
+                                      disabled={isSavingUnit}
+                                      className={`w-full h-[72px] gap-2 font-bold text-xs uppercase ${editIdUnidade !== null ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                                    >
+                                      {isSavingUnit && <Loader2 size={16} className="animate-spin" />}
+                                      <Plus size={16}/> {editIdUnidade !== null ? 'Salvar' : 'Add'}
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-1">
+                                  <Checkbox 
+                                    id="alugado" 
+                                    checked={isAlugado}
+                                    onCheckedChange={(checked) => setIsAlugado(checked === true)}
+                                  />
+                                  <Label htmlFor="alugado" className="text-xs font-bold text-slate-600 cursor-pointer">
+                                    Unidade está alugada
+                                  </Label>
+                                </div>
+
+                                {isAlugado && (
+                                  <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200 mt-1">
+                                    <div className="space-y-1.5 pt-2">
+                                      <Label className="text-[10px] uppercase font-black text-slate-500">Inquilino (Nome)</Label>
+                                      <Input 
+                                        placeholder="Nome Completo" 
+                                        className="h-9 text-sm bg-white" 
+                                        value={nomeInquilino}
+                                        onChange={(e) => setNomeInquilino(e.target.value)}
+                                      />
+                                    </div>
+                                    <div className="space-y-1.5 pt-2">
+                                      <Label className="text-[10px] uppercase font-black text-slate-500">Inquilino (E-mail)</Label>
+                                      <Input 
+                                        placeholder="E-mail" 
+                                        type="email" 
+                                        className="h-9 text-sm bg-white" 
+                                        value={emailInquilino}
+                                        onChange={(e) => setEmailInquilino(e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+
+                                {editIdUnidade !== null && (
                                   <Button 
-                                    type="submit"
-                                    disabled={isSavingUnit}
-                                    className={`w-full h-[72px] gap-2 font-bold text-xs uppercase ${editIdUnidade !== null ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="text-[10px] h-7 text-slate-400"
+                                    onClick={resetFormUnidade}
                                   >
-                                    {isSavingUnit && <Loader2 size={16} className="animate-spin" />}
-                                    <Plus size={16}/> {editIdUnidade !== null ? 'Salvar' : 'Add'}
+                                    Cancelar edição
                                   </Button>
-                                 </div>
+                                )}
                               </form>
 
                               <div className="space-y-3">
@@ -718,13 +798,14 @@ export default function GestaoCondominios() {
                                   </div>
                                 </div>
 
-                                <div className="border rounded-md max-h-[180px] overflow-y-auto bg-white">
+                                <div className="border rounded-md max-h-[220px] overflow-y-auto bg-white">
                                   <Table>
                                     <TableHeader className="bg-slate-50 sticky top-0">
                                       <TableRow className="text-[10px] uppercase">
                                         <TableHead className="h-8">Unidade</TableHead>
                                         <TableHead className="h-8">Proprietário</TableHead>
-                                        <TableHead className="h-8">E-mail</TableHead>
+                                        <TableHead className="h-8">Alugado</TableHead>
+                                        <TableHead className="h-8">Inquilino</TableHead>
                                         <TableHead className="h-8 text-right">Ações</TableHead>
                                       </TableRow>
                                     </TableHeader>
@@ -733,8 +814,31 @@ export default function GestaoCondominios() {
                                         unidadesFiltradas.map((item, idx) => (
                                           <TableRow key={idx} className="text-xs">
                                             <TableCell className="font-bold">{item.unidade}</TableCell>
-                                            <TableCell>{item.proprietario}</TableCell>
-                                            <TableCell className="text-slate-500">{item.email}</TableCell>
+                                            <TableCell>
+                                              <div className="flex flex-col">
+                                                <span>{item.ownerName}</span>
+                                                <span className="text-slate-400 text-[10px]">{item.ownerEmail}</span>
+                                              </div>
+                                            </TableCell>
+                                            <TableCell>
+                                              {item.rented ? (
+                                                <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-2 text-[10px]">
+                                                  <KeyRound size={10} className="mr-1" /> Sim
+                                                </Badge>
+                                              ) : (
+                                                <Badge variant="outline" className="text-[10px] text-slate-400 border-slate-200">Não</Badge>
+                                              )}
+                                            </TableCell>
+                                            <TableCell>
+                                              {item.rented && item.tenantName ? (
+                                                <div className="flex flex-col">
+                                                  <span>{item.tenantName}</span>
+                                                  <span className="text-slate-400 text-[10px]">{item.tenantEmail}</span>
+                                                </div>
+                                              ) : (
+                                                <span className="text-slate-300">—</span>
+                                              )}
+                                            </TableCell>
                                             <TableCell className="text-right space-x-1">
                                               <Button 
                                                 variant="ghost" 
@@ -757,7 +861,7 @@ export default function GestaoCondominios() {
                                         ))
                                       ) : (
                                         <TableRow>
-                                          <TableCell colSpan={4} className="text-center py-4 text-slate-400 text-xs">
+                                          <TableCell colSpan={5} className="text-center py-4 text-slate-400 text-xs">
                                             Nenhum proprietário encontrado com esse termo.
                                           </TableCell>
                                         </TableRow>

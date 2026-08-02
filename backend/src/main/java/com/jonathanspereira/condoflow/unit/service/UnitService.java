@@ -1,18 +1,39 @@
 package com.jonathanspereira.condoflow.unit.service;
 
+import com.jonathanspereira.condoflow.condominium.entity.Condominium;
+import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
+import com.jonathanspereira.condoflow.unit.dto.UnitRequestDTO;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
+import com.jonathanspereira.condoflow.user.entity.Role;
+import com.jonathanspereira.condoflow.user.entity.User;
+import com.jonathanspereira.condoflow.user.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UnitService {
 
+    private static final Logger log = LoggerFactory.getLogger(UnitService.class);
+
     @Autowired
     private UnitRepository unitRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CondominiumRepository condominiumRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<Unit> listarPorCondominio(Long condominiumId) {
         return unitRepository.findByCondominiumId(condominiumId);
@@ -22,24 +43,72 @@ public class UnitService {
         return unitRepository.findById(id);
     }
 
-    public Unit salvar(Long condominiumId, Unit unitData) {
-        unitData.setCondominiumId(condominiumId);
-        return unitRepository.save(unitData);
+    public Unit salvar(Long condominiumId, UnitRequestDTO dto) {
+        User owner = resolveOrCreateUser(dto.getOwnerName(), dto.getOwnerEmail(), Role.PROPRIETARY, condominiumId);
+
+        User tenant = null;
+        if (dto.isRented()) {
+            if (dto.getTenantEmail() == null || dto.getTenantEmail().isBlank()) {
+                throw new IllegalArgumentException("E-mail do inquilino é obrigatório quando a unidade está marcada como alugada.");
+            }
+            tenant = resolveOrCreateUser(dto.getTenantName(), dto.getTenantEmail(), Role.TENANT, condominiumId);
+        }
+
+        Unit unit = new Unit();
+        unit.setUnit(dto.getUnit());
+        unit.setCondominiumId(condominiumId);
+        unit.setOwner(owner);
+        unit.setRented(dto.isRented());
+        unit.setTenant(tenant);
+
+        return unitRepository.save(unit);
     }
 
-    public Unit atualizar(Long id, Unit unitData) {
+    public Unit atualizar(Long id, UnitRequestDTO dto) {
         return unitRepository.findById(id).map(unit -> {
-            unit.setUnit(unitData.getUnit());
-            unit.setName(unitData.getName());
-            unit.setEmail(unitData.getEmail());
-            if (unitData.getRole() != null) {
-                unit.setRole(unitData.getRole());
+            unit.setUnit(dto.getUnit());
+
+            User owner = resolveOrCreateUser(dto.getOwnerName(), dto.getOwnerEmail(), Role.PROPRIETARY, unit.getCondominiumId());
+            unit.setOwner(owner);
+
+            unit.setRented(dto.isRented());
+            if (dto.isRented()) {
+                User tenant = resolveOrCreateUser(dto.getTenantName(), dto.getTenantEmail(), Role.TENANT, unit.getCondominiumId());
+                unit.setTenant(tenant);
+            } else {
+                unit.setTenant(null);
             }
+
             return unitRepository.save(unit);
         }).orElseThrow(() -> new RuntimeException("Unidade não encontrada com o ID: " + id));
     }
 
     public void deletar(Long id) {
         unitRepository.deleteById(id);
+    }
+
+    private User resolveOrCreateUser(String name, String email, Role role, Long condominiumId) {
+        User existing = (User) userRepository.findByEmail(email);
+        if (existing != null) {
+            return existing;
+        }
+
+        Condominium condominium = condominiumRepository.findById(condominiumId)
+                .orElseThrow(() -> new RuntimeException("Condomínio não encontrado: " + condominiumId));
+
+        String tempPassword = "tempPassword123"; // UUID.randomUUID().toString().substring(0, 10);
+
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(tempPassword));
+        user.setRole(role);
+        user.setCondominium(condominium);
+
+        User saved = userRepository.save(user);
+
+        log.info("Usuário {} criado com senha temporária: {}", saved.getEmail(), tempPassword);
+
+        return saved;
     }
 }

@@ -35,4 +35,5 @@ public class DatabaseSeeder implements CommandLineRunner {
             System.out.println("✅ Super Admin padrão criado com sucesso: " + adminEmail);
         }
     }
+
 }

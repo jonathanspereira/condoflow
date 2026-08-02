@@ -1,33 +1,32 @@
 package com.jonathanspereira.condoflow.unit.entity;
 
+import com.jonathanspereira.condoflow.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "tb_units")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "tb_units")
 public class Unit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String unit; // Ex: Apto 101
-
-    @Column(nullable = false)
-    private String name; // Nome do proprietário/morador
-
-    @Column(nullable = false)
-    private String email;
-
-    @Column(nullable = false)
-    private String role; // Ex: PROPRIETARY
+    @Column(name = "unit", nullable = false)
+    private String unit;
 
     @Column(name = "condominium_id", nullable = false)
     private Long condominiumId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+
+    @Column(name = "rented", nullable = false)
+    private boolean rented = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id")
+    private User tenant;
 }
