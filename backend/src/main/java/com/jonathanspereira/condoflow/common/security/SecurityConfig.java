@@ -38,8 +38,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
+                        // Permite que admins, síndicos e proprietários cadastrem inquilinos
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/tenant").hasAnyAuthority("SUPER_ADMIN", "ADMIN", "PROPRIETARY")
                         .requestMatchers("/api/v1/condominiums/**").hasAuthority("SUPER_ADMIN")
-                        .requestMatchers("/api/v1/units/**").hasAuthority("SUPER_ADMIN") // <--- Adicionado para liberar as unidades
+                        .requestMatchers("/api/v1/units/**").hasAuthority("SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

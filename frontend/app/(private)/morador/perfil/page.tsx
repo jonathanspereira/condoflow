@@ -23,10 +23,11 @@ import {
 interface UserProfile {
   name: string
   email: string
-  condominiumName: string
-  tower: string
-  unit: string
-  isRented: boolean
+  condominiumName?: string
+  unitId?: number
+  unitName?: string
+  role: string
+  isRented?: boolean
   tenantName?: string
   tenantEmail?: string
 }
@@ -38,13 +39,11 @@ export default function PerfilPage() {
   const [errorMsg, setErrorMsg] = useState("")
   const [successMsg, setSuccessMsg] = useState("")
 
-  // Dados do Perfil e Unidade
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     email: "",
     condominiumName: "",
-    tower: "",
-    unit: "",
+    role: "",
     isRented: false,
     tenantName: "",
     tenantEmail: ""
@@ -56,12 +55,36 @@ export default function PerfilPage() {
 
   const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : ""
 
-  // Buscar dados reais do backend ao carregar a página
+  const traduzirRole = (role?: string) => {
+    if (!role) return "Usuário"
+    const roles: Record<string, string> = {
+      "PROPRIETARY": "Proprietário",
+      "TENANT": "Inquilino",
+      "ADMIN": "Administrador",
+      "SUPER_ADMIN": "Super Admin"
+    }
+    return roles[role] || role
+  }
+
+  const showTempMessage = (type: "success" | "error", msg: string) => {
+    if (type === "success") {
+      setSuccessMsg(msg)
+      setErrorMsg("")
+    } else {
+      setErrorMsg(msg)
+      setSuccessMsg("")
+    }
+    setTimeout(() => {
+      setSuccessMsg("")
+      setErrorMsg("")
+    }, 6000)
+  }
+
   useEffect(() => {
     async function fetchProfileData() {
       setIsLoading(true)
       try {
-        const response = await fetch("http://localhost:8080/api/v1/profile", {
+        const response = await fetch("http://localhost:8080/api/v1/users/me", {
           headers: {
             Authorization: `Bearer ${getToken()}`
           }
@@ -72,9 +95,12 @@ export default function PerfilPage() {
           setNovoEmail(data.email || "")
           setNomeInq(data.tenantName || "")
           setEmailInq(data.tenantEmail || "")
+        } else {
+          showTempMessage("error", "Não foi possível carregar os dados do perfil.")
         }
       } catch (error) {
         console.error("Erro ao carregar perfil:", error)
+        showTempMessage("error", "Erro de conexão com o servidor.")
       } finally {
         setIsLoading(false)
       }
@@ -83,52 +109,66 @@ export default function PerfilPage() {
     fetchProfileData()
   }, [])
 
-  // Atualizar E-mail no Backend
   const handleUpdateEmail = async () => {
     setIsSavingEmail(true)
     setErrorMsg("")
     setSuccessMsg("")
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/profile/email", {
+      const response = await fetch("http://localhost:8080/api/v1/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`
         },
-        body: JSON.stringify({ email: novoEmail })
+        body: JSON.stringify({ 
+          name: profile.name,
+          email: novoEmail,
+          role: profile.role 
+        })
       })
 
       if (response.ok) {
         setProfile(prev => ({ ...prev, email: novoEmail }))
-        setSuccessMsg("E-mail atualizado com sucesso!")
+        showTempMessage("success", "E-mail atualizado com sucesso!")
       } else {
-        setErrorMsg("Não foi possível atualizar o e-mail.")
+        showTempMessage("error", "Não foi possível atualizar o e-mail.")
       }
     } catch (error) {
       console.error("Erro ao atualizar e-mail:", error)
-      setErrorMsg("Erro de conexão com o servidor.")
+      showTempMessage("error", "Erro de conexão com o servidor.")
     } finally {
       setIsSavingEmail(false)
     }
   }
 
-  // Registrar/Atualizar Inquilino com a role de RESIDENT no Backend
   const handleUpdateTenant = async () => {
+    if (!profile.unitId) {
+      showTempMessage("error", "Erro: O seu perfil não possui uma unidade (Apto) atrelada para registrar inquilinos.")
+      return
+    }
+
+    if (profile.isRented && (!nomeInq || !emailInq)) {
+      showTempMessage("error", "Preencha o nome e o e-mail do inquilino antes de prosseguir.")
+      return
+    }
+
     setIsSavingTenant(true)
     setErrorMsg("")
     setSuccessMsg("")
 
     try {
       const payload = {
+        name: nomeInq || "Inquilino",
+        email: emailInq,
+        password: "TempPassword123@", 
+        role: "TENANT",
         isRented: profile.isRented,
-        tenantName: nomeInq,
-        tenantEmail: emailInq,
-        role: "RESIDENT" // Atribuindo explicitamente a role de morador/inquilino
+        unitId: profile.unitId // Envia o ID para o Backend saber quem atualizar!
       }
 
-      const response = await fetch("http://localhost:8080/api/v1/profile/unit", {
-        method: "PUT",
+      const response = await fetch("http://localhost:8080/api/v1/users/tenant", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`
@@ -137,13 +177,16 @@ export default function PerfilPage() {
       })
 
       if (response.ok) {
-        setSuccessMsg("Inquilino registrado com a role de residente (RESIDENT) com sucesso!")
+        showTempMessage("success", profile.isRented 
+          ? `Inquilino ${nomeInq} registrado com sucesso! A unidade foi atualizada.`
+          : "Inquilino removido e unidade marcada como residência própria.")
       } else {
-        setErrorMsg("Não foi possível registrar o inquilino.")
+        const errData = await response.json().catch(() => null)
+        showTempMessage("error", errData?.message || "Não foi possível registrar o inquilino. Este e-mail pode já estar em uso.")
       }
     } catch (error) {
       console.error("Erro ao registrar inquilino:", error)
-      setErrorMsg("Erro de conexão com o servidor.")
+      showTempMessage("error", "Erro de conexão com o servidor. Tente novamente mais tarde.")
     } finally {
       setIsSavingTenant(false)
     }
@@ -157,13 +200,13 @@ export default function PerfilPage() {
       </header>
 
       {successMsg && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm p-3 rounded-md font-medium">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm p-4 rounded-md font-bold flex items-center transition-all">
           {successMsg}
         </div>
       )}
 
       {errorMsg && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-md font-medium">
+        <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-4 rounded-md font-bold flex items-center transition-all">
           {errorMsg}
         </div>
       )}
@@ -175,7 +218,6 @@ export default function PerfilPage() {
           <TabsTrigger value="notificacoes" className="gap-2"><Bell className="h-4 w-4" /> Avisos</TabsTrigger>
         </TabsList>
 
-        {/* --- ABA DADOS PESSOAIS --- */}
         <TabsContent value="dados">
           <Card>
             <CardHeader>
@@ -209,7 +251,6 @@ export default function PerfilPage() {
           </Card>
         </TabsContent>
 
-        {/* --- ABA GESTÃO DE UNIDADE --- */}
         <TabsContent value="unidade">
           <Card className="border-blue-100 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -217,28 +258,25 @@ export default function PerfilPage() {
                 <CardTitle>Gestão da Unidade</CardTitle>
                 <CardDescription>Controle quem reside no seu imóvel atualmente.</CardDescription>
               </div>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1">
-                Proprietário
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1 font-semibold uppercase tracking-wider text-[11px]">
+                {traduzirRole(profile.role)}
               </Badge>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-lg bg-slate-100/50 border border-slate-200">
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg bg-slate-100/50 border border-slate-200">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-slate-500 uppercase">Condomínio</span>
-                  <span className="text-sm font-semibold">{profile.condominiumName || "Carregando..."}</span>
+                  <span className="text-sm font-semibold mt-0.5">{profile.condominiumName || "Não vinculado"}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">Bloco</span>
-                  <span className="text-sm font-semibold">{profile.tower || "Carregando..."}</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Unidade</span>
+                  <span className="text-sm font-semibold mt-0.5">{profile.unitName || "N/A"}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">Fração / Apto</span>
-                  <span className="text-sm font-semibold">{profile.unit || "Carregando..."}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">Status</span>
-                  <Badge className={profile.isRented ? "bg-amber-100 text-amber-700 hover:bg-amber-100" : "bg-green-100 text-green-700 hover:bg-green-100"} variant="secondary">
-                    {profile.isRented ? "Alugado" : "Residência Própria"}
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Status de Ocupação</span>
+                  <Badge className={profile.isRented ? "bg-amber-100 text-amber-700 hover:bg-amber-100 w-fit mt-1" : "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 w-fit mt-1"} variant="secondary">
+                    {profile.isRented ? "Alugado a Terceiros" : "Residência Própria"}
                   </Badge>
                 </div>
               </div>
@@ -251,7 +289,13 @@ export default function PerfilPage() {
                   variant={profile.isRented ? "destructive" : "outline"} 
                   size="sm" 
                   className="gap-2"
-                  onClick={() => setProfile(prev => ({ ...prev, isRented: !prev.isRented }))}
+                  onClick={() => {
+                    setProfile(prev => ({ ...prev, isRented: !prev.isRented }))
+                    if (profile.isRented) {
+                      setNomeInq("")
+                      setEmailInq("")
+                    }
+                  }}
                 >
                   {profile.isRented ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
                   {profile.isRented ? "Remover Inquilino" : "Registrar Inquilino"}
@@ -268,6 +312,7 @@ export default function PerfilPage() {
                         placeholder="Nome completo do morador" 
                         value={nomeInq}
                         onChange={(e) => setNomeInq(e.target.value)}
+                        className="bg-white"
                       />
                     </div>
                     <div className="space-y-2">
@@ -278,6 +323,7 @@ export default function PerfilPage() {
                         placeholder="inquilino@email.com" 
                         value={emailInq}
                         onChange={(e) => setEmailInq(e.target.value)}
+                        className="bg-white"
                       />
                     </div>
                   </div>
@@ -285,15 +331,15 @@ export default function PerfilPage() {
                     <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
                     <div className="text-xs text-blue-800 space-y-1">
                       <p className="font-bold">Como funciona o acesso do inquilino?</p>
-                      <p>1. O inquilino receberá um e-mail para ativar a conta com perfil de <strong>Residente (RESIDENT)</strong>.</p>
+                      <p>1. O inquilino receberá um e-mail para ativar a conta com perfil de <strong>Inquilino</strong>.</p>
                       <p>2. Ele poderá abrir ocorrências e consultar o histórico enquanto o contrato estiver ativo.</p>
-                      <p>3. <strong>Você continuará a receber cópias de todas as notificações.</strong></p>
+                      <p>3. <strong>Você continuará a receber cópias de todas as notificações do sistema.</strong></p>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="py-10 text-center border-2 border-dashed rounded-xl">
-                  <p className="text-slate-500 text-sm italic">Atualmente, você está registrado como residente desta unidade.</p>
+                <div className="py-10 text-center border-2 border-dashed rounded-xl bg-slate-50/50">
+                  <p className="text-slate-500 text-sm font-medium">Você está registrado como morador e responsável atual desta unidade.</p>
                 </div>
               )}
             </CardContent>
@@ -306,7 +352,6 @@ export default function PerfilPage() {
           </Card>
         </TabsContent>
 
-        {/* --- ABA NOTIFICAÇÕES --- */}
         <TabsContent value="notificacoes">
           <Card>
             <CardHeader>

@@ -38,7 +38,7 @@ export default function LoginMoradorPage() {
           localStorage.setItem("condoflow_token", data.token)
         }
 
-        router.push("/morador/dashboard")
+        router.push("/morador/minhas-ocorrencias")
       } else {
         setErrorMsg("E-mail ou senha inválidos. Verifique suas credenciais.")
       }

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -18,6 +19,19 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> getMyProfile(Principal principal) {
+        String email = principal.getName();
+        UserResponseDTO response = userService.findByEmail(email);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserResponseDTO> updateMyProfile(@RequestBody UserRequestDTO dto, Principal principal) {
+        UserResponseDTO response = userService.updateMyProfile(principal.getName(), dto);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping
     public ResponseEntity<UserResponseDTO> create(@RequestBody @Valid UserRequestDTO requestDTO) {
@@ -41,5 +55,11 @@ public class UserController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/tenant")
+    public ResponseEntity<UserResponseDTO> manageTenant(@RequestBody UserRequestDTO dto, Principal principal) {
+        UserResponseDTO response = userService.manageTenant(principal.getName(), dto);
+        return ResponseEntity.ok(response);
     }
 }

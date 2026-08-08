@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -41,17 +41,54 @@ const MENU_SINDICO = [
   { name: "Moradores", href: "/sindico/moradores", icon: Users },
 ]
 
+interface HeaderUser {
+  name: string
+  unitName?: string
+  condominiumName?: string
+}
+
 export default function PrivateLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = useState(true)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [userData, setUserData] = useState<HeaderUser | null>(null)
 
   // Lógica para determinar o contexto
   const isAreaSindico = pathname.startsWith("/sindico")
   const isSeletorCondominio = pathname === "/sindico/condominio"
   const menuAtual = isAreaSindico ? MENU_SINDICO : MENU_MORADOR
   const activeMenuIndex = menuAtual.findIndex((item) => pathname === item.href)
+
+  const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
+
+  const getInitials = (name?: string) => {
+    if (!name) return "?"
+    const parts = name.trim().split(/\s+/)
+    const first = parts[0]?.[0] || ""
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : ""
+    return (first + last).toUpperCase()
+  }
+
+  useEffect(() => {
+    async function fetchHeaderData() {
+      try {
+        const response = await fetch("http://localhost:8080/api/v1/users/me", {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setUserData(data)
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados do usuário no header:", error)
+      }
+    }
+
+    fetchHeaderData()
+  }, [])
 
   const handleProfileClick = () => {
     if (isAreaSindico) {
@@ -156,7 +193,9 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 w-9 rounded-full p-0">
                   <Avatar className="h-9 w-9 border-2 border-slate-100">
-                    <AvatarFallback className="bg-primary text-white text-[10px] font-bold">JS</AvatarFallback>
+                    <AvatarFallback className="bg-primary text-white text-[10px] font-bold">
+                      {getInitials(userData?.name)}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -221,12 +260,17 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                         Módulo Administrativo
                     </Badge>
                     <span className="text-sm font-bold text-slate-700 hidden sm:block italic">
-                        Solar das Palmeiras
+                        {userData?.condominiumName || "Carregando..."}
                     </span>
                 </div>
             ) : (
                 <h2 className="text-sm font-medium text-slate-500 hidden sm:block">
-                  Morador: <span className="text-slate-900 font-bold tracking-tight">Jonathan Silva (Apto 402)</span>
+                  Morador:{" "}
+                  <span className="text-slate-900 font-bold tracking-tight">
+                    {userData
+                      ? `${userData.name}${userData.unitName ? ` - ${userData.unitName}` : ""}`
+                      : "Carregando..."}
+                  </span>
                 </h2>
             )}
           </div>
@@ -242,7 +286,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                  <Button variant="ghost" className="h-9 w-9 rounded-full p-0">
                    <Avatar className="h-9 w-9 border-2 border-slate-100">
                       <AvatarFallback className="bg-primary text-white text-[10px] font-bold">
-                          JS
+                          {getInitials(userData?.name)}
                       </AvatarFallback>
                    </Avatar>
                  </Button>
