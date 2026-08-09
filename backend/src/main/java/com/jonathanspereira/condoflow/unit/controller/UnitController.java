@@ -1,5 +1,6 @@
 package com.jonathanspereira.condoflow.unit.controller;
 
+import com.jonathanspereira.condoflow.unit.dto.UnitCheckResponseDTO;
 import com.jonathanspereira.condoflow.unit.dto.UnitRequestDTO;
 import com.jonathanspereira.condoflow.unit.dto.UnitResponseDTO;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
@@ -7,6 +8,7 @@ import com.jonathanspereira.condoflow.unit.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,5 +44,19 @@ public class UnitController {
     public ResponseEntity<Void> deletarUnidade(@PathVariable Long id) {
         unitService.deletar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<UnitCheckResponseDTO> verificarUnidade(
+            @RequestParam String name,
+            Authentication authentication) {
+
+        Long condominiumId = unitService.obterCondominioDoUsuarioLogado(authentication.getName());
+
+        return unitService.buscarPorCondominioEUnidade(condominiumId, name)
+                .map(unit -> ResponseEntity.ok(
+                        new UnitCheckResponseDTO(true, unit.getId(), unit.getUnit())))
+                .orElseGet(() -> ResponseEntity.ok(
+                        new UnitCheckResponseDTO(false, null, name)));
     }
 }

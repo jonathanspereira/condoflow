@@ -1,6 +1,8 @@
 package com.jonathanspereira.condoflow.occurrence.dto;
 
+import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceCategory;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record OccurrenceRequestDTO(
         @NotBlank(message = "O título é obrigatório")
@@ -9,6 +11,6 @@ public record OccurrenceRequestDTO(
         @NotBlank(message = "A descrição é obrigatória")
         String description,
 
-        @NotBlank(message = "O ID do condomínio é obrigatório")
-        String condominiumId
+        @NotNull(message = "A categoria é obrigatória")
+        OccurrenceCategory category
 ) {}

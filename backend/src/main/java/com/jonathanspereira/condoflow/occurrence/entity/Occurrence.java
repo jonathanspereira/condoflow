@@ -1,10 +1,13 @@
 package com.jonathanspereira.condoflow.occurrence.entity;
 
+import com.jonathanspereira.condoflow.condominium.entity.Condominium;
+import com.jonathanspereira.condoflow.unit.entity.Unit;
+import com.jonathanspereira.condoflow.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import com.jonathanspereira.condoflow.condominium.entity.Condominium;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -15,6 +18,7 @@ public class Occurrence {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String protocol;
 
     private String title;
@@ -22,11 +26,35 @@ public class Occurrence {
     private String description;
 
     @Enumerated(EnumType.STRING)
+    private OccurrenceCategory category;
+
+    @Enumerated(EnumType.STRING)
     private OccurrenceStatus status;
 
     @ManyToOne
     private Condominium condominium;
 
+    @ManyToOne
+    @JoinColumn(name = "unit_id")
+    private Unit unit;
+
+    @ManyToOne
+    @JoinColumn(name = "reported_by_id")
+    private User reportedBy;
+
     private LocalDateTime createdAt;
 
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        if (this.protocol == null) {
+            this.protocol = generateProtocol();
+        }
+    }
+
+    private String generateProtocol() {
+        int year = LocalDateTime.now().getYear();
+        String suffix = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        return "CF-" + year + "-" + suffix;
+    }
 }

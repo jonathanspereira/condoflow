@@ -1,14 +1,14 @@
 "use client"
 
-import React, { useState } from "react"
-import Link from "next/link" 
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import React, { useState, useEffect, useRef } from "react"
+import Link from "next/link"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,14 +16,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { 
+import { Checkbox } from "@/components/ui/checkbox"
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -32,43 +33,207 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { 
-  Search, 
-  Eye, 
+import {
+  Search,
+  Eye,
   MessageSquare,
   Filter,
   Upload,
   X,
   FileVideo,
-  FileImage
+  FileImage,
+  Loader2,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react"
 
-// MOCK DE DADOS
-const MOCK_DATA = [
-  {
-    id: "CF-2026-A12",
-    titulo: "Lâmpada queimada no corredor",
-    status: "CONCLUIDO",
-    data: "20/04/2026",
-    categoria: "Manutenção"
-  },
-  {
-    id: "CF-2026-B05",
-    titulo: "Barulho excessivo apto 502",
-    status: "EM_EXECUCAO",
-    data: "22/04/2026",
-    categoria: "Convivência"
-  }
-]
+interface Occurrence {
+  id: string
+  protocol: string
+  title: string
+  description: string
+  category: string
+  status: string
+  condominiumName: string
+  unitName?: string
+  createdAt: string
+}
+
+const CATEGORIA_LABELS: Record<string, string> = {
+  MANUTENCAO: "Manutenção",
+  CONVIVENCIA: "Convivência",
+  LIMPEZA: "Limpeza",
+  SEGURANCA: "Segurança",
+  OUTROS: "Outros",
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  OPEN: "Aberto",
+  IN_PROGRESS: "Em Execução",
+  RESOLVED: "Resolvido",
+  CLOSED: "Concluído",
+}
+
+const STATUS_CONCLUIDOS = ["RESOLVED", "CLOSED"]
+
+type RelatedUnitStatus = "idle" | "checking" | "valid" | "not_found" | "same_unit" | "error" | "forbidden"
 
 export default function MinhasOcorrencias() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [categoria, setCategoria] = useState("")
-  const [unidadeRelacionada, setUnidadeRelacionada] = useState("")
   const [titulo, setTitulo] = useState("")
   const [descricao, setDescricao] = useState("")
   const [arquivos, setArquivos] = useState<File[]>([])
+
+  const [occurrences, setOccurrences] = useState<Occurrence[]>([])
+  const [isLoadingList, setIsLoadingList] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [unitLabel, setUnitLabel] = useState("") // unidade do próprio morador logado
+  const [formError, setFormError] = useState("")
+
+  // --- Unidade relacionada (deve ser DIFERENTE da unidade do morador) ---
+  const [hasRelatedUnit, setHasRelatedUnit] = useState(false)
+  const [relatedUnit, setRelatedUnit] = useState("")
+  const [relatedUnitId, setRelatedUnitId] = useState<string | null>(null)
+  const [relatedUnitStatus, setRelatedUnitStatus] = useState<RelatedUnitStatus>("idle")
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : ""
+
+  const traduzirCategoria = (cat: string) => CATEGORIA_LABELS[cat] || cat
+  const traduzirStatus = (status: string) => STATUS_LABELS[status] || status
+
+  const formatarData = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleDateString("pt-BR")
+    } catch {
+      return iso
+    }
+  }
+
+  const fetchOccurrences = async () => {
+    setIsLoadingList(true)
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/occurrences/me", {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setOccurrences(data)
+      }
+    } catch (error) {
+      console.error("Erro ao carregar ocorrências:", error)
+    } finally {
+      setIsLoadingList(false)
+    }
+  }
+
+  const fetchUnitLabel = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/users/me", {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setUnitLabel(data.unitName || "")
+      }
+    } catch (error) {
+      console.error("Erro ao carregar unidade do usuário:", error)
+    }
+  }
+
+  useEffect(() => {
+    fetchOccurrences()
+    fetchUnitLabel()
+  }, [])
+
+  // Normaliza para comparar (ex: "Apto 101" === "apto 101")
+  const normalizar = (valor: string) => valor.trim().toLowerCase()
+
+  // Verifica existência da unidade relacionada no backend, com debounce.
+  // Só roda quando o checkbox "Existe unidade relacionada?" está marcado.
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    if (!hasRelatedUnit) {
+      setRelatedUnitStatus("idle")
+      setRelatedUnitId(null)
+      return
+    }
+
+    const valor = relatedUnit.trim()
+
+    if (!valor) {
+      setRelatedUnitStatus("idle")
+      setRelatedUnitId(null)
+      return
+    }
+
+    // Regra: não pode ser a própria unidade do morador
+    if (unitLabel && normalizar(valor) === normalizar(unitLabel)) {
+      setRelatedUnitStatus("same_unit")
+      setRelatedUnitId(null)
+      return
+    }
+
+    setRelatedUnitStatus("checking")
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/v1/units/check?name=${encodeURIComponent(valor)}`,
+          { headers: { Authorization: `Bearer ${getToken()}` } }
+        )
+
+        if (response.ok) {
+          const data = await response.json()
+          // Backend retorna { exists: boolean, id: number, unit: string }
+          if (data?.exists) {
+            // dupla checagem: unidade encontrada não pode ser a mesma do morador logado
+            if (unitLabel && normalizar(data.unit || valor) === normalizar(unitLabel)) {
+              setRelatedUnitStatus("same_unit")
+              setRelatedUnitId(null)
+            } else {
+              setRelatedUnitStatus("valid")
+              setRelatedUnitId(data.id != null ? String(data.id) : null)
+            }
+          } else {
+            setRelatedUnitStatus("not_found")
+            setRelatedUnitId(null)
+          }
+        } else if (response.status === 403) {
+          // Backend recusou o acesso à rota (rota não mapeada ou role sem permissão)
+          setRelatedUnitStatus("forbidden")
+          setRelatedUnitId(null)
+        } else if (response.status === 404) {
+          setRelatedUnitStatus("not_found")
+          setRelatedUnitId(null)
+        } else {
+          setRelatedUnitStatus("error")
+          setRelatedUnitId(null)
+        }
+      } catch (error) {
+        console.error("Erro ao verificar unidade relacionada:", error)
+        setRelatedUnitStatus("error")
+        setRelatedUnitId(null)
+      }
+    }, 500)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [relatedUnit, unitLabel, hasRelatedUnit])
+
+  const relatedUnitMessage: Record<RelatedUnitStatus, string | null> = {
+    idle: null,
+    checking: "Verificando unidade...",
+    valid: "Unidade encontrada.",
+    not_found: "Nenhuma unidade encontrada com esse nome/número.",
+    same_unit: "A unidade relacionada não pode ser a sua própria unidade.",
+    error: "Não foi possível verificar a unidade agora. Tente novamente.",
+    forbidden: "Sem permissão para consultar unidades. Fale com o suporte/administrador do sistema.",
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -81,19 +246,77 @@ export default function MinhasOcorrencias() {
     setArquivos((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Aqui você adicionaria a lógica para enviar os dados para o backend (incluindo arquivos via FormData se necessário)
-    console.log({ categoria, unidadeRelacionada, titulo, descricao, arquivos })
-    
-    // Limpa e fecha o modal
+  const resetForm = () => {
     setCategoria("")
-    setUnidadeRelacionada("")
     setTitulo("")
     setDescricao("")
     setArquivos([])
-    setIsModalOpen(false)
+    setHasRelatedUnit(false)
+    setRelatedUnit("")
+    setRelatedUnitId(null)
+    setRelatedUnitStatus("idle")
   }
+
+  const handleToggleHasRelatedUnit = (checked: boolean) => {
+    setHasRelatedUnit(checked)
+    if (!checked) {
+      // limpa a busca ao desmarcar
+      setRelatedUnit("")
+      setRelatedUnitId(null)
+      setRelatedUnitStatus("idle")
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError("")
+
+    if (hasRelatedUnit && relatedUnitStatus !== "valid") {
+      setFormError("Informe uma unidade relacionada válida (diferente da sua) antes de enviar.")
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/occurrences", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({
+          title: titulo,
+          description: descricao,
+          category: categoria,
+          relatedUnitId: hasRelatedUnit ? relatedUnitId : null,
+          relatedUnitName: hasRelatedUnit ? relatedUnit : null,
+        })
+      })
+
+      if (response.ok) {
+        resetForm()
+        setIsModalOpen(false)
+        fetchOccurrences()
+      } else {
+        const errData = await response.json().catch(() => null)
+        setFormError(errData?.message || "Não foi possível registrar o relato.")
+      }
+    } catch (error) {
+      console.error("Erro ao registrar ocorrência:", error)
+      setFormError("Erro de conexão com o servidor.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const filtered = occurrences.filter((o) =>
+    o.title.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const total = occurrences.length
+  const emResolucao = occurrences.filter((o) => !STATUS_CONCLUIDOS.includes(o.status)).length
+  const resolvidos = occurrences.filter((o) => STATUS_CONCLUIDOS.includes(o.status)).length
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -104,7 +327,10 @@ export default function MinhasOcorrencias() {
         </div>
 
         {/* MODAL DE NOVO RELATO */}
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog open={isModalOpen} onOpenChange={(open) => {
+          setIsModalOpen(open)
+          if (!open) resetForm()
+        }}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <MessageSquare className="h-4 w-4" />
@@ -119,7 +345,13 @@ export default function MinhasOcorrencias() {
                   Preencha as informações abaixo para abrir uma nova ocorrência ou relato.
                 </DialogDescription>
               </DialogHeader>
-              
+
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-md font-medium mt-2">
+                  {formError}
+                </div>
+              )}
+
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="categoria">Categoria</Label>
@@ -138,21 +370,80 @@ export default function MinhasOcorrencias() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="unidade">Unidade Relacionada</Label>
-                  <Input 
-                    id="unidade"
-                    placeholder="Ex: Apto 102, Bloco B" 
-                    value={unidadeRelacionada}
-                    onChange={(e) => setUnidadeRelacionada(e.target.value)}
-                    required
-                  />
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="tem-unidade-relacionada"
+                      checked={hasRelatedUnit}
+                      onCheckedChange={(checked) => handleToggleHasRelatedUnit(checked === true)}
+                    />
+                    <Label htmlFor="tem-unidade-relacionada" className="cursor-pointer font-normal">
+                      Este relato está relacionado a outra unidade
+                    </Label>
+                  </div>
+
+                  {hasRelatedUnit && (
+                    <>
+                      <Label htmlFor="unidade-relacionada">Unidade Relacionada</Label>
+                      <div className="relative">
+                        <Input
+                          id="unidade-relacionada"
+                          placeholder="Digite a unidade relacionada ao relato (ex: Apto 302)"
+                          value={relatedUnit}
+                          onChange={(e) => setRelatedUnit(e.target.value)}
+                          required={hasRelatedUnit}
+                          className={
+                            relatedUnitStatus === "valid"
+                              ? "border-green-400 pr-9"
+                              : relatedUnitStatus === "not_found" ||
+                                relatedUnitStatus === "same_unit" ||
+                                relatedUnitStatus === "error" ||
+                                relatedUnitStatus === "forbidden"
+                              ? "border-red-400 pr-9"
+                              : "pr-9"
+                          }
+                        />
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                          {relatedUnitStatus === "checking" && (
+                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                          )}
+                          {relatedUnitStatus === "valid" && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          )}
+                          {(relatedUnitStatus === "not_found" ||
+                            relatedUnitStatus === "same_unit" ||
+                            relatedUnitStatus === "error" ||
+                            relatedUnitStatus === "forbidden") && (
+                            <AlertCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                      </div>
+                      {relatedUnitMessage[relatedUnitStatus] && (
+                        <p
+                          className={`text-xs ${
+                            relatedUnitStatus === "valid"
+                              ? "text-green-600"
+                              : relatedUnitStatus === "checking"
+                              ? "text-slate-500"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {relatedUnitMessage[relatedUnitStatus]}
+                        </p>
+                      )}
+                      {unitLabel && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Sua unidade: <span className="font-medium">{unitLabel}</span> (não pode ser usada aqui)
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 <div className="grid gap-2">
                   <Label htmlFor="titulo">O que está acontecendo?</Label>
-                  <Input 
+                  <Input
                     id="titulo"
-                    placeholder="Resumo curto do problema (ex: Vazamento na garagem)" 
+                    placeholder="Resumo curto do problema (ex: Vazamento na garagem)"
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     required
@@ -161,9 +452,9 @@ export default function MinhasOcorrencias() {
 
                 <div className="grid gap-2">
                   <Label htmlFor="descricao">Descrição Detalhada</Label>
-                  <Textarea 
+                  <Textarea
                     id="descricao"
-                    placeholder="Forneça o máximo de detalhes possível (local exato, horários, etc.)..." 
+                    placeholder="Forneça o máximo de detalhes possível (local exato, horários, etc.)..."
                     rows={4}
                     value={descricao}
                     onChange={(e) => setDescricao(e.target.value)}
@@ -175,10 +466,10 @@ export default function MinhasOcorrencias() {
                 <div className="grid gap-2">
                   <Label>Anexos (Imagens e Vídeos)</Label>
                   <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-lg p-6 hover:bg-slate-50/50 transition-colors cursor-pointer relative">
-                    <input 
-                      type="file" 
-                      id="file-upload" 
-                      className="absolute inset-0 opacity-0 cursor-pointer" 
+                    <input
+                      type="file"
+                      id="file-upload"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
                       accept="image/*,video/*"
                       multiple
                       onChange={handleFileChange}
@@ -188,7 +479,6 @@ export default function MinhasOcorrencias() {
                     <p className="text-xs text-muted-foreground">PNG, JPG, MP4, MOV (máx. por arquivo)</p>
                   </div>
 
-                  {/* LISTA DE ARQUIVOS SELECIONADOS */}
                   {arquivos.length > 0 && (
                     <div className="space-y-2 mt-2">
                       <span className="text-xs font-semibold text-slate-500">Arquivos anexados ({arquivos.length}):</span>
@@ -201,10 +491,10 @@ export default function MinhasOcorrencias() {
                                 {isVideo ? <FileVideo className="h-4 w-4 text-blue-500 shrink-0" /> : <FileImage className="h-4 w-4 text-green-500 shrink-0" />}
                                 <span className="truncate text-xs font-medium text-slate-800">{file.name}</span>
                               </div>
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
                                 className="h-6 w-6 text-slate-500 hover:text-red-600"
                                 onClick={() => removerArquivo(index)}
                               >
@@ -223,7 +513,14 @@ export default function MinhasOcorrencias() {
                 <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit">Enviar Relato</Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || (hasRelatedUnit && relatedUnitStatus !== "valid")}
+                  className="gap-2"
+                >
+                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Enviar Relato
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -234,19 +531,19 @@ export default function MinhasOcorrencias() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="text-xs uppercase font-bold text-slate-500">Total Enviado</CardDescription>
-            <CardTitle className="text-2xl font-bold">02</CardTitle>
+            <CardTitle className="text-2xl font-bold">{String(total).padStart(2, "0")}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="text-xs uppercase font-bold text-blue-500">Em Resolução</CardDescription>
-            <CardTitle className="text-2xl font-bold">01</CardTitle>
+            <CardTitle className="text-2xl font-bold">{String(emResolucao).padStart(2, "0")}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="text-xs uppercase font-bold text-green-500">Resolvidos</CardDescription>
-            <CardTitle className="text-2xl font-bold">01</CardTitle>
+            <CardTitle className="text-2xl font-bold">{String(resolvidos).padStart(2, "0")}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -256,8 +553,8 @@ export default function MinhasOcorrencias() {
           <div className="flex flex-col md:flex-row gap-4 justify-between">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Buscar ocorrência..." 
+              <Input
+                placeholder="Buscar ocorrência..."
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -273,37 +570,52 @@ export default function MinhasOcorrencias() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50">
-                  <TableHead className="w-[120px]">Protocolo</TableHead>
+                  <TableHead className="w-[140px]">Protocolo</TableHead>
                   <TableHead>Título</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {MOCK_DATA.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                    <TableCell className="font-mono text-xs font-bold text-primary">{item.id}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-slate-900">{item.titulo}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase font-semibold">{item.categoria}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={item.status === "CONCLUIDO" ? "default" : "secondary"} className="text-[10px]">
-                        {item.status.replace("_", " ")}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {/* LINK PARA A TELA DINÂMICA [ID] */}
-                      <Link href={`/morador/minhas-ocorrencias/${item.id}`}>
-                        <Button variant="ghost" size="icon" className="hover:text-primary">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                {isLoadingList ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-8">
+                      Carregando ocorrências...
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-8">
+                      Nenhuma ocorrência encontrada.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filtered.map((item) => (
+                    <TableRow key={item.protocol} className="hover:bg-slate-50/50 transition-colors">
+                      <TableCell className="font-mono text-xs font-bold text-primary">{item.protocol}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-slate-900">{item.title}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+                            {traduzirCategoria(item.category)} · {formatarData(item.createdAt)}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={STATUS_CONCLUIDOS.includes(item.status) ? "default" : "secondary"} className="text-[10px]">
+                          {traduzirStatus(item.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link href={`/morador/minhas-ocorrencias/${item.protocol}`}>
+                          <Button variant="ghost" size="icon" className="hover:text-primary">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

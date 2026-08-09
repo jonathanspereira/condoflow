@@ -111,4 +111,21 @@ public class UnitService {
 
         return saved;
     }
+
+    // Descobre o condomínio do usuário autenticado a partir do e-mail (subject do JWT)
+    public Long obterCondominioDoUsuarioLogado(String email) {
+        User user = (User) userRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("Usuário não encontrado: " + email);
+        }
+        if (user.getCondominium() == null) {
+            throw new RuntimeException("Usuário sem condomínio vinculado: " + email);
+        }
+        return user.getCondominium().getId();
+    }
+
+    // Busca a unidade por nome/número, restrita ao condomínio informado
+    public Optional<Unit> buscarPorCondominioEUnidade(Long condominiumId, String unit) {
+        return unitRepository.findByCondominiumIdAndUnitIgnoreCase(condominiumId, unit.trim());
+    }
 }

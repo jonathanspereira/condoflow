@@ -35,16 +35,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
-                        // Permite que admins, síndicos e proprietários cadastrem inquilinos
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users/tenant").hasAnyAuthority("SUPER_ADMIN", "ADMIN", "PROPRIETARY")
-                        .requestMatchers("/api/v1/condominiums/**").hasAuthority("SUPER_ADMIN")
-                        .requestMatchers("/api/v1/units/**").hasAuthority("SUPER_ADMIN")
-                        .anyRequest().authenticated()
-                )
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/v1/users/tenant").hasAnyAuthority("SUPER_ADMIN", "ADMIN", "PROPRIETARY")
+                // NOVO — precisa vir ANTES do matcher genérico de /api/v1/units/**
+                .requestMatchers(HttpMethod.GET, "/api/v1/units/check").authenticated()
+                .requestMatchers("/api/v1/condominiums/**").hasAuthority("SUPER_ADMIN")
+                .requestMatchers("/api/v1/units/**").hasAuthority("SUPER_ADMIN")
+                .anyRequest().authenticated()
+        )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

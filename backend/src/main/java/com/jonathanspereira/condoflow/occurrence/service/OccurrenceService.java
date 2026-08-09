@@ -7,10 +7,18 @@ import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
 import com.jonathanspereira.condoflow.occurrence.entity.Occurrence;
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceStatus;
 import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceRepository;
+import com.jonathanspereira.condoflow.unit.entity.Unit;
+import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
+import com.jonathanspereira.condoflow.user.entity.User;
+import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,31 +26,55 @@ public class OccurrenceService {
 
     private final OccurrenceRepository occurrenceRepository;
     private final CondominiumRepository condominiumRepository;
+    private final UserRepository userRepository;
+    private final UnitRepository unitRepository;
 
-    public OccurrenceResponseDTO create(OccurrenceRequestDTO dto) {
-        // 1. Valida se o condomínio existe
-        Condominium condominium = condominiumRepository.findById(Long.valueOf(dto.condominiumId()))
+    public OccurrenceResponseDTO create(String userEmail, OccurrenceRequestDTO dto) {
+        User reporter = getUserByEmail(userEmail);
+
+        Unit unit = unitRepository.findByOwnerId(reporter.getId())
+                .or(() -> unitRepository.findByTenantId(reporter.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Você não possui uma unidade vinculada para abrir um relato."));
+
+        Condominium condominium = condominiumRepository.findById(unit.getCondominiumId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Condomínio não encontrado."));
 
-        // 2. Cria a entidade
         Occurrence occurrence = new Occurrence();
         occurrence.setTitle(dto.title());
         occurrence.setDescription(dto.description());
+        occurrence.setCategory(dto.category());
         occurrence.setCondominium(condominium);
+        occurrence.setUnit(unit);
+        occurrence.setReportedBy(reporter);
         occurrence.setStatus(OccurrenceStatus.OPEN);
-        // O protocolo será gerado automaticamente pelo @PrePersist na entidade
 
-        // 3. Salva no banco
         Occurrence saved = occurrenceRepository.save(occurrence);
-
-        // 4. Retorna os dados mapeados para o frontend (incluindo o protocolo gerado)
         return new OccurrenceResponseDTO(saved);
+    }
+
+    public List<OccurrenceResponseDTO> findMine(String userEmail) {
+        User reporter = getUserByEmail(userEmail);
+
+        return occurrenceRepository.findByReportedByIdOrderByCreatedAtDesc(reporter.getId())
+                .stream()
+                .map(OccurrenceResponseDTO::new)
+                .collect(Collectors.toList());
     }
 
     public OccurrenceResponseDTO findByProtocol(String protocol) {
         Occurrence occurrence = occurrenceRepository.findByProtocol(protocol)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada para o protocolo informado."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Ocorrência não encontrada para o protocolo informado."));
 
         return new OccurrenceResponseDTO(occurrence);
+    }
+
+    private User getUserByEmail(String email) {
+        UserDetails userDetails = userRepository.findByEmail(email);
+        if (userDetails == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não encontrado.");
+        }
+        return (User) userDetails;
     }
 }

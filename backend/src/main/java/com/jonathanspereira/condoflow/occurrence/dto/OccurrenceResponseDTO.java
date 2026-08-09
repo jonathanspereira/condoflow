@@ -1,6 +1,7 @@
 package com.jonathanspereira.condoflow.occurrence.dto;
 
 import com.jonathanspereira.condoflow.occurrence.entity.Occurrence;
+
 import java.time.LocalDateTime;
 
 public record OccurrenceResponseDTO(
@@ -8,8 +9,10 @@ public record OccurrenceResponseDTO(
         String protocol,
         String title,
         String description,
+        String category,
         String status,
         String condominiumName,
+        String unitName,
         LocalDateTime createdAt
 ) {
     public OccurrenceResponseDTO(Occurrence entity) {
@@ -18,8 +21,10 @@ public record OccurrenceResponseDTO(
                 entity.getProtocol(),
                 entity.getTitle(),
                 entity.getDescription(),
+                entity.getCategory() != null ? entity.getCategory().name() : null,
                 entity.getStatus().name(),
                 entity.getCondominium().getName(),
+                entity.getUnit() != null ? entity.getUnit().getUnit() : null,
                 entity.getCreatedAt()
         );
     }
