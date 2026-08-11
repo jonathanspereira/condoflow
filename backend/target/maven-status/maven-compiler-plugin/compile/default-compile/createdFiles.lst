@@ -23,7 +23,9 @@ com/jonathanspereira/condoflow/user/repository/UserRepository.class
 com/jonathanspereira/condoflow/CondoflowApplication.class
 com/jonathanspereira/condoflow/unit/entity/Unit.class
 com/jonathanspereira/condoflow/condominium/dto/CondominiumResponseDTO.class
+com/jonathanspereira/condoflow/user/dto/LinkSindicoResponseDTO.class
 com/jonathanspereira/condoflow/auth/service/AuthService.class
+com/jonathanspereira/condoflow/unit/dto/UnitCheckResponseDTO.class
 com/jonathanspereira/condoflow/occurrence/entity/OccurrenceStatus.class
 com/jonathanspereira/condoflow/common/exception/GlobalExceptionHandler.class
 com/jonathanspereira/condoflow/unit/repository/UnitRepository.class
@@ -33,4 +35,6 @@ com/jonathanspereira/condoflow/unit/dto/UnitResponseDTO.class
 com/jonathanspereira/condoflow/auth/service/TokenService.class
 com/jonathanspereira/condoflow/unit/dto/UnitRequestDTO.class
 com/jonathanspereira/condoflow/condominium/entity/Condominium.class
+com/jonathanspereira/condoflow/occurrence/entity/OccurrenceCategory.class
 com/jonathanspereira/condoflow/user/dto/UserRequestDTO.class
+com/jonathanspereira/condoflow/user/dto/LinkSindicoRequestDTO.class

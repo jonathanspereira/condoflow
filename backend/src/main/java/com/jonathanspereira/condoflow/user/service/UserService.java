@@ -4,6 +4,8 @@ import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
+import com.jonathanspereira.condoflow.user.dto.LinkSindicoRequestDTO;
+import com.jonathanspereira.condoflow.user.dto.LinkSindicoResponseDTO;
 import com.jonathanspereira.condoflow.user.dto.UserRequestDTO;
 import com.jonathanspereira.condoflow.user.dto.UserResponseDTO;
 import com.jonathanspereira.condoflow.user.entity.Role;
@@ -15,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -125,49 +128,85 @@ public class UserService {
     }
 
     public UserResponseDTO manageTenant(String ownerEmail, UserRequestDTO dto) {
-    UserDetails ownerDetails = userRepository.findByEmail(ownerEmail);
-    if (ownerDetails == null) {
-        throw new RuntimeException("Usuário não encontrado.");
-    }
-    User owner = (User) ownerDetails;
+        UserDetails ownerDetails = userRepository.findByEmail(ownerEmail);
+        if (ownerDetails == null) {
+            throw new RuntimeException("Usuário não encontrado.");
+        }
+        User owner = (User) ownerDetails;
 
-    if (dto.getUnitId() == null) {
-        throw new RuntimeException("Unidade não informada.");
-    }
-
-    Unit unit = unitRepository.findById(dto.getUnitId())
-            .orElseThrow(() -> new RuntimeException("Unidade não encontrada."));
-
-    if (!unit.getOwner().getId().equals(owner.getId())) {
-        throw new RuntimeException("Você não tem permissão para alterar esta unidade.");
-    }
-
-    if (Boolean.TRUE.equals(dto.getIsRented())) {
-        if (dto.getEmail() == null || dto.getEmail().isBlank()) {
-            throw new RuntimeException("Informe o e-mail do inquilino.");
+        if (dto.getUnitId() == null) {
+            throw new RuntimeException("Unidade não informada.");
         }
 
-        UserDetails existing = userRepository.findByEmail(dto.getEmail());
-        User tenant;
-        if (existing != null) {
-            tenant = (User) existing;
+        Unit unit = unitRepository.findById(dto.getUnitId())
+                .orElseThrow(() -> new RuntimeException("Unidade não encontrada."));
+
+        if (!unit.getOwner().getId().equals(owner.getId())) {
+            throw new RuntimeException("Você não tem permissão para alterar esta unidade.");
+        }
+
+        if (Boolean.TRUE.equals(dto.getIsRented())) {
+            if (dto.getEmail() == null || dto.getEmail().isBlank()) {
+                throw new RuntimeException("Informe o e-mail do inquilino.");
+            }
+
+            UserDetails existing = userRepository.findByEmail(dto.getEmail());
+            User tenant;
+            if (existing != null) {
+                tenant = (User) existing;
+            } else {
+                tenant = new User();
+                tenant.setName(dto.getName() != null ? dto.getName() : "Inquilino");
+                tenant.setEmail(dto.getEmail());
+                tenant.setPassword(passwordEncoder.encode(dto.getPassword()));
+                tenant.setRole(Role.TENANT);
+                tenant.setCondominium(owner.getCondominium()); // <-- correção
+                tenant = userRepository.save(tenant);
+            }
+            unit.setTenant(tenant);
+            unit.setRented(true);
         } else {
-            tenant = new User();
-            tenant.setName(dto.getName() != null ? dto.getName() : "Inquilino");
-            tenant.setEmail(dto.getEmail());
-            tenant.setPassword(passwordEncoder.encode(dto.getPassword()));
-            tenant.setRole(Role.TENANT);
-            tenant.setCondominium(owner.getCondominium()); // <-- correção
-            tenant = userRepository.save(tenant);
+            unit.setTenant(null);
+            unit.setRented(false);
         }
-        unit.setTenant(tenant);
-        unit.setRented(true);
-    } else {
-        unit.setTenant(null);
-        unit.setRented(false);
+
+        Unit savedUnit = unitRepository.save(unit);
+        return new UserResponseDTO(owner, savedUnit);
     }
 
-    Unit savedUnit = unitRepository.save(unit);
-    return new UserResponseDTO(owner, savedUnit);
-}
+    public LinkSindicoResponseDTO linkSindico(Long condominiumId, LinkSindicoRequestDTO dto) {
+        Condominium condominium = condominiumRepository.findById(condominiumId)
+                .orElseThrow(() -> new RuntimeException("Condomínio não encontrado."));
+
+        UserDetails existing = userRepository.findByEmail(dto.email());
+        User user;
+        String temporaryPassword = null;
+
+        if (existing != null) {
+            // Usuário já existe: promove para SINDICO e vincula ao condomínio
+            user = (User) existing;
+            user.setRole(Role.SINDICO);
+            user.setCondominium(condominium);
+        } else {
+            // Usuário não existe: cria conta nova com senha temporária
+            if (dto.name() == null || dto.name().isBlank()) {
+                throw new RuntimeException("Informe o nome do síndico para criar um novo acesso.");
+            }
+            temporaryPassword = generateTemporaryPassword();
+
+            user = new User();
+            user.setName(dto.name());
+            user.setEmail(dto.email());
+            user.setPassword(passwordEncoder.encode(temporaryPassword));
+            user.setRole(Role.SINDICO);
+            user.setCondominium(condominium);
+        }
+
+        User saved = userRepository.save(user);
+        return new LinkSindicoResponseDTO(new UserResponseDTO(saved), temporaryPassword);
+    }
+
+    private String generateTemporaryPassword() {
+        return "Cf" + UUID.randomUUID().toString().substring(0, 8) + "!";
+    }
 }

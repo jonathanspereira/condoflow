@@ -226,7 +226,12 @@ export default function GestaoCondominios() {
   const [name, setName] = useState("")
   const [cnpj, setCnpj] = useState("")
   const [address, setAddress] = useState("")
+
   const [emailSindico, setEmailSindico] = useState("")
+  const [nomeSindico, setNomeSindico] = useState("")
+  const [isSavingSindico, setIsSavingSindico] = useState(false)
+  const [sindicoError, setSindicoError] = useState("")
+  const [sindicoSuccess, setSindicoSuccess] = useState<{ message: string; tempPassword?: string } | null>(null)
 
   const [unidadesList, setUnidadesList] = useState<UnidadeProprietario[]>([])
   const [buscaProprietario, setBuscaProprietario] = useState("")
@@ -315,6 +320,9 @@ export default function GestaoCondominios() {
   const handleOpenSindico = (condo: Condominium) => {
     setSelectedCondo(condo)
     setEmailSindico("")
+    setNomeSindico("")
+    setSindicoError("")
+    setSindicoSuccess(null)
     setIsSindicoOpen(true)
   }
 
@@ -322,10 +330,38 @@ export default function GestaoCondominios() {
     e.preventDefault()
     if (!selectedCondo || !emailSindico) return
 
-    alert(`Síndico com e-mail ${emailSindico} vinculado ao condomínio ${selectedCondo.name} com sucesso!`)
-    setIsSindicoOpen(false)
-    setEmailSindico("")
-    setSelectedCondo(null)
+    setIsSavingSindico(true)
+    setSindicoError("")
+    setSindicoSuccess(null)
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/sindico`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ email: emailSindico, name: nomeSindico || undefined })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSindicoSuccess({
+          message: `${data.user.name} foi vinculado como síndico de ${selectedCondo.name}.`,
+          tempPassword: data.temporaryPassword || undefined
+        })
+        setEmailSindico("")
+        setNomeSindico("")
+      } else {
+        const errData = await response.json().catch(() => null)
+        setSindicoError(errData?.message || "Não foi possível vincular o síndico.")
+      }
+    } catch (error) {
+      console.error("Erro ao vincular síndico:", error)
+      setSindicoError("Erro de conexão com o servidor.")
+    } finally {
+      setIsSavingSindico(false)
+    }
   }
 
   const handleUpdateCondominium = async (e: React.FormEvent) => {
@@ -590,8 +626,28 @@ export default function GestaoCondominios() {
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle>Vincular Síndico</DialogTitle>
-            <DialogDescription>Informe o e-mail do síndico responsável para associar a este condomínio.</DialogDescription>
+            <DialogDescription>
+              Informe o e-mail do síndico responsável. Se ele já tiver conta, será promovido automaticamente. Caso contrário, uma conta nova será criada.
+            </DialogDescription>
           </DialogHeader>
+
+          {sindicoError && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-md font-medium">
+              {sindicoError}
+            </div>
+          )}
+
+          {sindicoSuccess && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm p-3 rounded-md font-medium space-y-1">
+              <p>{sindicoSuccess.message}</p>
+              {sindicoSuccess.tempPassword && (
+                <p className="font-mono text-xs bg-white border border-emerald-200 rounded px-2 py-1 inline-block">
+                  Senha temporária: <strong>{sindicoSuccess.tempPassword}</strong>
+                </p>
+              )}
+            </div>
+          )}
+
           <form onSubmit={handleVincularSindico} className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="email-sindico">E-mail do Síndico</Label>
@@ -604,8 +660,18 @@ export default function GestaoCondominios() {
                 required 
               />
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="nome-sindico">Nome do Síndico</Label>
+              <Input 
+                id="nome-sindico" 
+                placeholder="Necessário apenas se ainda não tiver conta" 
+                value={nomeSindico} 
+                onChange={(e) => setNomeSindico(e.target.value)} 
+              />
+            </div>
             <DialogFooter className="pt-4">
-              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 w-full font-bold text-white">
+              <Button type="submit" disabled={isSavingSindico} className="bg-emerald-600 hover:bg-emerald-700 w-full font-bold text-white gap-2">
+                {isSavingSindico && <Loader2 className="h-4 w-4 animate-spin" />}
                 Vincular Síndico
               </Button>
             </DialogFooter>

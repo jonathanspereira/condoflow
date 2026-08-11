@@ -1,6 +1,11 @@
 package com.jonathanspereira.condoflow.condominium.controller;
+
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.service.CondominiumService;
+import com.jonathanspereira.condoflow.user.dto.LinkSindicoRequestDTO;
+import com.jonathanspereira.condoflow.user.dto.LinkSindicoResponseDTO;
+import com.jonathanspereira.condoflow.user.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +20,9 @@ public class CondominiumController {
 
     @Autowired
     private CondominiumService condominiumService;
+
+    @Autowired
+    private UserService userService;
 
     @GetMapping
     public ResponseEntity<List<Condominium>> listarCondominios() {
@@ -46,5 +54,13 @@ public class CondominiumController {
     public ResponseEntity<Void> deletarCondominio(@PathVariable Long id) {
         condominiumService.deletar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/sindico")
+    public ResponseEntity<LinkSindicoResponseDTO> vincularSindico(
+            @PathVariable Long id,
+            @RequestBody @Valid LinkSindicoRequestDTO dto) {
+        LinkSindicoResponseDTO response = userService.linkSindico(id, dto);
+        return ResponseEntity.ok(response);
     }
 }
