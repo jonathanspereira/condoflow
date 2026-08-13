@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
@@ -18,6 +19,7 @@ interface CondominioSindico {
 }
 
 export default function SindicoDashboard() {
+  const router = useRouter()
   const [condominios, setCondominios] = useState<CondominioSindico[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isTogglingGlobal, setIsTogglingGlobal] = useState(false)
@@ -120,7 +122,11 @@ export default function SindicoDashboard() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {condominios.map((predio) => (
-                <Card key={predio.id} className="hover:shadow-md transition-shadow cursor-pointer border-t-4 border-t-primary">
+                <Card 
+                  key={predio.id} 
+                  className="hover:shadow-md transition-shadow cursor-pointer border-t-4 border-t-emerald-600"
+                  onClick={() => router.push(`/sindico/condominio/${predio.id}`)}
+                >
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -169,7 +175,11 @@ export default function SindicoDashboard() {
                 <p className="text-sm text-red-800">Nenhuma urgência no momento. 🎉</p>
               ) : (
                 urgentesCondominios.map((c) => (
-                  <div key={c.id} className="flex items-center justify-between bg-white border border-red-200 rounded-md p-3">
+                  <div 
+                    key={c.id} 
+                    className="flex items-center justify-between bg-white border border-red-200 rounded-md p-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                    onClick={() => router.push(`/sindico/condominio/${c.id}`)}
+                  >
                     <span className="font-medium text-slate-900">{c.name}</span>
                     <Badge variant="destructive">{c.urgentOccurrences} urgências</Badge>
                   </div>
