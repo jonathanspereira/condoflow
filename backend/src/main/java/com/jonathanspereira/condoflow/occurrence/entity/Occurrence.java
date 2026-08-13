@@ -44,12 +44,21 @@ public class Occurrence {
 
     private LocalDateTime createdAt;
 
+    private LocalDateTime updatedAt;
+
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
         if (this.protocol == null) {
             this.protocol = generateProtocol();
         }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     private String generateProtocol() {

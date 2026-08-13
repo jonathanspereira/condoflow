@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -9,18 +8,47 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Loader2 } from "lucide-react"
 
+const ALLOWED_ROLES = ["SINDICO", "SUPER_ADMIN"]
+
 export default function LoginSindicoPage() {
   const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
+    setError("")
     setIsLoading(true)
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+
+        if (!ALLOWED_ROLES.includes(data.role)) {
+          setError("Este acesso é exclusivo para síndicos. Use o login de morador.")
+          setIsLoading(false)
+          return
+        }
+
+        localStorage.setItem("condoflow_token", data.token)
+        router.push("/sindico/condominio")
+      } else {
+        setError("E-mail ou senha inválidos.")
+        setIsLoading(false)
+      }
+    } catch (err) {
+      console.error("Erro ao autenticar:", err)
+      setError("Erro de conexão com o servidor.")
       setIsLoading(false)
-      router.push("/sindico/condominio")
-    }, 2000)
+    }
   }
 
   return (
@@ -32,7 +60,6 @@ export default function LoginSindicoPage() {
         <ArrowLeft className="mr-2 h-4 w-4" />
         Voltar
       </Link>
-
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <Card className="shadow-lg">
           <CardHeader className="space-y-1">
@@ -42,6 +69,11 @@ export default function LoginSindicoPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-md font-medium">
+                {error}
+              </div>
+            )}
             <form onSubmit={onSubmit}>
               <div className="grid gap-4">
                 <div className="grid gap-2">
@@ -50,6 +82,8 @@ export default function LoginSindicoPage() {
                     id="email"
                     type="email"
                     placeholder="sindico@condominio.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
                     required
                   />
@@ -64,7 +98,14 @@ export default function LoginSindicoPage() {
                       Esqueceu a senha?
                     </Link>
                   </div>
-                  <Input id="password" type="password" disabled={isLoading} required />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    required
+                  />
                 </div>
                 <Button className="w-full" type="submit" disabled={isLoading}>
                   {isLoading && (

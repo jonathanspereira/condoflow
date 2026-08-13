@@ -1,6 +1,8 @@
 package com.jonathanspereira.condoflow.user.service;
 
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
+import com.jonathanspereira.condoflow.condominium.entity.CondominiumManager;
+import com.jonathanspereira.condoflow.condominium.repository.CondominiumManagerRepository;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +29,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final CondominiumRepository condominiumRepository;
+    private final CondominiumManagerRepository condominiumManagerRepository;
     private final UnitRepository unitRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -160,7 +164,7 @@ public class UserService {
                 tenant.setEmail(dto.getEmail());
                 tenant.setPassword(passwordEncoder.encode(dto.getPassword()));
                 tenant.setRole(Role.TENANT);
-                tenant.setCondominium(owner.getCondominium()); // <-- correção
+                tenant.setCondominium(owner.getCondominium());
                 tenant = userRepository.save(tenant);
             }
             unit.setTenant(tenant);
@@ -174,6 +178,7 @@ public class UserService {
         return new UserResponseDTO(owner, savedUnit);
     }
 
+    @Transactional
     public LinkSindicoResponseDTO linkSindico(Long condominiumId, LinkSindicoRequestDTO dto) {
         Condominium condominium = condominiumRepository.findById(condominiumId)
                 .orElseThrow(() -> new RuntimeException("Condomínio não encontrado."));
@@ -183,12 +188,10 @@ public class UserService {
         String temporaryPassword = null;
 
         if (existing != null) {
-            // Usuário já existe: promove para SINDICO e vincula ao condomínio
             user = (User) existing;
             user.setRole(Role.SINDICO);
-            user.setCondominium(condominium);
+            user = userRepository.save(user);
         } else {
-            // Usuário não existe: cria conta nova com senha temporária
             if (dto.name() == null || dto.name().isBlank()) {
                 throw new RuntimeException("Informe o nome do síndico para criar um novo acesso.");
             }
@@ -199,11 +202,22 @@ public class UserService {
             user.setEmail(dto.email());
             user.setPassword(passwordEncoder.encode(temporaryPassword));
             user.setRole(Role.SINDICO);
-            user.setCondominium(condominium);
+            user = userRepository.save(user);
         }
 
-        User saved = userRepository.save(user);
-        return new LinkSindicoResponseDTO(new UserResponseDTO(saved), temporaryPassword);
+        boolean alreadyLinked = condominiumManagerRepository
+                .findByCondominiumIdAndSindicoId(condominiumId, user.getId())
+                .isPresent();
+
+        if (!alreadyLinked) {
+            CondominiumManager management = new CondominiumManager();
+            management.setCondominium(condominium);
+            management.setSindico(user);
+            management.setFocusModeEnabled(false);
+            condominiumManagerRepository.save(management);
+        }
+
+        return new LinkSindicoResponseDTO(new UserResponseDTO(user), temporaryPassword);
     }
 
     private String generateTemporaryPassword() {

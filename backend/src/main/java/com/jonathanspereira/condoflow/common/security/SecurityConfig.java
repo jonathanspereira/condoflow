@@ -40,8 +40,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/tenant").hasAnyAuthority("SUPER_ADMIN", "ADMIN", "PROPRIETARY")
-                // NOVO — precisa vir ANTES do matcher genérico de /api/v1/units/**
                 .requestMatchers(HttpMethod.GET, "/api/v1/units/check").authenticated()
+                // NOVO — endpoints do síndico, precisam vir ANTES do matcher genérico de /api/v1/condominiums/**
+                .requestMatchers(HttpMethod.GET, "/api/v1/condominiums/me").hasAuthority("SINDICO")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/focus-mode").hasAuthority("SINDICO")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/*/focus-mode").hasAuthority("SINDICO")
                 .requestMatchers("/api/v1/condominiums/**").hasAuthority("SUPER_ADMIN")
                 .requestMatchers("/api/v1/units/**").hasAuthority("SUPER_ADMIN")
                 .anyRequest().authenticated()
@@ -57,7 +60,6 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

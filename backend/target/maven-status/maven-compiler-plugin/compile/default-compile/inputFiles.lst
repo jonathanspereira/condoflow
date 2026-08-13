@@ -11,8 +11,13 @@
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/controller/CondominiumController.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/dto/CondominiumRequestDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/dto/CondominiumResponseDTO.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/dto/FocusModeRequestDTO.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/dto/SindicoCondominiumDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/entity/Condominium.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/entity/CondominiumManager.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/repository/CondominiumManagerRepository.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/repository/CondominiumRepository.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/service/CondominiumManagementService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/service/CondominiumService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/controller/OccurrenceController.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/OccurrenceRequestDTO.java

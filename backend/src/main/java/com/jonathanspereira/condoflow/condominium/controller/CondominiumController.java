@@ -1,6 +1,9 @@
 package com.jonathanspereira.condoflow.condominium.controller;
 
+import com.jonathanspereira.condoflow.condominium.dto.FocusModeRequestDTO;
+import com.jonathanspereira.condoflow.condominium.dto.SindicoCondominiumDTO;
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
+import com.jonathanspereira.condoflow.condominium.service.CondominiumManagementService;
 import com.jonathanspereira.condoflow.condominium.service.CondominiumService;
 import com.jonathanspereira.condoflow.user.dto.LinkSindicoRequestDTO;
 import com.jonathanspereira.condoflow.user.dto.LinkSindicoResponseDTO;
@@ -11,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -24,9 +28,18 @@ public class CondominiumController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private CondominiumManagementService condominiumManagementService;
+
     @GetMapping
     public ResponseEntity<List<Condominium>> listarCondominios() {
         return ResponseEntity.ok(condominiumService.listarTodos());
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<SindicoCondominiumDTO>> listarMeusCondominios(Principal principal) {
+        List<SindicoCondominiumDTO> response = condominiumManagementService.listMyCondominiums(principal.getName());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -62,5 +75,22 @@ public class CondominiumController {
             @RequestBody @Valid LinkSindicoRequestDTO dto) {
         LinkSindicoResponseDTO response = userService.linkSindico(id, dto);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/focus-mode")
+    public ResponseEntity<Void> alternarModoFoco(
+            @PathVariable Long id,
+            @RequestBody FocusModeRequestDTO dto,
+            Principal principal) {
+        condominiumManagementService.setFocusMode(principal.getName(), id, dto.enabled());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/focus-mode")
+    public ResponseEntity<Void> alternarModoFocoGlobal(
+            @RequestBody FocusModeRequestDTO dto,
+            Principal principal) {
+        condominiumManagementService.setFocusModeForAll(principal.getName(), dto.enabled());
+        return ResponseEntity.noContent().build();
     }
 }

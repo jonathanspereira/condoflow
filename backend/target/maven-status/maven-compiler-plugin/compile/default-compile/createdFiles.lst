@@ -8,6 +8,7 @@ com/jonathanspereira/condoflow/occurrence/service/OccurrenceService.class
 com/jonathanspereira/condoflow/user/controller/UserController.class
 com/jonathanspereira/condoflow/user/entity/User.class
 com/jonathanspereira/condoflow/common/security/SecurityConfig.class
+com/jonathanspereira/condoflow/condominium/dto/SindicoCondominiumDTO.class
 com/jonathanspereira/condoflow/condominium/controller/CondominiumController.class
 com/jonathanspereira/condoflow/occurrence/controller/OccurrenceController.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceRequestDTO.class
@@ -20,7 +21,9 @@ com/jonathanspereira/condoflow/user/entity/Role.class
 com/jonathanspereira/condoflow/unit/controller/UnitController.class
 com/jonathanspereira/condoflow/user/service/UserService.class
 com/jonathanspereira/condoflow/user/repository/UserRepository.class
+com/jonathanspereira/condoflow/condominium/dto/FocusModeRequestDTO.class
 com/jonathanspereira/condoflow/CondoflowApplication.class
+com/jonathanspereira/condoflow/condominium/service/CondominiumManagementService.class
 com/jonathanspereira/condoflow/unit/entity/Unit.class
 com/jonathanspereira/condoflow/condominium/dto/CondominiumResponseDTO.class
 com/jonathanspereira/condoflow/user/dto/LinkSindicoResponseDTO.class
@@ -36,5 +39,7 @@ com/jonathanspereira/condoflow/auth/service/TokenService.class
 com/jonathanspereira/condoflow/unit/dto/UnitRequestDTO.class
 com/jonathanspereira/condoflow/condominium/entity/Condominium.class
 com/jonathanspereira/condoflow/occurrence/entity/OccurrenceCategory.class
+com/jonathanspereira/condoflow/condominium/repository/CondominiumManagerRepository.class
 com/jonathanspereira/condoflow/user/dto/UserRequestDTO.class
 com/jonathanspereira/condoflow/user/dto/LinkSindicoRequestDTO.class
+com/jonathanspereira/condoflow/condominium/entity/CondominiumManager.class

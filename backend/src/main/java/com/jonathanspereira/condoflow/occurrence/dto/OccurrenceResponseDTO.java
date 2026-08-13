@@ -13,7 +13,9 @@ public record OccurrenceResponseDTO(
         String status,
         String condominiumName,
         String unitName,
-        LocalDateTime createdAt
+        String authorName,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
     public OccurrenceResponseDTO(Occurrence entity) {
         this(
@@ -25,7 +27,9 @@ public record OccurrenceResponseDTO(
                 entity.getStatus().name(),
                 entity.getCondominium().getName(),
                 entity.getUnit() != null ? entity.getUnit().getUnit() : null,
-                entity.getCreatedAt()
+                entity.getReportedBy() != null ? entity.getReportedBy().getName() : null,
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
         );
     }
 }
