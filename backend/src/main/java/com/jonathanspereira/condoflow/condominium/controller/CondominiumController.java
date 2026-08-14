@@ -7,6 +7,8 @@ import com.jonathanspereira.condoflow.condominium.service.CondominiumManagementS
 import com.jonathanspereira.condoflow.condominium.service.CondominiumService;
 import com.jonathanspereira.condoflow.user.dto.LinkSindicoRequestDTO;
 import com.jonathanspereira.condoflow.user.dto.LinkSindicoResponseDTO;
+import com.jonathanspereira.condoflow.user.dto.UserRequestDTO;
+import com.jonathanspereira.condoflow.user.dto.UserResponseDTO;
 import com.jonathanspereira.condoflow.user.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +77,25 @@ public class CondominiumController {
             @RequestBody @Valid LinkSindicoRequestDTO dto) {
         LinkSindicoResponseDTO response = userService.linkSindico(id, dto);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/sindicos")
+    public ResponseEntity<List<UserResponseDTO>> getSindicos(@PathVariable Long id) {
+        return ResponseEntity.ok(condominiumManagementService.getSindicosForCondominium(id));
+    }
+
+    @DeleteMapping("/{id}/sindicos/{sindicoId}")
+    public ResponseEntity<Void> removeSindico(@PathVariable Long id, @PathVariable String sindicoId) {
+        condominiumManagementService.removeSindico(id, sindicoId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/sindicos/{sindicoId}")
+    public ResponseEntity<UserResponseDTO> updateSindico(
+            @PathVariable Long id,
+            @PathVariable String sindicoId,
+            @RequestBody UserRequestDTO dto) {
+        return ResponseEntity.ok(condominiumManagementService.updateSindico(id, sindicoId, dto));
     }
 
     @PutMapping("/{id}/focus-mode")

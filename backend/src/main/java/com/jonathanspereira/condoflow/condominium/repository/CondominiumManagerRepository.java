@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface CondominiumManagerRepository extends JpaRepository<CondominiumManager, Long> {
     List<CondominiumManager> findBySindicoId(String sindicoId);
     Optional<CondominiumManager> findByCondominiumIdAndSindicoId(Long condominiumId, String sindicoId);
+    List<CondominiumManager> findByCondominiumId(Long condominiumId);
 }

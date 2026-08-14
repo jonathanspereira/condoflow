@@ -205,11 +205,13 @@ public class UserService {
             user = userRepository.save(user);
         }
 
-        boolean alreadyLinked = condominiumManagerRepository
-                .findByCondominiumIdAndSindicoId(condominiumId, user.getId())
-                .isPresent();
+        List<CondominiumManager> existingManagers = condominiumManagerRepository.findByCondominiumId(condominiumId);
+        String userId = user.getId();
+        boolean alreadyLinked = existingManagers.stream().anyMatch(m -> m.getSindico().getId().equals(userId));
 
         if (!alreadyLinked) {
+            condominiumManagerRepository.deleteAll(existingManagers); // Enforce 1:1 by removing old managers
+
             CondominiumManager management = new CondominiumManager();
             management.setCondominium(condominium);
             management.setSindico(user);

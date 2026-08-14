@@ -6,6 +6,7 @@ import com.jonathanspereira.condoflow.condominium.repository.CondominiumManagerR
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceCategory;
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceStatus;
 import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceRepository;
+import com.jonathanspereira.condoflow.user.dto.UserResponseDTO;
 import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -81,6 +82,42 @@ public class CondominiumManagementService {
         List<CondominiumManager> managements = condominiumManagerRepository.findBySindicoId(sindico.getId());
         managements.forEach(m -> m.setFocusModeEnabled(enabled));
         condominiumManagerRepository.saveAll(managements);
+    }
+
+    public List<UserResponseDTO> getSindicosForCondominium(Long condominiumId) {
+        return condominiumManagerRepository.findByCondominiumId(condominiumId)
+                .stream()
+                .map(m -> new UserResponseDTO(m.getSindico()))
+                .collect(Collectors.toList());
+    }
+
+    public void removeSindico(Long condominiumId, String sindicoId) {
+        CondominiumManager management = condominiumManagerRepository
+                .findByCondominiumIdAndSindicoId(condominiumId, sindicoId)
+                .orElseThrow(() -> new RuntimeException("Vínculo não encontrado."));
+        condominiumManagerRepository.delete(management);
+    }
+
+    public UserResponseDTO updateSindico(Long condominiumId, String sindicoId, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
+        CondominiumManager management = condominiumManagerRepository
+                .findByCondominiumIdAndSindicoId(condominiumId, sindicoId)
+                .orElseThrow(() -> new RuntimeException("Vínculo não encontrado."));
+
+        User sindico = management.getSindico();
+
+        if (dto.getEmail() != null && !dto.getEmail().isBlank() && !sindico.getEmail().equalsIgnoreCase(dto.getEmail())) {
+            if (userRepository.findByEmail(dto.getEmail()) != null) {
+                throw new RuntimeException("Email já cadastrado no sistema.");
+            }
+            sindico.setEmail(dto.getEmail());
+        }
+
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            sindico.setName(dto.getName());
+        }
+
+        User updated = userRepository.save(sindico);
+        return new UserResponseDTO(updated);
     }
 
     private User getUserByEmail(String email) {

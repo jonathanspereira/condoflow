@@ -54,7 +54,7 @@ interface Condominium {
 // Bate com o UnitResponseDTO do backend
 interface UnidadeProprietario {
   id?: number
-  unidade: string
+  unit: string
   condominiumId?: number
   ownerId?: string
   ownerName: string
@@ -93,7 +93,7 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
           const colunas = linha.split(",")
           if (colunas.length >= 3) {
             parsedData.push({
-              unidade: colunas[0].trim(),
+              unit: colunas[0].trim(),
               ownerName: colunas[1].trim(),
               ownerEmail: colunas[2].trim(),
               rented: false,
@@ -128,7 +128,7 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
             Authorization: `Bearer ${getToken()}`
           },
           body: JSON.stringify({
-            unit: item.unidade,
+            unit: item.unit,
             ownerName: item.ownerName,
             ownerEmail: item.ownerEmail,
             rented: false
@@ -184,8 +184,8 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
                 </TableHeader>
                 <TableBody>
                   {preview.map((row, idx) => (
-                    <TableRow key={idx} className="text-[11px]">
-                      <TableCell className="py-2 font-bold">{row.unidade}</TableCell>
+                    <TableRow key={idx} className="text-xs">
+                      <TableCell className="py-2 font-bold">{row.unit}</TableCell>
                       <TableCell className="py-2">{row.ownerName}</TableCell>
                       <TableCell className="py-2 text-slate-500">{row.ownerEmail}</TableCell>
                     </TableRow>
@@ -221,6 +221,8 @@ export default function GestaoCondominios() {
   const [isNewOpen, setIsNewOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isSindicoOpen, setIsSindicoOpen] = useState(false)
+  const [sindicosVinculados, setSindicosVinculados] = useState<any[]>([])
+  const [isLoadingSindicos, setIsLoadingSindicos] = useState(false)
   const [selectedCondo, setSelectedCondo] = useState<Condominium | null>(null)
 
   const [name, setName] = useState("")
@@ -231,6 +233,11 @@ export default function GestaoCondominios() {
   const [nomeSindico, setNomeSindico] = useState("")
   const [isSavingSindico, setIsSavingSindico] = useState(false)
   const [sindicoError, setSindicoError] = useState("")
+  
+  const [editingSindicoId, setEditingSindicoId] = useState<string | null>(null)
+  const [editSindicoName, setEditSindicoName] = useState("")
+  const [editSindicoEmail, setEditSindicoEmail] = useState("")
+  const [isSavingEditSindico, setIsSavingEditSindico] = useState(false)
   const [sindicoSuccess, setSindicoSuccess] = useState<{ message: string; tempPassword?: string } | null>(null)
 
   const [unidadesList, setUnidadesList] = useState<UnidadeProprietario[]>([])
@@ -317,13 +324,35 @@ export default function GestaoCondominios() {
     setIsEditOpen(true)
   }
 
-  const handleOpenSindico = (condo: Condominium) => {
+  const fetchSindicosVinculados = async (condoId: number) => {
+    setIsLoadingSindicos(true)
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${condoId}/sindicos`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSindicosVinculados(data)
+      }
+    } catch (error) {
+      console.error("Erro ao buscar síndicos vinculados:", error)
+    } finally {
+      setIsLoadingSindicos(false)
+    }
+  }
+
+  const handleOpenSindico = async (condo: Condominium) => {
     setSelectedCondo(condo)
     setEmailSindico("")
     setNomeSindico("")
     setSindicoError("")
     setSindicoSuccess(null)
     setIsSindicoOpen(true)
+    setSindicosVinculados([])
+    
+    await fetchSindicosVinculados(condo.id)
   }
 
   const handleVincularSindico = async (e: React.FormEvent) => {
@@ -352,6 +381,8 @@ export default function GestaoCondominios() {
         })
         setEmailSindico("")
         setNomeSindico("")
+        // Fetch sindicos again to update the list without resetting success state
+        fetchSindicosVinculados(selectedCondo.id)
       } else {
         const errData = await response.json().catch(() => null)
         setSindicoError(errData?.message || "Não foi possível vincular o síndico.")
@@ -361,6 +392,60 @@ export default function GestaoCondominios() {
       setSindicoError("Erro de conexão com o servidor.")
     } finally {
       setIsSavingSindico(false)
+    }
+  }
+
+  const handleRemoveSindico = async (sindicoId: string) => {
+    if (!selectedCondo) return
+    setIsLoadingSindicos(true)
+    setSindicoError("")
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/sindicos/${sindicoId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        }
+      })
+      if (response.ok) {
+        fetchSindicosVinculados(selectedCondo.id)
+        setSindicoSuccess(null) // clear any previous success
+      } else {
+        setSindicoError("Erro ao remover o síndico.")
+      }
+    } catch (error) {
+      console.error("Erro ao remover síndico:", error)
+      setSindicoError("Erro de conexão ao remover o síndico.")
+    } finally {
+      setIsLoadingSindicos(false)
+    }
+  }
+
+  const handleEditSindicoSubmit = async (sindicoId: string) => {
+    if (!selectedCondo) return
+    setIsSavingEditSindico(true)
+    setSindicoError("")
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/sindicos/${sindicoId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ email: editSindicoEmail, name: editSindicoName || undefined })
+      })
+      if (response.ok) {
+        fetchSindicosVinculados(selectedCondo.id)
+        setEditingSindicoId(null)
+        setSindicoSuccess(null)
+      } else {
+        const errData = await response.json().catch(() => null)
+        setSindicoError(errData?.message || "Erro ao atualizar o síndico.")
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar síndico:", error)
+      setSindicoError("Erro de conexão ao atualizar o síndico.")
+    } finally {
+      setIsSavingEditSindico(false)
     }
   }
 
@@ -469,7 +554,7 @@ export default function GestaoCondominios() {
   const handleEditUnidade = (item: UnidadeProprietario) => {
     if (item.id) {
       setEditIdUnidade(item.id)
-      setUnidadeInput(item.unidade)
+      setUnidadeInput(item.unit)
       setNomeProprietario(item.ownerName)
       setEmailProprietario(item.ownerEmail)
       setIsAlugado(item.rented)
@@ -505,7 +590,7 @@ export default function GestaoCondominios() {
 
   const unidadesFiltradas = unidadesList.filter(item =>
     item.ownerName?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
-    item.unidade?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
+    item.unit?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
     item.ownerEmail?.toLowerCase().includes(buscaProprietario.toLowerCase()) ||
     item.tenantName?.toLowerCase().includes(buscaProprietario.toLowerCase())
   )
@@ -627,9 +712,92 @@ export default function GestaoCondominios() {
           <DialogHeader>
             <DialogTitle>Vincular Síndico</DialogTitle>
             <DialogDescription>
-              Informe o e-mail do síndico responsável. Se ele já tiver conta, será promovido automaticamente. Caso contrário, uma conta nova será criada.
+              Informe o e-mail do síndico responsável. Apenas um síndico pode estar vinculado por vez (o antigo será substituído). Se o e-mail não tiver conta, uma nova será criada.
             </DialogDescription>
           </DialogHeader>
+
+          <div className="bg-slate-50 border border-slate-100 rounded-md p-3 mb-1">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-tight mb-2">Síndicos Atuais</h4>
+            {isLoadingSindicos ? (
+              <p className="text-xs text-slate-500 flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" /> Carregando...</p>
+            ) : sindicosVinculados.length > 0 ? (
+              <ul className="space-y-2">
+                {sindicosVinculados.map((s, i) => (
+                  <li key={i} className="text-xs flex flex-col gap-2 bg-white p-2 border rounded">
+                    {editingSindicoId === s.id ? (
+                      <div className="flex flex-col gap-2 w-full">
+                        <Input
+                          value={editSindicoName}
+                          onChange={(e) => setEditSindicoName(e.target.value)}
+                          placeholder="Nome do Síndico"
+                          className="h-8 text-xs"
+                        />
+                        <Input
+                          value={editSindicoEmail}
+                          onChange={(e) => setEditSindicoEmail(e.target.value)}
+                          placeholder="E-mail do Síndico"
+                          className="h-8 text-xs"
+                        />
+                        <div className="flex justify-end gap-2 mt-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => setEditingSindicoId(null)}
+                            disabled={isSavingEditSindico}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                            onClick={() => handleEditSindicoSubmit(s.id)}
+                            disabled={isSavingEditSindico}
+                          >
+                            {isSavingEditSindico ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                            Salvar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-900">{s.name}</span>
+                          <span className="text-slate-500">{s.email}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-slate-500 hover:text-slate-700 h-7 px-2"
+                            onClick={() => {
+                              setEditingSindicoId(s.id)
+                              setEditSindicoName(s.name)
+                              setEditSindicoEmail(s.email)
+                            }}
+                            disabled={isLoadingSindicos}
+                          >
+                            Editar
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-500 hover:text-red-700 h-7 px-2"
+                            onClick={() => handleRemoveSindico(s.id)}
+                            disabled={isLoadingSindicos}
+                          >
+                            Remover
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-slate-500 italic">Nenhum síndico vinculado no momento.</p>
+            )}
+          </div>
 
           {sindicoError && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-md font-medium">
@@ -647,8 +815,8 @@ export default function GestaoCondominios() {
               )}
             </div>
           )}
-
-          <form onSubmit={handleVincularSindico} className="grid gap-4 py-4">
+          {sindicosVinculados.length === 0 ? (
+            <form onSubmit={handleVincularSindico} className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="email-sindico">E-mail do Síndico</Label>
               <Input 
@@ -675,7 +843,14 @@ export default function GestaoCondominios() {
                 Vincular Síndico
               </Button>
             </DialogFooter>
-          </form>
+            </form>
+          ) : (
+            <div className="py-4 text-center border border-slate-100 bg-slate-50 rounded-md mt-4">
+              <p className="text-sm text-slate-500 px-4">
+                Este condomínio já possui um síndico vinculado. Remova o síndico atual para vincular um novo.
+              </p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -879,7 +1054,7 @@ export default function GestaoCondominios() {
                                       {unidadesFiltradas.length > 0 ? (
                                         unidadesFiltradas.map((item, idx) => (
                                           <TableRow key={idx} className="text-xs">
-                                            <TableCell className="font-bold">{item.unidade}</TableCell>
+                                            <TableCell className="font-bold">{item.unit}</TableCell>
                                             <TableCell>
                                               <div className="flex flex-col">
                                                 <span>{item.ownerName}</span>

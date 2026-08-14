@@ -73,7 +73,15 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
   const formatarData = (iso?: string) => {
     if (!iso) return "-"
     try {
-      return new Date(iso).toLocaleString("pt-BR")
+      // Como o backend roda localmente, a data já vem no fuso correto (sem o Z)
+      const date = new Date(iso)
+      return date.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).replace(",", " às")
     } catch {
       return iso
     }
