@@ -4,6 +4,7 @@ import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
+import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO;
 import com.jonathanspereira.condoflow.occurrence.entity.Occurrence;
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceStatus;
 import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceRepository;
@@ -68,6 +69,28 @@ public class OccurrenceService {
                         "Ocorrência não encontrada para o protocolo informado."));
 
         return new OccurrenceResponseDTO(occurrence);
+    }
+
+    public List<OccurrenceResponseDTO> findByCondominium(Long condominiumId) {
+        return occurrenceRepository.findByCondominiumIdOrderByCreatedAtDesc(condominiumId)
+                .stream()
+                .map(OccurrenceResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    public OccurrenceResponseDTO update(Long id, OccurrenceUpdateDTO dto) {
+        Occurrence occurrence = occurrenceRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada."));
+
+        if (dto.status() != null) {
+            occurrence.setStatus(dto.status());
+        }
+        if (dto.response() != null) {
+            occurrence.setResponse(dto.response());
+        }
+
+        Occurrence saved = occurrenceRepository.save(occurrence);
+        return new OccurrenceResponseDTO(saved);
     }
 
     private User getUserByEmail(String email) {

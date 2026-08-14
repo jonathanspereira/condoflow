@@ -17,6 +17,8 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
 
     List<Occurrence> findByReportedByIdOrderByCreatedAtDesc(String reportedById);
 
+    List<Occurrence> findByCondominiumIdOrderByCreatedAtDesc(Long condominiumId);
+
     long countByCondominiumIdAndCategoryInAndStatusNotIn(
             Long condominiumId, List<OccurrenceCategory> categories, List<OccurrenceStatus> excludedStatuses);
 

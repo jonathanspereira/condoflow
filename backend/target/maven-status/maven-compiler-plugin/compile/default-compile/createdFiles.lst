@@ -36,6 +36,7 @@ com/jonathanspereira/condoflow/occurrence/repository/OccurrenceRepository.class
 com/jonathanspereira/condoflow/condominium/repository/CondominiumRepository.class
 com/jonathanspereira/condoflow/unit/dto/UnitResponseDTO.class
 com/jonathanspereira/condoflow/auth/service/TokenService.class
+com/jonathanspereira/condoflow/occurrence/dto/OccurrenceUpdateDTO.class
 com/jonathanspereira/condoflow/unit/dto/UnitRequestDTO.class
 com/jonathanspereira/condoflow/condominium/entity/Condominium.class
 com/jonathanspereira/condoflow/occurrence/entity/OccurrenceCategory.class

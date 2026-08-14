@@ -2,6 +2,7 @@ package com.jonathanspereira.condoflow.occurrence.controller;
 
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
+import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO;
 import com.jonathanspereira.condoflow.occurrence.service.OccurrenceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,18 @@ public class OccurrenceController {
     @GetMapping("/protocol/{protocol}")
     public ResponseEntity<OccurrenceResponseDTO> getByProtocol(@PathVariable String protocol) {
         OccurrenceResponseDTO response = service.findByProtocol(protocol);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/condominium/{condominiumId}")
+    public ResponseEntity<List<OccurrenceResponseDTO>> getByCondominium(@PathVariable Long condominiumId) {
+        List<OccurrenceResponseDTO> response = service.findByCondominium(condominiumId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<OccurrenceResponseDTO> update(@PathVariable Long id, @RequestBody @Valid OccurrenceUpdateDTO dto) {
+        OccurrenceResponseDTO response = service.update(id, dto);
         return ResponseEntity.ok(response);
     }
 }

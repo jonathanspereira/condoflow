@@ -44,6 +44,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
   const [ocorrencias, setOcorrencias] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [busca, setBusca] = useState("")
+  const [abaAtiva, setAbaAtiva] = useState("todas")
 
   const [selectedOcorrencia, setSelectedOcorrencia] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
@@ -124,15 +125,20 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
   }
 
   // Filtragem local baseada na barra de busca
-  const ocorrenciasFiltradas = ocorrencias.filter(oc => 
-    oc.titulo?.toLowerCase().includes(busca.toLowerCase()) ||
-    oc.protocol?.toLowerCase().includes(busca.toLowerCase()) ||
-    oc.id?.toLowerCase().includes(busca.toLowerCase())
-  )
+  const ocorrenciasFiltradas = ocorrencias.filter(oc => {
+    const matchBusca = oc.title?.toLowerCase().includes(busca.toLowerCase()) ||
+      oc.protocol?.toLowerCase().includes(busca.toLowerCase()) ||
+      String(oc.id).includes(busca)
+    
+    if (!matchBusca) return false;
+    if (abaAtiva === "abertas") return oc.status === "OPEN";
+    if (abaAtiva === "emandamento") return oc.status === "IN_PROGRESS";
+    return true;
+  })
 
-  const qtdAbertas = ocorrencias.filter(o => o.status === "ABERTO" || o.status === "OPEN").length
-  const qtdUrgentes = ocorrencias.filter(o => o.urgente === true).length
-  const qtdConcluidas = ocorrencias.filter(o => o.status === "CONCLUIDO" || o.status === "CLOSED" || o.status === "RESOLVED").length
+  const qtdAbertas = ocorrencias.filter(o => o.status === "OPEN").length
+  const qtdEmAndamento = ocorrencias.filter(o => o.status === "IN_PROGRESS").length
+  const qtdConcluidas = ocorrencias.filter(o => o.status === "RESOLVED" || o.status === "CLOSED").length
 
   if (isLoading) {
     return (
@@ -175,13 +181,13 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
             <Clock className="text-blue-500 h-8 w-8 opacity-20" />
           </CardContent>
         </Card>
-        <Card className="border-red-100 shadow-sm">
+        <Card className="border-blue-100 shadow-sm">
           <CardContent className="pt-6 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-red-600 font-bold">Urgentes</p>
-              <h3 className="text-2xl font-bold text-red-700">{qtdUrgentes}</h3>
+              <p className="text-sm font-medium text-blue-600 font-bold">Em Andamento</p>
+              <h3 className="text-2xl font-bold text-blue-700">{qtdEmAndamento}</h3>
             </div>
-            <AlertTriangle className="text-red-500 h-8 w-8 opacity-20" />
+            <Loader2 className="text-blue-500 h-8 w-8 opacity-20" />
           </CardContent>
         </Card>
         <Card className="shadow-sm border-slate-200">
@@ -212,53 +218,55 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
       </div>
 
       {/* Abas e Lista de Ocorrências */}
-      <Tabs defaultValue="todas">
+      <Tabs value={abaAtiva} onValueChange={setAbaAtiva}>
         <TabsList className="bg-slate-100">
           <TabsTrigger value="todas">Todas ({ocorrencias.length})</TabsTrigger>
-          <TabsTrigger value="urgentes">Urgentes ({qtdUrgentes})</TabsTrigger>
-          <TabsTrigger value="anonimas">Anônimas ({ocorrencias.filter(o => o.anonimo).length})</TabsTrigger>
+          <TabsTrigger value="abertas">Abertas ({qtdAbertas})</TabsTrigger>
+          <TabsTrigger value="emandamento">Em Andamento ({qtdEmAndamento})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="todas" className="mt-4 space-y-4">
-          {ocorrenciasFiltradas.length > 0 ? (
-            ocorrenciasFiltradas.map((oc) => (
-              <Card key={oc.id} className={`hover:shadow-md transition-all border-l-4 ${oc.urgente ? 'border-l-red-500' : 'border-l-slate-300'}`}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-slate-100 p-2.5 rounded-full">
-                      {oc.anonimo ? <Shield className="h-5 w-5 text-slate-600" /> : <User className="h-5 w-5 text-blue-600" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-slate-900">{oc.titulo || oc.title}</h4>
-                        <Badge variant="outline" className="text-[10px] uppercase font-bold">{oc.categoria || oc.category}</Badge>
+        {["todas", "abertas", "emandamento"].map(aba => (
+          <TabsContent key={aba} value={aba} className="mt-4 space-y-4">
+            {ocorrenciasFiltradas.length > 0 ? (
+              ocorrenciasFiltradas.map((oc) => (
+                <Card key={oc.id} className="hover:shadow-md transition-all border-l-4 border-l-slate-300">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-slate-100 p-2.5 rounded-full">
+                        <User className="h-5 w-5 text-blue-600" />
                       </div>
-                      <p className="text-xs text-muted-foreground font-medium mt-0.5">
-                        Por: {oc.autor || oc.authorName || "Morador"} • ID: <span className="font-mono">{oc.protocol || oc.id}</span>
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-slate-900">{oc.title}</h4>
+                          <Badge variant="outline" className="text-[10px] uppercase font-bold">{oc.category}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                          Por: {oc.authorName} • ID: <span className="font-mono">{oc.protocol}</span>
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-4">
-                     <Badge className={oc.status === 'ABERTO' || oc.status === 'OPEN' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}>
-                      {(oc.status || "ABERTO").replace("_", " ")}
-                     </Badge>
-                     <Button variant="ghost" size="icon" onClick={() => handleOpenResponder(oc)}>
-                        <MessageCircle className="h-5 w-5 text-slate-400 hover:text-emerald-600" />
-                     </Button>
-                     <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-5 w-5 text-slate-400" />
-                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <div className="text-center py-12 text-muted-foreground border rounded-xl bg-white">
-              <p>Nenhuma ocorrência encontrada para este condomínio.</p>
-            </div>
-          )}
-        </TabsContent>
+                    <div className="flex items-center gap-4">
+                       <Badge className={oc.status === 'OPEN' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}>
+                        {(oc.status || "OPEN").replace("_", " ")}
+                       </Badge>
+                       <Button variant="ghost" size="icon" onClick={() => handleOpenResponder(oc)}>
+                          <MessageCircle className="h-5 w-5 text-slate-400 hover:text-emerald-600" />
+                       </Button>
+                       <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-5 w-5 text-slate-400" />
+                       </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-12 text-muted-foreground border rounded-xl bg-white">
+                <p>Nenhuma ocorrência encontrada para este condomínio.</p>
+              </div>
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
 
       {/* Sheet / Modal Lateral de Gestão de Ocorrência */}
@@ -279,10 +287,10 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ABERTO">Aberto</SelectItem>
-                  <SelectItem value="EM_ANALISE">Em Análise</SelectItem>
-                  <SelectItem value="EM_EXECUCAO">Em Execução</SelectItem>
-                  <SelectItem value="CONCLUIDO">Concluído</SelectItem>
+                  <SelectItem value="OPEN">Aberto</SelectItem>
+                  <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                  <SelectItem value="RESOLVED">Resolvido</SelectItem>
+                  <SelectItem value="CLOSED">Fechado</SelectItem>
                 </SelectContent>
               </Select>
             </div>

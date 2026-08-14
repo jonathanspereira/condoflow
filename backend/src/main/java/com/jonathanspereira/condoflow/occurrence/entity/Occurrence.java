@@ -25,6 +25,9 @@ public class Occurrence {
 
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String response;
+
     @Enumerated(EnumType.STRING)
     private OccurrenceCategory category;
 
