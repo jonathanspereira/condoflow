@@ -1,4 +1,4 @@
-import RegistrarOcorrencia from "../../../../components/forms/OcorrenciaForm"; // Importa o componente que criamos
+import RegistrarOcorrencia from "../../../components/forms/OcorrenciaForm"; // Importa o componente que criamos
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
