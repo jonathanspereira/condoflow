@@ -2,18 +2,55 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle2, Copy, Check, ArrowRight, Printer, ArrowLeft } from "lucide-react"
+import { CheckCircle2, Copy, Check, ArrowRight, Printer, ArrowLeft, AlertTriangle } from "lucide-react"
+import { Suspense } from "react"
 
-export default function SucessoOcorrencia() {
+function SucessoContent() {
+  const searchParams = useSearchParams()
+  const protocolo = searchParams.get("protocolo")
   const [copied, setCopied] = useState(false)
-  const protocolo = "CF-2026-X94B" // Este valor virá via URL ou Estado do formulário
 
   const copiarProtocolo = () => {
+    if (!protocolo) return
     navigator.clipboard.writeText(protocolo)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (!protocolo) {
+    return (
+      <main className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0">
+        <Link
+          href="/"
+          className="absolute left-4 top-4 md:left-8 md:top-8 flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Link>
+
+        <div className="mx-auto flex w-full max-w-xl flex-col justify-center space-y-4 px-4">
+          <Card className="border-t-8 border-t-amber-500 shadow-xl">
+            <CardHeader className="text-center pb-1">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+                <AlertTriangle className="h-8 w-8 text-amber-600" />
+              </div>
+              <CardTitle className="text-2xl font-bold text-slate-900">Protocolo não encontrado</CardTitle>
+              <p className="text-muted-foreground">Nenhum protocolo foi informado. Registre uma nova ocorrência para obter um código.</p>
+            </CardHeader>
+            <CardFooter className="flex flex-col sm:flex-row gap-3 pt-5 border-t">
+              <Button asChild className="w-full">
+                <Link href="/ocorrencia">
+                  Registrar Ocorrência
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -60,7 +97,7 @@ export default function SucessoOcorrencia() {
             </h4>
             <ul className="list-disc pl-5 space-y-2">
               <li><strong>Guarde este código:</strong> Ele é a sua única forma de consultar o status se você fez um relato anônimo.</li>
-              <li><strong>Acompanhamento:</strong> Você pode clicar em "Consultar Protocolo" na página inicial a qualquer momento.</li>
+              <li><strong>Acompanhamento:</strong> Você pode clicar em &quot;Consultar Protocolo&quot; na página inicial a qualquer momento.</li>
               <li><strong>Prazo:</strong> O síndico costuma dar um retorno inicial em até 48h úteis.</li>
             </ul>
           </div>
@@ -89,5 +126,13 @@ export default function SucessoOcorrencia() {
       </div>
       </div>
     </main>
+  )
+}
+
+export default function SucessoOcorrencia() {
+  return (
+    <Suspense>
+      <SucessoContent />
+    </Suspense>
   )
 }

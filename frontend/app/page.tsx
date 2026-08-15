@@ -13,13 +13,13 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost">
-            <Link href="/login/morador">
+            <Link href="/morador/login">
               <User className="mr-2 h-4 w-4" />
               Área do Morador
             </Link>
           </Button>
           <Button asChild variant="ghost">
-            <Link href="/login/sindico">
+            <Link href="/sindico/login">
               <UserCog className="mr-2 h-4 w-4" />
               Área do Síndico
             </Link>

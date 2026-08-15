@@ -60,7 +60,7 @@ export default function EntryPage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/login/morador">Fazer Login</Link>
+              <Link href="/morador/login">Fazer Login</Link>
             </Button>
           </CardFooter>
         </Card>

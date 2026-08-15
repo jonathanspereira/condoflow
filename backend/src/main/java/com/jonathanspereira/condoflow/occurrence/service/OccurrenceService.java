@@ -2,6 +2,7 @@ package com.jonathanspereira.condoflow.occurrence.service;
 
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
+import com.jonathanspereira.condoflow.occurrence.dto.AnonymousOccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO;
@@ -49,6 +50,23 @@ public class OccurrenceService {
         occurrence.setUnit(unit);
         occurrence.setReportedBy(reporter);
         occurrence.setStatus(OccurrenceStatus.OPEN);
+
+        Occurrence saved = occurrenceRepository.save(occurrence);
+        return new OccurrenceResponseDTO(saved);
+    }
+
+    public OccurrenceResponseDTO createAnonymous(AnonymousOccurrenceRequestDTO dto) {
+        Condominium condominium = condominiumRepository.findById(dto.condominiumId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Condomínio não encontrado com o ID informado."));
+
+        Occurrence occurrence = new Occurrence();
+        occurrence.setTitle(dto.title());
+        occurrence.setDescription(dto.description());
+        occurrence.setCategory(dto.category());
+        occurrence.setCondominium(condominium);
+        occurrence.setStatus(OccurrenceStatus.OPEN);
+        // reportedBy fica null para ocorrências anônimas
 
         Occurrence saved = occurrenceRepository.save(occurrence);
         return new OccurrenceResponseDTO(saved);

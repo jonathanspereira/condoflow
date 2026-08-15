@@ -1,5 +1,6 @@
 package com.jonathanspereira.condoflow.occurrence.controller;
 
+import com.jonathanspereira.condoflow.occurrence.dto.AnonymousOccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO;
@@ -24,6 +25,12 @@ public class OccurrenceController {
     @PostMapping
     public ResponseEntity<OccurrenceResponseDTO> create(@RequestBody @Valid OccurrenceRequestDTO dto, Principal principal) {
         OccurrenceResponseDTO response = service.create(principal.getName(), dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/anonymous")
+    public ResponseEntity<OccurrenceResponseDTO> createAnonymous(@RequestBody @Valid AnonymousOccurrenceRequestDTO dto) {
+        OccurrenceResponseDTO response = service.createAnonymous(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

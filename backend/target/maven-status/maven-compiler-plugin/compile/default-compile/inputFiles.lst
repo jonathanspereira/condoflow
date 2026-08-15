@@ -20,6 +20,7 @@
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/service/CondominiumManagementService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/service/CondominiumService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/controller/OccurrenceController.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/AnonymousOccurrenceRequestDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/OccurrenceRequestDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/OccurrenceResponseDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/OccurrenceUpdateDTO.java

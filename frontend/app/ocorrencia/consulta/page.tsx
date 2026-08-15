@@ -11,26 +11,53 @@ import { toast } from "sonner"
 
 type StatusOcorrencia = "ABERTO" | "EM_ANALISE" | "EM_EXECUCAO" | "CONCLUIDO"
 
+const STATUS_ORDER: StatusOcorrencia[] = ["ABERTO", "EM_ANALISE", "EM_EXECUCAO", "CONCLUIDO"]
+
+const statusLabel: Record<StatusOcorrencia, string> = {
+  ABERTO: "Aberto",
+  EM_ANALISE: "Em Análise",
+  EM_EXECUCAO: "Em Execução",
+  CONCLUIDO: "Concluído",
+}
+
 type EtapaHistorico = {
-  status: "Aberto" | "Em Análise" | "Em Execução" | "Concluído"
+  status: string
   data: string
   active: boolean
 }
 
 type ResultadoConsulta = {
-  id: string
+  protocol: string
   status: StatusOcorrencia
-  titulo: string
-  data: string
-  respostaSindico: string
+  title: string
+  description: string
+  response: string | null
+  category: string | null
+  condominiumName: string
+  unitName: string | null
+  authorName: string | null
+  createdAt: string
+  updatedAt: string
   historico: EtapaHistorico[]
 }
 
-const statusLabel: Record<StatusOcorrencia, string> = {
-  ABERTO: "Aberto",
-  EM_ANALISE: "Em análise",
-  EM_EXECUCAO: "Em execução",
-  CONCLUIDO: "Concluído",
+function formatDateTime(iso: string): string {
+  const date = new Date(iso)
+  return date.toLocaleDateString("pt-BR") + " " + date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("pt-BR")
+}
+
+function buildHistorico(status: StatusOcorrencia, createdAt: string, updatedAt: string): EtapaHistorico[] {
+  const currentIndex = STATUS_ORDER.indexOf(status)
+
+  return STATUS_ORDER.map((s, i) => ({
+    status: statusLabel[s],
+    data: i === 0 ? formatDateTime(createdAt) : i <= currentIndex ? formatDateTime(updatedAt) : "-",
+    active: i <= currentIndex,
+  }))
 }
 
 export default function ConsultaProtocolo() {
@@ -38,7 +65,7 @@ export default function ConsultaProtocolo() {
   const [loading, setLoading] = useState(false)
   const [resultado, setResultado] = useState<ResultadoConsulta | null>(null)
 
-  const buscarProtocolo = (e: { preventDefault: () => void }) => {
+  const buscarProtocolo = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (!protocolo.trim()) {
       toast.error("Informe um protocolo para consultar.")
@@ -47,33 +74,49 @@ export default function ConsultaProtocolo() {
 
     setLoading(true)
     setResultado(null)
-    
-    // Simulação de busca no banco de dados
-    setTimeout(() => {
-      if (!protocolo.trim().startsWith("#XJ-")) {
-        setLoading(false)
-        toast.error("Protocolo não encontrado.", {
-          description: "Verifique o código informado e tente novamente.",
-        })
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/occurrences/protocol/${encodeURIComponent(protocolo.trim())}`)
+
+      if (!res.ok) {
+        if (res.status === 404) {
+          toast.error("Protocolo não encontrado.", {
+            description: "Verifique o código informado e tente novamente.",
+          })
+        } else {
+          toast.error("Erro ao consultar protocolo.", {
+            description: "Tente novamente mais tarde.",
+          })
+        }
         return
       }
 
+      const data = await res.json()
+      const status = data.status as StatusOcorrencia
+
       setResultado({
-        id: protocolo.trim(),
-        status: "EM_EXECUCAO",
-        titulo: "Vazamento na Garagem G2",
-        data: "14/04/2026",
-        respostaSindico: "A equipe de manutenção já foi acionada e deve chegar ao local até o fim da tarde.",
-        historico: [
-          { status: "Aberto", data: "14/04/2026 09:00", active: true },
-          { status: "Em Análise", data: "14/04/2026 10:30", active: true },
-          { status: "Em Execução", data: "14/04/2026 14:00", active: true },
-          { status: "Concluído", data: "-", active: false },
-        ]
+        protocol: data.protocol,
+        status,
+        title: data.title,
+        description: data.description,
+        response: data.response,
+        category: data.category,
+        condominiumName: data.condominiumName,
+        unitName: data.unitName,
+        authorName: data.authorName,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        historico: buildHistorico(status, data.createdAt, data.updatedAt),
       })
-      setLoading(false)
+
       toast.success("Ocorrência localizada com sucesso.")
-    }, 1500)
+    } catch {
+      toast.error("Erro de conexão.", {
+        description: "Não foi possível conectar ao servidor. Tente novamente.",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -98,14 +141,14 @@ export default function ConsultaProtocolo() {
       <Card className="mb-8 border-primary/20 shadow-md">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Buscar protocolo</CardTitle>
-          <CardDescription>Exemplo: #XJ-2026-09</CardDescription>
+          <CardDescription>Exemplo: CF-2026-A1B2C3</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={buscarProtocolo} className="flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
               <Ticket className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Ex: #XJ-2026-09" 
+                placeholder="Ex: CF-2026-A1B2C3" 
                 className="pl-10"
                 value={protocolo}
                 onChange={(e) => setProtocolo(e.target.value.toUpperCase().replaceAll(/\s+/g, ""))}
@@ -134,8 +177,8 @@ export default function ConsultaProtocolo() {
           <Card>
             <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <CardTitle className="text-xl">{resultado.titulo}</CardTitle>
-                <CardDescription>Protocolo: {resultado.id}</CardDescription>
+                <CardTitle className="text-xl">{resultado.title}</CardTitle>
+                <CardDescription>Protocolo: {resultado.protocol}</CardDescription>
               </div>
               <Badge variant={resultado.status === "CONCLUIDO" ? "default" : "secondary"} className="text-sm">
                 {statusLabel[resultado.status]}
@@ -158,18 +201,32 @@ export default function ConsultaProtocolo() {
                 ))}
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-lg border">
-                <h4 className="flex items-center gap-2 font-semibold text-sm mb-2">
-                  <MessageSquare className="h-4 w-4 text-primary" />
-                  Resposta da Administração
-                </h4>
-                <p className="text-sm text-slate-600 italic">
-                  "{resultado.respostaSindico}"
-                </p>
-              </div>
+              {resultado.response && (
+                <div className="bg-slate-50 p-4 rounded-lg border">
+                  <h4 className="flex items-center gap-2 font-semibold text-sm mb-2">
+                    <MessageSquare className="h-4 w-4 text-primary" />
+                    Resposta da Administração
+                  </h4>
+                  <p className="text-sm text-slate-600 italic">
+                    &ldquo;{resultado.response}&rdquo;
+                  </p>
+                </div>
+              )}
+
+              {!resultado.response && (
+                <div className="bg-slate-50 p-4 rounded-lg border">
+                  <h4 className="flex items-center gap-2 font-semibold text-sm mb-2 text-muted-foreground">
+                    <MessageSquare className="h-4 w-4" />
+                    Resposta da Administração
+                  </h4>
+                  <p className="text-sm text-muted-foreground italic">
+                    Ainda não há resposta da administração.
+                  </p>
+                </div>
+              )}
             </CardContent>
             <CardFooter className="text-xs text-muted-foreground border-t pt-4">
-              Última atualização em: {resultado.data}
+              Última atualização em: {formatDateTime(resultado.updatedAt)}
             </CardFooter>
           </Card>
         </div>
