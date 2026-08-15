@@ -1,5 +1,6 @@
 package com.jonathanspereira.condoflow.condominium.service;
 
+import com.jonathanspereira.condoflow.common.exception.BusinessException;
 import com.jonathanspereira.condoflow.condominium.dto.SindicoCondominiumDTO;
 import com.jonathanspereira.condoflow.condominium.entity.CondominiumManager;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumManagerRepository;
@@ -107,7 +108,7 @@ public class CondominiumManagementService {
 
         if (dto.getEmail() != null && !dto.getEmail().isBlank() && !sindico.getEmail().equalsIgnoreCase(dto.getEmail())) {
             if (userRepository.findByEmail(dto.getEmail()) != null) {
-                throw new RuntimeException("Email já cadastrado no sistema.");
+                throw new BusinessException("Email já cadastrado no sistema.");
             }
             sindico.setEmail(dto.getEmail());
         }
@@ -123,7 +124,7 @@ public class CondominiumManagementService {
     private User getUserByEmail(String email) {
         UserDetails details = userRepository.findByEmail(email);
         if (details == null) {
-            throw new RuntimeException("Usuário não encontrado.");
+            throw new BusinessException("Usuário não encontrado.");
         }
         return (User) details;
     }

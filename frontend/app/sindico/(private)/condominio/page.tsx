@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Building2, AlertCircle, Clock, CheckCircle2, Bell, BellOff, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 interface CondominioSindico {
   id: number
@@ -38,6 +39,7 @@ export default function SindicoDashboard() {
       }
     } catch (error) {
       console.error("Erro ao buscar condomínios do síndico:", error)
+      toast.error("Erro ao carregar seus condomínios.")
     } finally {
       setIsLoading(false)
     }
@@ -62,9 +64,13 @@ export default function SindicoDashboard() {
       })
       if (response.ok) {
         setCondominios((prev) => prev.map((c) => ({ ...c, focusModeEnabled: checked })))
+        toast.success(checked ? "Modo foco ativado para todos os condomínios." : "Modo foco desativado.")
+      } else {
+        toast.error("Não foi possível alterar o modo foco.")
       }
     } catch (error) {
       console.error("Erro ao atualizar modo foco global:", error)
+      toast.error("Erro de conexão com o servidor.")
     } finally {
       setIsTogglingGlobal(false)
     }

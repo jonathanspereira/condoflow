@@ -1,5 +1,6 @@
 package com.jonathanspereira.condoflow.unit.service;
 
+import com.jonathanspereira.condoflow.common.exception.BusinessException;
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
 import com.jonathanspereira.condoflow.unit.dto.UnitRequestDTO;
@@ -116,10 +117,10 @@ public class UnitService {
     public Long obterCondominioDoUsuarioLogado(String email) {
         User user = (User) userRepository.findByEmail(email);
         if (user == null) {
-            throw new RuntimeException("Usuário não encontrado: " + email);
+            throw new BusinessException("Usuário não encontrado: " + email);
         }
         if (user.getCondominium() == null) {
-            throw new RuntimeException("Usuário sem condomínio vinculado: " + email);
+            throw new BusinessException("Usuário sem condomínio vinculado: " + email);
         }
         return user.getCondominium().getId();
     }

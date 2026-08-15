@@ -2,6 +2,7 @@ package com.jonathanspereira.condoflow.auth.service;
 
 import com.jonathanspereira.condoflow.auth.dto.AuthRequestDTO;
 import com.jonathanspereira.condoflow.auth.dto.AuthResponseDTO;
+import com.jonathanspereira.condoflow.common.exception.BusinessException;
 import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class AuthService {
         User user = (User) userRepository.findByEmail(dto.getEmail());
 
         if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Credenciais inválidas");
+            throw new BusinessException("Credenciais inválidas");
         }
 
         String token = tokenService.generateToken(user);

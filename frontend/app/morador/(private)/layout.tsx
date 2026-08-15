@@ -28,6 +28,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
 // MENU PARA O MORADOR
 const MENU_MORADOR = [
@@ -100,6 +101,8 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
   }
 
   const handleLogout = () => {
+    localStorage.removeItem("condoflow_token")
+    toast.success("Sessão encerrada com sucesso.")
     router.push("/")
   }
 

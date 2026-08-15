@@ -5,6 +5,8 @@
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/auth/service/AuthService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/auth/service/TokenService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/config/DatabaseSeeder.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/exception/BusinessException.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/exception/ErrorResponse.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/exception/GlobalExceptionHandler.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/security/SecurityConfig.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/security/SecurityFilter.java

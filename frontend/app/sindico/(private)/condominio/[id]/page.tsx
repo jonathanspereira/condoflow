@@ -30,6 +30,7 @@ import {
   AlertTriangle, CheckCircle, Clock,
   Send, Camera, Loader2, ArrowLeft
 } from "lucide-react"
+import { toast } from "sonner"
 
 interface CondominioDetalhesProps {
   params: Promise<{ id: string }>
@@ -78,6 +79,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
         }
       } catch (error) {
         console.error("Erro ao carregar dados do painel do síndico:", error)
+        toast.error("Erro ao carregar dados do condomínio.")
       } finally {
         setIsLoading(false)
       }
@@ -116,9 +118,15 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
         // Atualiza a lista localmente
         setOcorrencias(prev => prev.map(o => o.id === selectedOcorrencia.id ? { ...o, status: novoStatus, response: respostaOficial } : o))
         setIsSheetOpen(false)
+        toast.success("Ocorrência atualizada com sucesso!")
+      } else {
+        const errorData = await response.json().catch(() => null)
+        const msg = errorData?.message || "Não foi possível atualizar a ocorrência."
+        toast.error(msg)
       }
     } catch (error) {
       console.error("Erro ao atualizar ocorrência:", error)
+      toast.error("Erro de conexão com o servidor.")
     } finally {
       setIsSubmitting(false)
     }

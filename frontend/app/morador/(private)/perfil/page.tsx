@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
-import { 
+import {
   User, 
   Building, 
   Bell, 
@@ -19,6 +19,7 @@ import {
   UserMinus,
   Loader2
 } from "lucide-react"
+import { toast } from "sonner"
 
 interface UserProfile {
   name: string
@@ -36,8 +37,6 @@ export default function PerfilPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSavingEmail, setIsSavingEmail] = useState(false)
   const [isSavingTenant, setIsSavingTenant] = useState(false)
-  const [errorMsg, setErrorMsg] = useState("")
-  const [successMsg, setSuccessMsg] = useState("")
 
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
@@ -66,20 +65,6 @@ export default function PerfilPage() {
     return roles[role] || role
   }
 
-  const showTempMessage = (type: "success" | "error", msg: string) => {
-    if (type === "success") {
-      setSuccessMsg(msg)
-      setErrorMsg("")
-    } else {
-      setErrorMsg(msg)
-      setSuccessMsg("")
-    }
-    setTimeout(() => {
-      setSuccessMsg("")
-      setErrorMsg("")
-    }, 6000)
-  }
-
   useEffect(() => {
     async function fetchProfileData() {
       setIsLoading(true)
@@ -96,11 +81,11 @@ export default function PerfilPage() {
           setNomeInq(data.tenantName || "")
           setEmailInq(data.tenantEmail || "")
         } else {
-          showTempMessage("error", "Não foi possível carregar os dados do perfil.")
+          toast.error("Não foi possível carregar os dados do perfil.")
         }
       } catch (error) {
         console.error("Erro ao carregar perfil:", error)
-        showTempMessage("error", "Erro de conexão com o servidor.")
+        toast.error("Erro de conexão com o servidor.")
       } finally {
         setIsLoading(false)
       }
@@ -111,8 +96,6 @@ export default function PerfilPage() {
 
   const handleUpdateEmail = async () => {
     setIsSavingEmail(true)
-    setErrorMsg("")
-    setSuccessMsg("")
 
     try {
       const response = await fetch("http://localhost:8080/api/v1/users/me", {
@@ -130,13 +113,14 @@ export default function PerfilPage() {
 
       if (response.ok) {
         setProfile(prev => ({ ...prev, email: novoEmail }))
-        showTempMessage("success", "E-mail atualizado com sucesso!")
+        toast.success("E-mail atualizado com sucesso!")
       } else {
-        showTempMessage("error", "Não foi possível atualizar o e-mail.")
+        const errData = await response.json().catch(() => null)
+        toast.error(errData?.message || "Não foi possível atualizar o e-mail.")
       }
     } catch (error) {
       console.error("Erro ao atualizar e-mail:", error)
-      showTempMessage("error", "Erro de conexão com o servidor.")
+      toast.error("Erro de conexão com o servidor.")
     } finally {
       setIsSavingEmail(false)
     }
@@ -144,18 +128,16 @@ export default function PerfilPage() {
 
   const handleUpdateTenant = async () => {
     if (!profile.unitId) {
-      showTempMessage("error", "Erro: O seu perfil não possui uma unidade (Apto) atrelada para registrar inquilinos.")
+      toast.error("O seu perfil não possui uma unidade (Apto) atrelada para registrar inquilinos.")
       return
     }
 
     if (profile.isRented && (!nomeInq || !emailInq)) {
-      showTempMessage("error", "Preencha o nome e o e-mail do inquilino antes de prosseguir.")
+      toast.error("Preencha o nome e o e-mail do inquilino antes de prosseguir.")
       return
     }
 
     setIsSavingTenant(true)
-    setErrorMsg("")
-    setSuccessMsg("")
 
     try {
       const payload = {
@@ -177,16 +159,16 @@ export default function PerfilPage() {
       })
 
       if (response.ok) {
-        showTempMessage("success", profile.isRented 
-          ? `Inquilino ${nomeInq} registrado com sucesso! A unidade foi atualizada.`
+        toast.success(profile.isRented 
+          ? `Inquilino ${nomeInq} registrado com sucesso!`
           : "Inquilino removido e unidade marcada como residência própria.")
       } else {
         const errData = await response.json().catch(() => null)
-        showTempMessage("error", errData?.message || "Não foi possível registrar o inquilino. Este e-mail pode já estar em uso.")
+        toast.error(errData?.message || "Não foi possível registrar o inquilino. Este e-mail pode já estar em uso.")
       }
     } catch (error) {
       console.error("Erro ao registrar inquilino:", error)
-      showTempMessage("error", "Erro de conexão com o servidor. Tente novamente mais tarde.")
+      toast.error("Erro de conexão com o servidor. Tente novamente mais tarde.")
     } finally {
       setIsSavingTenant(false)
     }
@@ -199,17 +181,7 @@ export default function PerfilPage() {
         <p className="text-muted-foreground text-lg">Gerencie as suas informações e os acessos à sua unidade.</p>
       </header>
 
-      {successMsg && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm p-4 rounded-md font-bold flex items-center transition-all">
-          {successMsg}
-        </div>
-      )}
 
-      {errorMsg && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-4 rounded-md font-bold flex items-center transition-all">
-          {errorMsg}
-        </div>
-      )}
 
       <Tabs defaultValue="unidade" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 max-w-md">

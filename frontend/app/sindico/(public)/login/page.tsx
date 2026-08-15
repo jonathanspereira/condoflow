@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 const ALLOWED_ROLES = ["SINDICO", "SUPER_ADMIN"]
 
@@ -34,19 +35,25 @@ export default function LoginSindicoPage() {
 
         if (!ALLOWED_ROLES.includes(data.role)) {
           setError("Este acesso é exclusivo para síndicos. Use o login de morador.")
+          toast.error("Acesso negado.", { description: "Este login é exclusivo para síndicos." })
           setIsLoading(false)
           return
         }
 
         localStorage.setItem("condoflow_token", data.token)
+        toast.success("Login realizado com sucesso!")
         router.push("/sindico/condominio")
       } else {
-        setError("E-mail ou senha inválidos.")
+        const errorData = await response.json().catch(() => null)
+        const msg = errorData?.message || "E-mail ou senha inválidos."
+        setError(msg)
+        toast.error(msg)
         setIsLoading(false)
       }
     } catch (err) {
       console.error("Erro ao autenticar:", err)
       setError("Erro de conexão com o servidor.")
+      toast.error("Erro de conexão com o servidor.")
       setIsLoading(false)
     }
   }

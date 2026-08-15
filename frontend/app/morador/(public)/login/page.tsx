@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 export default function LoginMoradorPage() {
   const router = useRouter()
@@ -38,13 +39,18 @@ export default function LoginMoradorPage() {
           localStorage.setItem("condoflow_token", data.token)
         }
 
+        toast.success("Login realizado com sucesso!")
         router.push("/morador/minhas-ocorrencias")
       } else {
-        setErrorMsg("E-mail ou senha inválidos. Verifique suas credenciais.")
+        const errorData = await response.json().catch(() => null)
+        const msg = errorData?.message || "E-mail ou senha inválidos. Verifique suas credenciais."
+        setErrorMsg(msg)
+        toast.error(msg)
       }
    } catch (error) {
       console.error("Erro ao conectar com o servidor:", error)
       setErrorMsg("Não foi possível conectar ao servidor. Tente novamente mais tarde.")
+      toast.error("Erro de conexão com o servidor.")
     } finally {
       setIsLoading(false)
     }

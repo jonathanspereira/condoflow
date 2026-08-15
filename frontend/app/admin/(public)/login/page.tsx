@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { toast } from "sonner"
 
 export default function AdminLogin() {
   const router = useRouter()
@@ -33,7 +34,9 @@ export default function AdminLogin() {
       })
 
       if (!response.ok) {
-        throw new Error("Credenciais inválidas. Verifique seu e-mail e senha.")
+        const errorData = await response.json().catch(() => null)
+        const backendMsg = errorData?.message || "Credenciais inválidas. Verifique seu e-mail e senha."
+        throw new Error(backendMsg)
       }
 
       const data = await response.json()
@@ -47,9 +50,12 @@ export default function AdminLogin() {
       }))
 
       // Redireciona para o painel administrativo
+      toast.success("Login realizado com sucesso!")
       router.push("/admin/dashboard")
     } catch (error: any) {
-      setErrorMessage(error.message || "Erro ao conectar com o servidor.")
+      const msg = error.message || "Erro ao conectar com o servidor."
+      setErrorMessage(msg)
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }

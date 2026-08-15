@@ -1,5 +1,6 @@
 package com.jonathanspereira.condoflow.user.service;
 
+import com.jonathanspereira.condoflow.common.exception.BusinessException;
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.entity.CondominiumManager;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumManagerRepository;
@@ -35,7 +36,7 @@ public class UserService {
 
     public UserResponseDTO createUser(UserRequestDTO dto) {
         if (userRepository.findByEmail(dto.getEmail()) != null) {
-            throw new RuntimeException("Email já cadastrado no sistema.");
+            throw new BusinessException("Email já cadastrado no sistema.");
         }
 
         User user = new User();
@@ -57,7 +58,7 @@ public class UserService {
     public UserResponseDTO findByEmail(String email) {
         UserDetails userDetails = userRepository.findByEmail(email);
         if (userDetails == null) {
-            throw new RuntimeException("Usuário não encontrado com o e-mail: " + email);
+            throw new BusinessException("Usuário não encontrado com o e-mail: " + email);
         }
         User user = (User) userDetails;
 
@@ -71,14 +72,14 @@ public class UserService {
     public UserResponseDTO updateMyProfile(String currentEmail, UserRequestDTO dto) {
         UserDetails details = userRepository.findByEmail(currentEmail);
         if (details == null) {
-            throw new RuntimeException("Usuário não encontrado.");
+            throw new BusinessException("Usuário não encontrado.");
         }
         User user = (User) details;
 
         if (dto.getEmail() != null && !dto.getEmail().isBlank()
                 && !dto.getEmail().equalsIgnoreCase(user.getEmail())) {
             if (userRepository.findByEmail(dto.getEmail()) != null) {
-                throw new RuntimeException("Email já cadastrado no sistema.");
+                throw new BusinessException("Email já cadastrado no sistema.");
             }
             user.setEmail(dto.getEmail());
         }
@@ -104,7 +105,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
         if (!user.getEmail().equals(dto.getEmail()) && userRepository.findByEmail(dto.getEmail()) != null) {
-            throw new RuntimeException("Email já cadastrado no sistema.");
+            throw new BusinessException("Email já cadastrado no sistema.");
         }
 
         user.setName(dto.getName());
@@ -134,24 +135,24 @@ public class UserService {
     public UserResponseDTO manageTenant(String ownerEmail, UserRequestDTO dto) {
         UserDetails ownerDetails = userRepository.findByEmail(ownerEmail);
         if (ownerDetails == null) {
-            throw new RuntimeException("Usuário não encontrado.");
+            throw new BusinessException("Usuário não encontrado.");
         }
         User owner = (User) ownerDetails;
 
         if (dto.getUnitId() == null) {
-            throw new RuntimeException("Unidade não informada.");
+            throw new BusinessException("Unidade não informada.");
         }
 
         Unit unit = unitRepository.findById(dto.getUnitId())
                 .orElseThrow(() -> new RuntimeException("Unidade não encontrada."));
 
         if (!unit.getOwner().getId().equals(owner.getId())) {
-            throw new RuntimeException("Você não tem permissão para alterar esta unidade.");
+            throw new BusinessException("Você não tem permissão para alterar esta unidade.");
         }
 
         if (Boolean.TRUE.equals(dto.getIsRented())) {
             if (dto.getEmail() == null || dto.getEmail().isBlank()) {
-                throw new RuntimeException("Informe o e-mail do inquilino.");
+                throw new BusinessException("Informe o e-mail do inquilino.");
             }
 
             UserDetails existing = userRepository.findByEmail(dto.getEmail());
@@ -193,7 +194,7 @@ public class UserService {
             user = userRepository.save(user);
         } else {
             if (dto.name() == null || dto.name().isBlank()) {
-                throw new RuntimeException("Informe o nome do síndico para criar um novo acesso.");
+                throw new BusinessException("Informe o nome do síndico para criar um novo acesso.");
             }
             temporaryPassword = generateTemporaryPassword();
 
