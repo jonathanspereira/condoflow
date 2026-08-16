@@ -34,6 +34,7 @@ interface OccurrenceDetail {
   authorName?: string
   createdAt: string
   updatedAt?: string
+  response?: string
   messages?: {
     id: number
     content: string

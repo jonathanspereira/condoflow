@@ -28,7 +28,7 @@ import {
   Search, Filter, MoreHorizontal, 
   MessageCircle, User, Shield, 
   AlertTriangle, CheckCircle, Clock,
-  Send, Camera, Loader2, ArrowLeft
+  Send, Camera, Loader2, ArrowLeft, Building
 } from "lucide-react"
 import { toast } from "sonner"
 
