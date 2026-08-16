@@ -73,23 +73,44 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
 
   useEffect(() => {
     async function fetchHeaderData() {
+      const token = getToken()
+      if (!token) {
+        toast.error("Sessão expirada. Faça login novamente.")
+        router.push("/morador/login")
+        return
+      }
+
       try {
         const response = await fetch("http://localhost:8080/api/v1/users/me", {
           headers: {
-            Authorization: `Bearer ${getToken()}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         if (response.ok) {
           const data = await response.json()
+          
+          if (data.role === "SINDICO" || data.role === "SUPER_ADMIN") {
+            // Se for síndico, redireciona para a área correta
+            router.push("/sindico/condominio")
+            return
+          }
+          
           setUserData(data)
+        } else {
+          // Token inválido ou expirado (401, 403)
+          localStorage.removeItem("condoflow_token")
+          localStorage.removeItem("condoflow_user")
+          toast.error("Sessão expirada ou inválida. Faça login novamente.")
+          router.push("/morador/login")
         }
       } catch (error) {
         console.error("Erro ao carregar dados do usuário no header:", error)
+        toast.error("Erro de conexão com o servidor.")
       }
     }
 
     fetchHeaderData()
-  }, [])
+  }, [router]) // Adicionado router como dependência
 
   const handleProfileClick = () => {
     if (isAreaSindico) {
@@ -102,6 +123,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
 
   const handleLogout = () => {
     localStorage.removeItem("condoflow_token")
+    localStorage.removeItem("condoflow_user")
     toast.success("Sessão encerrada com sucesso.")
     router.push("/")
   }

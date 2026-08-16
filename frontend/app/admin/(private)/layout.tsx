@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState } from "react" // Adicionado useState
+import React, { useState, useEffect } from "react" // Adicionado useState e useEffect
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { 
   ShieldCheck, 
   Building2, 
@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { toast } from "sonner"
 
 const MENU_ADMIN = [
   { name: "Visão Geral", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -23,8 +24,39 @@ const MENU_ADMIN = [
 
 export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname()
+  const router = useRouter()
   // 1. Estado começando como TRUE para colapsar por padrão
   const [isCollapsed, setIsCollapsed] = useState(true)
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : null
+    const userStr = typeof window !== "undefined" ? localStorage.getItem("condoflow_user") : null
+
+    if (!token || !userStr) {
+      toast.error("Acesso negado. Faça login para continuar.")
+      router.push("/admin/login")
+      return
+    }
+
+    try {
+      const user = JSON.parse(userStr)
+      if (user.role !== "SUPER_ADMIN") {
+        toast.error("Acesso negado. Área restrita.")
+        router.push("/")
+      }
+    } catch (e) {
+      localStorage.removeItem("condoflow_token")
+      localStorage.removeItem("condoflow_user")
+      router.push("/admin/login")
+    }
+  }, [router])
+
+  const handleLogout = () => {
+    localStorage.removeItem("condoflow_token")
+    localStorage.removeItem("condoflow_user")
+    toast.success("Logout realizado com sucesso.")
+    router.push("/admin/login")
+  }
 
   return (
     <div className="flex h-screen bg-slate-100/50">
@@ -106,6 +138,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
           <Separator className="bg-slate-800" />
           <Button 
             variant="ghost" 
+            onClick={handleLogout}
             className={`w-full text-slate-400 hover:text-red-400 hover:bg-red-500/10 ${isCollapsed ? "justify-center px-0" : "justify-start gap-3 px-3"}`}
           >
             <LogOut size={18} />
