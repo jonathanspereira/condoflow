@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+import { useRef } from "react"
 
 interface OccurrenceDetail {
   id: string
@@ -40,6 +41,12 @@ interface OccurrenceDetail {
     content: string
     senderName: string
     senderRole: string
+    createdAt: string
+  }[]
+  attachments?: {
+    id: number
+    fileName: string
+    fileType: string
     createdAt: string
   }[]
 }
@@ -77,6 +84,8 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
   const [error, setError] = useState("")
   const [newMessage, setNewMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
 
@@ -153,6 +162,40 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
       toast.error("Erro de conexão com o servidor.")
     } finally {
       setIsSending(false)
+    }
+  }
+
+  const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !occurrence) return
+
+    setIsUploading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${occurrence.id}/attachments`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: formData
+      })
+
+      if (response.ok) {
+        const updated = await response.json()
+        setOccurrence(updated)
+        toast.success("Anexo enviado com sucesso!")
+      } else {
+        toast.error("Erro ao enviar anexo.")
+      }
+    } catch (err) {
+      toast.error("Erro de conexão ao enviar anexo.")
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
     }
   }
 
@@ -254,7 +297,7 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
                 )
               })}
 
-              {/* Área de Resposta */}
+              {/* Área de Resposta e Upload */}
               {occurrence.status !== "CLOSED" && (
                 <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
                   <Textarea 
@@ -263,7 +306,19 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                   />
-                  <div className="flex justify-end">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        className="hidden" 
+                        onChange={handleUploadAttachment}
+                      />
+                      <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Paperclip className="h-4 w-4 mr-2" />}
+                        Anexar arquivo
+                      </Button>
+                    </div>
                     <Button onClick={handleSendMessage} disabled={isSending || !newMessage.trim()} className="gap-2 bg-slate-900">
                       {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                       Enviar
@@ -331,9 +386,21 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
                 <span className="text-slate-600">Registrado em: <strong>{formatarData(occurrence.createdAt)}</strong></span>
               </div>
               <Separator />
-              <Button variant="ghost" className="w-full justify-start gap-2 text-xs" size="sm">
-                <Paperclip className="h-3 w-3" /> Ver anexos
-              </Button>
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold text-slate-500 uppercase">Anexos ({occurrence.attachments?.length || 0})</h4>
+                {occurrence.attachments && occurrence.attachments.length > 0 ? (
+                  <div className="space-y-2">
+                    {occurrence.attachments.map((att) => (
+                      <Button key={att.id} variant="ghost" className="w-full justify-start gap-2 text-xs h-auto py-2" onClick={() => window.open(`http://localhost:8080/api/v1/occurrences/${occurrence.id}/attachments/${att.id}`, "_blank")}>
+                        <Paperclip className="h-3 w-3 shrink-0" /> 
+                        <span className="truncate">{att.fileName}</span>
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400">Nenhum anexo.</p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

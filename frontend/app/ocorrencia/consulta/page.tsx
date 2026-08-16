@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Search, Ticket, Clock, CheckCircle2, MessageSquare, ArrowLeft, Loader2 } from "lucide-react"
+import { Search, Ticket, Clock, CheckCircle2, MessageSquare, ArrowLeft, Loader2, Building, User, Paperclip } from "lucide-react"
 import { toast } from "sonner"
 
 type StatusOcorrencia = "ABERTO" | "EM_ANALISE" | "EM_EXECUCAO" | "CONCLUIDO"
@@ -27,6 +27,7 @@ type EtapaHistorico = {
 }
 
 type ResultadoConsulta = {
+  id: string
   protocol: string
   status: StatusOcorrencia
   title: string
@@ -39,6 +40,19 @@ type ResultadoConsulta = {
   createdAt: string
   updatedAt: string
   historico: EtapaHistorico[]
+  messages?: {
+    id: number
+    content: string
+    senderName: string
+    senderRole: string
+    createdAt: string
+  }[]
+  attachments?: {
+    id: number
+    fileName: string
+    fileType: string
+    createdAt: string
+  }[]
 }
 
 function formatDateTime(iso: string): string {
@@ -95,6 +109,7 @@ export default function ConsultaProtocolo() {
       const status = data.status as StatusOcorrencia
 
       setResultado({
+        id: data.id,
         protocol: data.protocol,
         status,
         title: data.title,
@@ -107,6 +122,8 @@ export default function ConsultaProtocolo() {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
         historico: buildHistorico(status, data.createdAt, data.updatedAt),
+        messages: data.messages,
+        attachments: data.attachments,
       })
 
       toast.success("Ocorrência localizada com sucesso.")
@@ -201,27 +218,77 @@ export default function ConsultaProtocolo() {
                 ))}
               </div>
 
-              {resultado.response && (
-                <div className="bg-slate-50 p-4 rounded-lg border">
-                  <h4 className="flex items-center gap-2 font-semibold text-sm mb-2">
-                    <MessageSquare className="h-4 w-4 text-primary" />
-                    Resposta da Administração
-                  </h4>
-                  <p className="text-sm text-slate-600 italic">
-                    &ldquo;{resultado.response}&rdquo;
-                  </p>
-                </div>
-              )}
+              <div className="space-y-4">
+                <h4 className="flex items-center gap-2 font-semibold text-sm border-b pb-2 text-slate-800">
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                  Histórico do Atendimento
+                </h4>
 
-              {!resultado.response && (
-                <div className="bg-slate-50 p-4 rounded-lg border">
-                  <h4 className="flex items-center gap-2 font-semibold text-sm mb-2 text-muted-foreground">
-                    <MessageSquare className="h-4 w-4" />
-                    Resposta da Administração
-                  </h4>
-                  <p className="text-sm text-muted-foreground italic">
-                    Ainda não há resposta da administração.
-                  </p>
+                {/* Relato Inicial */}
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+                    <User className="h-4 w-4 text-slate-500" />
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl rounded-tl-none border border-slate-200 text-sm text-slate-700 w-full">
+                    <p className="font-semibold text-xs text-slate-500 mb-2">
+                      {resultado.authorName || "Anônimo"} (Abertura) • {formatDateTime(resultado.createdAt)}
+                    </p>
+                    <p className="whitespace-pre-wrap">{resultado.description}</p>
+                  </div>
+                </div>
+
+                {/* Resposta Antiga (Legacy) */}
+                {resultado.response && (!resultado.messages || resultado.messages.length === 0) && (
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                      <Building className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="bg-blue-50/50 p-4 rounded-xl rounded-tl-none border border-blue-100 text-sm text-slate-700 w-full">
+                      <p className="font-semibold text-xs text-blue-600 mb-2">Síndico / Administração</p>
+                      <p className="whitespace-pre-wrap">{resultado.response}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Novas Mensagens */}
+                {resultado.messages?.map((msg) => {
+                  const isSindico = msg.senderRole === "ADMIN" || msg.senderRole === "SINDICO"
+                  return (
+                    <div key={msg.id} className="flex gap-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isSindico ? 'bg-blue-100' : 'bg-slate-200'}`}>
+                        {isSindico ? <Building className="h-4 w-4 text-blue-600" /> : <User className="h-4 w-4 text-slate-500" />}
+                      </div>
+                      <div className={`p-4 rounded-xl rounded-tl-none border text-sm text-slate-700 w-full ${isSindico ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50 border-slate-200'}`}>
+                        <p className={`font-semibold text-xs mb-2 ${isSindico ? 'text-blue-600' : 'text-slate-500'}`}>
+                          {msg.senderName} • {formatDateTime(msg.createdAt)}
+                        </p>
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {!resultado.response && (!resultado.messages || resultado.messages.length === 0) && (
+                  <div className="bg-slate-50 p-4 rounded-lg border text-center">
+                    <p className="text-sm text-muted-foreground italic">
+                      Ainda não há resposta da administração.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Anexos */}
+              {resultado.attachments && resultado.attachments.length > 0 && (
+                <div className="pt-4 border-t border-slate-100">
+                  <h4 className="text-xs font-semibold text-slate-500 uppercase mb-3">Anexos Disponíveis ({resultado.attachments.length})</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {resultado.attachments.map((att) => (
+                      <Button key={att.id} variant="outline" size="sm" className="gap-2 bg-white" onClick={() => window.open(`http://localhost:8080/api/v1/occurrences/${resultado.id}/attachments/${att.id}`, "_blank")}>
+                        <Paperclip className="h-3 w-3 shrink-0" /> 
+                        <span className="truncate max-w-[150px]">{att.fileName}</span>
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>

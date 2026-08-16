@@ -52,9 +52,11 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
     try {
       const token = localStorage.getItem("condoflow_token")
 
+      let response: Response;
+
       if (isAnonimo) {
         // Envio anônimo — não precisa de autenticação
-        const response = await fetch("http://localhost:8080/api/v1/occurrences/anonymous", {
+        response = await fetch("http://localhost:8080/api/v1/occurrences/anonymous", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -65,20 +67,9 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
             category: values.categoria,
           }),
         })
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => null)
-          const msg = errorData?.message || "Erro ao enviar ocorrência."
-          toast.error(msg)
-          setIsSubmitting(false)
-          return
-        }
-
-        const data = await response.json()
-        router.push(`/ocorrencia/sucesso?protocolo=${encodeURIComponent(data.protocol)}`)
       } else {
         // Envio autenticado
-        const response = await fetch("http://localhost:8080/api/v1/occurrences", {
+        response = await fetch("http://localhost:8080/api/v1/occurrences", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -90,18 +81,35 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
             category: values.categoria,
           }),
         })
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => null)
-          const msg = errorData?.message || "Erro ao enviar ocorrência."
-          toast.error(msg)
-          setIsSubmitting(false)
-          return
-        }
-
-        const data = await response.json()
-        router.push(`/ocorrencia/sucesso?protocolo=${encodeURIComponent(data.protocol)}`)
       }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null)
+        const msg = errorData?.message || "Erro ao enviar ocorrência."
+        toast.error(msg)
+        setIsSubmitting(false)
+        return
+      }
+
+      const data = await response.json()
+      
+      // Enviar os anexos se existirem
+      if (values.midias && values.midias.length > 0) {
+        for (const file of values.midias) {
+          const formData = new FormData()
+          formData.append("file", file)
+
+          await fetch(`http://localhost:8080/api/v1/occurrences/${data.id}/attachments`, {
+            method: "POST",
+            headers: {
+              ...(token && !isAnonimo ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: formData,
+          })
+        }
+      }
+
+      router.push(`/ocorrencia/sucesso?protocolo=${encodeURIComponent(data.protocol)}`)
     } catch {
       toast.error("Não foi possível conectar ao servidor. Tente novamente.")
       setIsSubmitting(false)

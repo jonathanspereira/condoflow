@@ -52,6 +52,9 @@ public class Occurrence {
     @OneToMany(mappedBy = "occurrence", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private java.util.List<OccurrenceMessage> messages = new java.util.ArrayList<>();
 
+    @OneToMany(mappedBy = "occurrence", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private java.util.List<OccurrenceAttachment> attachments = new java.util.ArrayList<>();
+
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();

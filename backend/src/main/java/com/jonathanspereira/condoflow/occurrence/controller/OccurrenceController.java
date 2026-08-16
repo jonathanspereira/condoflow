@@ -63,4 +63,19 @@ public class OccurrenceController {
         OccurrenceResponseDTO response = service.addMessage(id, dto, principal.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PostMapping(value = "/{id}/attachments", consumes = "multipart/form-data")
+    public ResponseEntity<OccurrenceResponseDTO> addAttachment(@PathVariable Long id, @RequestParam("file") org.springframework.web.multipart.MultipartFile file, Principal principal) {
+        OccurrenceResponseDTO response = service.addAttachment(id, file, principal.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}/attachments/{attachmentId}")
+    public ResponseEntity<byte[]> getAttachment(@PathVariable Long id, @PathVariable Long attachmentId) {
+        com.jonathanspereira.condoflow.occurrence.entity.OccurrenceAttachment attachment = service.getAttachment(id, attachmentId);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.getFileName() + "\"")
+                .contentType(org.springframework.http.MediaType.parseMediaType(attachment.getFileType() != null ? attachment.getFileType() : "application/octet-stream"))
+                .body(attachment.getFileData());
+    }
 }

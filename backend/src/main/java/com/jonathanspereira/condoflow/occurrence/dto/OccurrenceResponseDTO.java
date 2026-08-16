@@ -19,7 +19,8 @@ public record OccurrenceResponseDTO(
         String authorName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        List<OccurrenceMessageDTO> messages
+        List<OccurrenceMessageDTO> messages,
+        List<OccurrenceAttachmentDTO> attachments
 ) {
     public OccurrenceResponseDTO(Occurrence entity) {
         this(
@@ -35,7 +36,15 @@ public record OccurrenceResponseDTO(
                 entity.getReportedBy() != null ? entity.getReportedBy().getName() : null,
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
-                entity.getMessages() != null ? entity.getMessages().stream().map(OccurrenceMessageDTO::new).collect(Collectors.toList()) : List.of()
+                entity.getMessages() != null ? entity.getMessages().stream().map(OccurrenceMessageDTO::new).collect(Collectors.toList()) : List.of(),
+                entity.getAttachments() != null ? entity.getAttachments().stream().map(att -> {
+                    OccurrenceAttachmentDTO dto = new OccurrenceAttachmentDTO();
+                    dto.setId(att.getId());
+                    dto.setFileName(att.getFileName());
+                    dto.setFileType(att.getFileType());
+                    dto.setCreatedAt(att.getCreatedAt());
+                    return dto;
+                }).collect(Collectors.toList()) : List.of()
         );
     }
 }

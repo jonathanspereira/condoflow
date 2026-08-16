@@ -28,9 +28,10 @@ import {
   Search, Filter, MoreHorizontal, 
   MessageCircle, User, Shield, 
   AlertTriangle, CheckCircle, Clock,
-  Send, Camera, Loader2, ArrowLeft, Building
+  Send, Camera, Loader2, ArrowLeft, Building, Paperclip
 } from "lucide-react"
 import { toast } from "sonner"
+import { useRef } from "react"
 
 interface CondominioDetalhesProps {
   params: Promise<{ id: string }>
@@ -52,6 +53,8 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
   const [respostaOficial, setRespostaOficial] = useState("")
   const [novoStatus, setNovoStatus] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
 
@@ -150,6 +153,42 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
       toast.error("Erro de conexão com o servidor.")
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !selectedOcorrencia) return
+
+    setIsUploading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/attachments`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: formData
+      })
+
+      if (response.ok) {
+        const updated = await response.json()
+        setSelectedOcorrencia(updated)
+        // Atualiza a lista localmente
+        setOcorrencias(prev => prev.map(o => o.id === updated.id ? updated : o))
+        toast.success("Anexo enviado com sucesso!")
+      } else {
+        toast.error("Erro ao enviar anexo.")
+      }
+    } catch (err) {
+      toast.error("Erro de conexão ao enviar anexo.")
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
     }
   }
 
@@ -428,6 +467,22 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
                     </div>
                   )}
 
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <Label className="text-xs font-semibold text-slate-500 uppercase">Anexos Existentes ({selectedOcorrencia?.attachments?.length || 0})</Label>
+                    {selectedOcorrencia?.attachments && selectedOcorrencia.attachments.length > 0 ? (
+                      <div className="space-y-2">
+                        {selectedOcorrencia.attachments.map((att: any) => (
+                          <Button key={att.id} variant="outline" className="w-full justify-start gap-2 text-xs h-auto py-2 bg-slate-50 border-slate-200 text-slate-700" onClick={() => window.open(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/attachments/${att.id}`, "_blank")}>
+                            <Paperclip className="h-3 w-3 shrink-0" /> 
+                            <span className="truncate">{att.fileName}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400">Nenhum anexo.</p>
+                    )}
+                  </div>
+
                   <Textarea 
                     placeholder="Adicionar nova resposta. O morador será notificado..." 
                     className="min-h-[100px] bg-slate-50 border-slate-200 focus:ring-emerald-500 resize-none mt-2"
@@ -438,13 +493,24 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
 
                 <div className="space-y-3">
                   <Label className="text-sm font-medium text-slate-700">Comprovante / Foto (Opcional)</Label>
-                  <div className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 hover:bg-slate-50 cursor-pointer border-slate-200 transition-colors bg-slate-50/50">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    className="hidden" 
+                    onChange={handleUploadAttachment}
+                  />
+                  <div 
+                    onClick={() => !isUploading && fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 transition-colors bg-slate-50/50 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50 cursor-pointer border-slate-200'}`}
+                  >
                     <div className="bg-white p-3 rounded-full shadow-sm border border-slate-100">
-                      <Camera className="h-5 w-5 text-slate-400" />
+                      {isUploading ? <Loader2 className="h-5 w-5 text-slate-400 animate-spin" /> : <Camera className="h-5 w-5 text-slate-400" />}
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-slate-600 font-medium">Clique para anexar um arquivo</p>
-                      <p className="text-xs text-slate-400 mt-1">PNG, JPG ou PDF (Máx. 5MB)</p>
+                      <p className="text-sm text-slate-600 font-medium">
+                        {isUploading ? "Enviando arquivo..." : "Clique para anexar um arquivo"}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">Sobe e salva imediatamente na ocorrência</p>
                     </div>
                   </div>
                 </div>

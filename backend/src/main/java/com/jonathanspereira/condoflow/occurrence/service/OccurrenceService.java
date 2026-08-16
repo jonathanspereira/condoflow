@@ -12,6 +12,8 @@ import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceMessage;
 import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceRepository;
 import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceMessageRepository;
 import com.jonathanspereira.condoflow.occurrence.dto.MessageRequestDTO;
+import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceAttachment;
+import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceAttachmentRepository;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
 import com.jonathanspereira.condoflow.user.entity.User;
@@ -20,8 +22,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +35,7 @@ public class OccurrenceService {
 
     private final OccurrenceRepository occurrenceRepository;
     private final OccurrenceMessageRepository occurrenceMessageRepository;
+    private final OccurrenceAttachmentRepository occurrenceAttachmentRepository;
     private final CondominiumRepository condominiumRepository;
     private final UserRepository userRepository;
     private final UnitRepository unitRepository;
@@ -133,6 +138,43 @@ public class OccurrenceService {
         occurrence = occurrenceRepository.findById(id).orElse(occurrence);
 
         return new OccurrenceResponseDTO(occurrence);
+    }
+
+    public OccurrenceResponseDTO addAttachment(Long id, MultipartFile file, String userEmail) {
+        Occurrence occurrence = occurrenceRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada."));
+
+        // Simplificação: apenas permitindo que participantes ou admin subam arquivo
+        // Pode ser aprimorado com roles futuramente
+        User uploader = getUserByEmail(userEmail);
+
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Arquivo vazio.");
+        }
+
+        try {
+            OccurrenceAttachment attachment = new OccurrenceAttachment();
+            attachment.setOccurrence(occurrence);
+            attachment.setFileName(file.getOriginalFilename());
+            attachment.setFileType(file.getContentType());
+            attachment.setFileData(file.getBytes());
+
+            occurrenceAttachmentRepository.save(attachment);
+
+            occurrence = occurrenceRepository.findById(id).orElse(occurrence);
+            return new OccurrenceResponseDTO(occurrence);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao processar o arquivo.");
+        }
+    }
+
+    public OccurrenceAttachment getAttachment(Long id, Long attachmentId) {
+        Occurrence occurrence = occurrenceRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada."));
+
+        return occurrenceAttachmentRepository.findById(attachmentId)
+                .filter(att -> att.getOccurrence().getId().equals(occurrence.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anexo não encontrado."));
     }
 
     private User getUserByEmail(String email) {
