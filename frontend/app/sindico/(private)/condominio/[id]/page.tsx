@@ -102,6 +102,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
     setIsSubmitting(true)
 
     try {
+      // 1. Atualizar o status
       const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}`, {
         method: "PUT",
         headers: {
@@ -109,26 +110,58 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
           Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({
-          status: novoStatus,
-          response: respostaOficial
+          status: novoStatus
         })
       })
 
-      if (response.ok) {
-        // Atualiza a lista localmente
-        setOcorrencias(prev => prev.map(o => o.id === selectedOcorrencia.id ? { ...o, status: novoStatus, response: respostaOficial } : o))
-        setIsSheetOpen(false)
-        toast.success("Ocorrência atualizada com sucesso!")
-      } else {
+      if (!response.ok) {
         const errorData = await response.json().catch(() => null)
-        const msg = errorData?.message || "Não foi possível atualizar a ocorrência."
+        const msg = errorData?.message || "Não foi possível atualizar o status da ocorrência."
         toast.error(msg)
+        setIsSubmitting(false)
+        return
       }
+
+      // 2. Enviar nova mensagem, se houver texto
+      let updatedOcorrencia = await response.json()
+      
+      if (respostaOficial.trim()) {
+        const msgResponse = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/messages`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({ content: respostaOficial.trim() })
+        })
+        if (msgResponse.ok) {
+          updatedOcorrencia = await msgResponse.json()
+        } else {
+          toast.error("Status atualizado, mas houve erro ao enviar a mensagem.")
+        }
+      }
+
+      // Atualiza a lista localmente
+      setOcorrencias(prev => prev.map(o => o.id === updatedOcorrencia.id ? updatedOcorrencia : o))
+      setIsSheetOpen(false)
+      toast.success("Ocorrência atualizada com sucesso!")
     } catch (error) {
       console.error("Erro ao atualizar ocorrência:", error)
       toast.error("Erro de conexão com o servidor.")
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const formatarData = (iso?: string) => {
+    if (!iso) return "-"
+    try {
+      return new Date(iso).toLocaleString("pt-BR", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+      }).replace(",", " às")
+    } catch {
+      return iso
     }
   }
 
@@ -357,11 +390,47 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
                   </Select>
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium text-slate-700">Resposta Oficial</Label>
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium text-slate-700">Histórico e Respostas</Label>
+
+                  {/* Se a ocorrência anterior tinha o campo response, mostra como primeira msg do síndico */}
+                  {selectedOcorrencia?.response && (!selectedOcorrencia.messages || selectedOcorrencia.messages.length === 0) && (
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                        <Building className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="bg-blue-50/50 p-3 rounded-lg rounded-tl-none border border-blue-100 text-xs text-slate-700 w-full">
+                        <p className="font-semibold text-[10px] text-blue-600 mb-1">Síndico / Administração</p>
+                        <p className="whitespace-pre-wrap">{selectedOcorrencia.response}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mensagens do Histórico */}
+                  {selectedOcorrencia?.messages?.length > 0 && (
+                    <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2">
+                      {selectedOcorrencia.messages.map((msg: any) => {
+                        const isSindico = msg.senderRole === "ADMIN" || msg.senderRole === "SINDICO"
+                        return (
+                          <div key={msg.id} className="flex gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isSindico ? 'bg-blue-100' : 'bg-slate-200'}`}>
+                              {isSindico ? <Building className="h-4 w-4 text-blue-600" /> : <User className="h-4 w-4 text-slate-500" />}
+                            </div>
+                            <div className={`p-3 rounded-lg rounded-tl-none border text-xs text-slate-700 w-full ${isSindico ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50 border-slate-200'}`}>
+                              <p className={`font-semibold text-[10px] mb-1 ${isSindico ? 'text-blue-600' : 'text-slate-500'}`}>
+                                {msg.senderName} • {formatarData(msg.createdAt)}
+                              </p>
+                              <p className="whitespace-pre-wrap">{msg.content}</p>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
                   <Textarea 
-                    placeholder="Escreva a resposta ou providência tomada. O morador será notificado." 
-                    className="min-h-[120px] bg-slate-50 border-slate-200 focus:ring-emerald-500 resize-none"
+                    placeholder="Adicionar nova resposta. O morador será notificado..." 
+                    className="min-h-[100px] bg-slate-50 border-slate-200 focus:ring-emerald-500 resize-none mt-2"
                     value={respostaOficial}
                     onChange={(e) => setRespostaOficial(e.target.value)}
                   />

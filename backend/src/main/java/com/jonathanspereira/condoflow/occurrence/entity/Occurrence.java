@@ -49,6 +49,9 @@ public class Occurrence {
 
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "occurrence", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private java.util.List<OccurrenceMessage> messages = new java.util.ArrayList<>();
+
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();

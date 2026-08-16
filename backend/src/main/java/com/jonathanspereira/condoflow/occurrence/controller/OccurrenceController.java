@@ -57,4 +57,10 @@ public class OccurrenceController {
         OccurrenceResponseDTO response = service.update(id, dto);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/{id}/messages")
+    public ResponseEntity<OccurrenceResponseDTO> addMessage(@PathVariable Long id, @RequestBody @Valid com.jonathanspereira.condoflow.occurrence.dto.MessageRequestDTO dto, Principal principal) {
+        OccurrenceResponseDTO response = service.addMessage(id, dto, principal.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }

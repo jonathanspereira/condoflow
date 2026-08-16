@@ -8,7 +8,10 @@ import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO;
 import com.jonathanspereira.condoflow.occurrence.entity.Occurrence;
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceStatus;
+import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceMessage;
 import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceRepository;
+import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceMessageRepository;
+import com.jonathanspereira.condoflow.occurrence.dto.MessageRequestDTO;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
 import com.jonathanspereira.condoflow.user.entity.User;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 public class OccurrenceService {
 
     private final OccurrenceRepository occurrenceRepository;
+    private final OccurrenceMessageRepository occurrenceMessageRepository;
     private final CondominiumRepository condominiumRepository;
     private final UserRepository userRepository;
     private final UnitRepository unitRepository;
@@ -109,6 +113,26 @@ public class OccurrenceService {
 
         Occurrence saved = occurrenceRepository.save(occurrence);
         return new OccurrenceResponseDTO(saved);
+    }
+
+    public OccurrenceResponseDTO addMessage(Long id, MessageRequestDTO dto, String userEmail) {
+        Occurrence occurrence = occurrenceRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada."));
+
+        User sender = getUserByEmail(userEmail);
+
+        OccurrenceMessage message = new OccurrenceMessage();
+        message.setOccurrence(occurrence);
+        message.setSender(sender);
+        message.setContent(dto.content());
+
+        occurrenceMessageRepository.save(message);
+
+        // Fetch again or simply add to list, since it's lazy we might need to reload or just return DTO directly
+        // Let's reload to get everything correctly mapped
+        occurrence = occurrenceRepository.findById(id).orElse(occurrence);
+
+        return new OccurrenceResponseDTO(occurrence);
     }
 
     private User getUserByEmail(String email) {

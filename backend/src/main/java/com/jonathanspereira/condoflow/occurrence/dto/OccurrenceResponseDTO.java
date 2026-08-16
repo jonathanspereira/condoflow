@@ -3,6 +3,8 @@ package com.jonathanspereira.condoflow.occurrence.dto;
 import com.jonathanspereira.condoflow.occurrence.entity.Occurrence;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public record OccurrenceResponseDTO(
         String id,
@@ -16,7 +18,8 @@ public record OccurrenceResponseDTO(
         String unitName,
         String authorName,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        List<OccurrenceMessageDTO> messages
 ) {
     public OccurrenceResponseDTO(Occurrence entity) {
         this(
@@ -31,7 +34,8 @@ public record OccurrenceResponseDTO(
                 entity.getUnit() != null ? entity.getUnit().getUnit() : null,
                 entity.getReportedBy() != null ? entity.getReportedBy().getName() : null,
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                entity.getMessages() != null ? entity.getMessages().stream().map(OccurrenceMessageDTO::new).collect(Collectors.toList()) : List.of()
         );
     }
 }

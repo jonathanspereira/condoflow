@@ -15,8 +15,11 @@ import {
   User,
   Building,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Send
 } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 
 interface OccurrenceDetail {
   id: string
@@ -31,6 +34,13 @@ interface OccurrenceDetail {
   authorName?: string
   createdAt: string
   updatedAt?: string
+  messages?: {
+    id: number
+    content: string
+    senderName: string
+    senderRole: string
+    createdAt: string
+  }[]
 }
 
 const CATEGORIA_LABELS: Record<string, string> = {
@@ -64,6 +74,8 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
   const [occurrence, setOccurrence] = useState<OccurrenceDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
+  const [newMessage, setNewMessage] = useState("")
+  const [isSending, setIsSending] = useState(false)
 
   const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
 
@@ -114,6 +126,34 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
 
     fetchOccurrence()
   }, [id])
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !occurrence) return
+    setIsSending(true)
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${occurrence.id}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ content: newMessage })
+      })
+
+      if (response.ok) {
+        const updated = await response.json()
+        setOccurrence(updated)
+        setNewMessage("")
+        toast.success("Mensagem enviada com sucesso!")
+      } else {
+        toast.error("Erro ao enviar mensagem.")
+      }
+    } catch (err) {
+      toast.error("Erro de conexão com o servidor.")
+    } finally {
+      setIsSending(false)
+    }
+  }
 
   // Monta a timeline com base no status atual, marcando os passos já concluídos
   const buildTimeline = (status: string) => {
@@ -170,11 +210,66 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
           <Card>
-            <CardHeader><CardTitle className="text-lg">Relato Original</CardTitle></CardHeader>
-            <CardContent>
-              <p className="text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-md border border-dashed text-sm">
-                "{occurrence.description}"
-              </p>
+            <CardHeader><CardTitle className="text-lg">Relato Original e Histórico</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+                  <User className="h-4 w-4 text-slate-500" />
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl rounded-tl-none border border-slate-200 text-sm text-slate-700 w-full">
+                  <p className="font-semibold text-xs text-slate-500 mb-2">Morador (Abertura) • {formatarData(occurrence.createdAt)}</p>
+                  <p className="whitespace-pre-wrap">{occurrence.description}</p>
+                </div>
+              </div>
+
+              {/* Se a ocorrência anterior tinha o campo response, mostra como primeira msg do síndico */}
+              {occurrence.response && (!occurrence.messages || occurrence.messages.length === 0) && (
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                    <Building className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="bg-blue-50/50 p-4 rounded-xl rounded-tl-none border border-blue-100 text-sm text-slate-700 w-full">
+                    <p className="font-semibold text-xs text-blue-600 mb-2">Síndico / Administração</p>
+                    <p className="whitespace-pre-wrap">{occurrence.response}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Novas Mensagens do Histórico */}
+              {occurrence.messages?.map((msg) => {
+                const isSindico = msg.senderRole === "ADMIN" || msg.senderRole === "SINDICO"
+                return (
+                  <div key={msg.id} className="flex gap-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isSindico ? 'bg-blue-100' : 'bg-slate-200'}`}>
+                      {isSindico ? <Building className="h-4 w-4 text-blue-600" /> : <User className="h-4 w-4 text-slate-500" />}
+                    </div>
+                    <div className={`p-4 rounded-xl rounded-tl-none border text-sm text-slate-700 w-full ${isSindico ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50 border-slate-200'}`}>
+                      <p className={`font-semibold text-xs mb-2 ${isSindico ? 'text-blue-600' : 'text-slate-500'}`}>
+                        {msg.senderName} • {formatarData(msg.createdAt)}
+                      </p>
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Área de Resposta */}
+              {occurrence.status !== "CLOSED" && (
+                <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
+                  <Textarea 
+                    placeholder="Adicionar um novo comentário ou resposta..."
+                    className="min-h-[100px] resize-none"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                  />
+                  <div className="flex justify-end">
+                    <Button onClick={handleSendMessage} disabled={isSending || !newMessage.trim()} className="gap-2 bg-slate-900">
+                      {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      Enviar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
