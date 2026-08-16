@@ -24,9 +24,14 @@ public class DashboardService {
     }
 
     public com.jonathanspereira.condoflow.dashboard.dto.SyndicDashboardDTO getSyndicDashboard(String email) {
-        var user = userRepository.findByEmail(email);
-        if (user == null || user.getCondominium() == null) {
-            throw new IllegalArgumentException("User or condominium not found");
+        org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(email);
+        if (!(userDetails instanceof com.jonathanspereira.condoflow.user.entity.User)) {
+            throw new IllegalArgumentException("User not found or invalid type");
+        }
+        com.jonathanspereira.condoflow.user.entity.User user = (com.jonathanspereira.condoflow.user.entity.User) userDetails;
+        
+        if (user.getCondominium() == null) {
+            throw new IllegalArgumentException("User condominium not found");
         }
         
         Long condominiumId = user.getCondominium().getId();

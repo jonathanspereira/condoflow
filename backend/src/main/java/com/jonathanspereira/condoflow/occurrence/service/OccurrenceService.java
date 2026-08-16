@@ -146,7 +146,7 @@ public class OccurrenceService {
 
         // Simplificação: apenas permitindo que participantes ou admin subam arquivo
         // Pode ser aprimorado com roles futuramente
-        User uploader = getUserByEmail(userEmail);
+        // User uploader = getUserByEmail(userEmail);
 
         if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Arquivo vazio.");
