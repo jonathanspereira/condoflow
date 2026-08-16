@@ -26,4 +26,10 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
 
     long countByCondominiumIdAndStatusInAndCreatedAtBetween(
             Long condominiumId, List<OccurrenceStatus> statuses, LocalDateTime start, LocalDateTime end);
+
+    @org.springframework.data.jpa.repository.Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.status")
+    List<Object[]> countByStatusGrouped(Long condominiumId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.category")
+    List<Object[]> countByCategoryGrouped(Long condominiumId);
 }

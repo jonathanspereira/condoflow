@@ -22,4 +22,10 @@ public class DashboardController {
         DashboardStatsDTO stats = dashboardService.getGlobalStats();
         return ResponseEntity.ok(stats);
     }
+
+    @GetMapping("/syndic")
+    public ResponseEntity<com.jonathanspereira.condoflow.dashboard.dto.SyndicDashboardDTO> getSyndicStats(java.security.Principal principal) {
+        com.jonathanspereira.condoflow.dashboard.dto.SyndicDashboardDTO stats = dashboardService.getSyndicDashboard(principal.getName());
+        return ResponseEntity.ok(stats);
+    }
 }
