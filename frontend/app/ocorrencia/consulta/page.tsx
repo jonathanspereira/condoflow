@@ -9,15 +9,15 @@ import { Badge } from "@/components/ui/badge"
 import { Search, Ticket, Clock, CheckCircle2, MessageSquare, ArrowLeft, Loader2, Building, User, Paperclip } from "lucide-react"
 import { toast } from "sonner"
 
-type StatusOcorrencia = "ABERTO" | "EM_ANALISE" | "EM_EXECUCAO" | "CONCLUIDO"
+type StatusOcorrencia = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
 
-const STATUS_ORDER: StatusOcorrencia[] = ["ABERTO", "EM_ANALISE", "EM_EXECUCAO", "CONCLUIDO"]
+const STATUS_ORDER: StatusOcorrencia[] = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]
 
 const statusLabel: Record<StatusOcorrencia, string> = {
-  ABERTO: "Aberto",
-  EM_ANALISE: "Em Análise",
-  EM_EXECUCAO: "Em Execução",
-  CONCLUIDO: "Concluído",
+  OPEN: "Aberto",
+  IN_PROGRESS: "Em Execução",
+  RESOLVED: "Resolvido",
+  CLOSED: "Concluído",
 }
 
 type EtapaHistorico = {
@@ -197,7 +197,7 @@ export default function ConsultaProtocolo() {
                 <CardTitle className="text-xl">{resultado.title}</CardTitle>
                 <CardDescription>Protocolo: {resultado.protocol}</CardDescription>
               </div>
-              <Badge variant={resultado.status === "CONCLUIDO" ? "default" : "secondary"} className="text-sm">
+              <Badge variant={resultado.status === "CLOSED" ? "default" : "secondary"} className="text-sm">
                 {statusLabel[resultado.status]}
               </Badge>
             </CardHeader>
