@@ -17,13 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@/components/ui/sheet"
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { 
   Search, Filter, MoreHorizontal, 
   MessageCircle, User, Shield, 
@@ -277,60 +277,127 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
         ))}
       </Tabs>
 
-      {/* Sheet / Modal Lateral de Gestão de Ocorrência */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-md overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Gerir Ocorrência</SheetTitle>
-            <SheetDescription>
-              Protocolo: <span className="font-mono font-bold text-emerald-600">{selectedOcorrencia?.protocol || selectedOcorrencia?.id}</span>
-            </SheetDescription>
-          </SheetHeader>
+      {/* Dialog / Modal de Gestão de Ocorrência */}
+      <Dialog open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-50 border-slate-200 shadow-2xl flex flex-col">
+          <DialogHeader className="pb-6 border-b border-slate-200">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-2xl font-bold text-slate-800">Gerir Ocorrência</DialogTitle>
+              <Badge variant="outline" className="text-xs font-mono bg-white border-slate-300">
+                {selectedOcorrencia?.protocol || selectedOcorrencia?.id}
+              </Badge>
+            </div>
+            <DialogDescription className="text-slate-500 mt-2">
+              Analise os detalhes e atualize o status para o morador.
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="space-y-6 py-6">
-            <div className="space-y-2">
-              <Label>Alterar Status</Label>
-              <Select value={novoStatus} onValueChange={setNovoStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="OPEN">Aberto</SelectItem>
-                  <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                  <SelectItem value="RESOLVED">Resolvido</SelectItem>
-                  <SelectItem value="CLOSED">Fechado</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex-1 py-6 space-y-8">
+            {/* Detalhes da Ocorrência */}
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900">{selectedOcorrencia?.title || "Sem título"}</h3>
+                  <p className="text-sm text-slate-500 mt-1">Por: <span className="font-medium text-slate-700">{selectedOcorrencia?.authorName || "Anônimo"}</span></p>
+                </div>
+                <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-200 border-none uppercase text-[10px] tracking-wider">
+                  {selectedOcorrencia?.category || "GERAL"}
+                </Badge>
+              </div>
+              
+              {selectedOcorrencia?.description && (
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    {selectedOcorrencia.description}
+                  </p>
+                </div>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <Label>Resposta Oficial</Label>
-              <Textarea 
-                placeholder="Informe ao morador as providências..." 
-                className="min-h-[120px]"
-                value={respostaOficial}
-                onChange={(e) => setRespostaOficial(e.target.value)}
-              />
-            </div>
+            {/* Ações de Resolução */}
+            <div className="space-y-6">
+              <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+                <Shield className="w-4 h-4 text-emerald-600" />
+                Ações do Síndico
+              </h4>
+              
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-slate-700">Novo Status</Label>
+                  <Select value={novoStatus} onValueChange={setNovoStatus}>
+                    <SelectTrigger className="w-full bg-slate-50 border-slate-200 focus:ring-emerald-500">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="OPEN">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          Aberto
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="IN_PROGRESS">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          Em Andamento
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="RESOLVED">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                          Resolvido
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="CLOSED">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-slate-500" />
+                          Fechado
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label>Anexar Foto</Label>
-              <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 hover:bg-slate-50 cursor-pointer border-slate-200">
-                <Camera className="h-6 w-6 text-slate-400" />
-                <span className="text-xs text-slate-500 font-medium">Foto de conclusão</span>
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-slate-700">Resposta Oficial</Label>
+                  <Textarea 
+                    placeholder="Escreva a resposta ou providência tomada. O morador será notificado." 
+                    className="min-h-[120px] bg-slate-50 border-slate-200 focus:ring-emerald-500 resize-none"
+                    value={respostaOficial}
+                    onChange={(e) => setRespostaOficial(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-slate-700">Comprovante / Foto (Opcional)</Label>
+                  <div className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 hover:bg-slate-50 cursor-pointer border-slate-200 transition-colors bg-slate-50/50">
+                    <div className="bg-white p-3 rounded-full shadow-sm border border-slate-100">
+                      <Camera className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-slate-600 font-medium">Clique para anexar um arquivo</p>
+                      <p className="text-xs text-slate-400 mt-1">PNG, JPG ou PDF (Máx. 5MB)</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <SheetFooter className="flex-col sm:flex-row gap-3">
-            <Button variant="outline" className="w-full" onClick={() => setIsSheetOpen(false)}>Cancelar</Button>
-            <Button className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700" onClick={handleSalvarOcorrencia} disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              <Send className="h-4 w-4" /> Salvar
+          <DialogFooter className="pt-6 border-t border-slate-200 mt-auto flex-col sm:flex-row gap-3">
+            <Button variant="outline" className="w-full sm:w-1/3 text-slate-600 hover:bg-slate-100" onClick={() => setIsSheetOpen(false)}>
+              Cancelar
             </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+            <Button className="w-full sm:w-2/3 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all" onClick={handleSalvarOcorrencia} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle className="h-4 w-4" />
+              )}
+              Atualizar Ocorrência
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

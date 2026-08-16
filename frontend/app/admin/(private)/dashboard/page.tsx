@@ -1,4 +1,46 @@
+"use client"
+
+import React, { useState, useEffect } from "react"
+import { Loader2 } from "lucide-react"
+
 export default function AdminDashboard() {
+  const [stats, setStats] = useState<{ totalCondominiums: number; totalUsers: number; totalOccurrences: number } | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const token = localStorage.getItem("condoflow_token")
+        const response = await fetch("http://localhost:8080/api/v1/dashboard/stats", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setStats(data)
+        } else {
+          console.error("Erro ao buscar estatísticas", response.status)
+        }
+      } catch (error) {
+        console.error("Erro de conexão com servidor", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchStats()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-[70vh]">
+        <Loader2 className="animate-spin text-emerald-600" size={32} />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -8,10 +50,10 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Condomínios", value: "12", sub: "+2 este mês" },
-          { label: "Usuários Ativos", value: "1.240", sub: "98% taxa de saúde" },
-          { label: "Ocorrências Totais", value: "458", sub: "12 pendentes" },
-          { label: "MRR (Receita)", value: "R$ 12.500", sub: "Meta: R$ 15k" },
+          { label: "Condomínios", value: stats?.totalCondominiums || "0", sub: "Cadastrados na plataforma" },
+          { label: "Usuários Ativos", value: stats?.totalUsers || "0", sub: "Moradores e síndicos" },
+          { label: "Ocorrências Totais", value: stats?.totalOccurrences || "0", sub: "Registradas em toda a rede" },
+          { label: "MRR (Receita)", value: "R$ 0,00", sub: "Módulo financeiro pendente" },
         ].map((stat, i) => (
           <div key={i} className="bg-white p-6 rounded-xl border shadow-sm">
             <p className="text-sm text-slate-500 font-medium">{stat.label}</p>
