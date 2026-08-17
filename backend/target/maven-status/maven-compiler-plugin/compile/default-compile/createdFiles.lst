@@ -1,13 +1,18 @@
 com/jonathanspereira/condoflow/condominium/dto/CondominiumRequestDTO.class
+com/jonathanspereira/condoflow/user/dto/ChangePasswordRequestDTO.class
 com/jonathanspereira/condoflow/unit/service/UnitService.class
+com/jonathanspereira/condoflow/auth/entity/PasswordResetToken.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceResponseDTO.class
 com/jonathanspereira/condoflow/common/security/SecurityFilter.class
 com/jonathanspereira/condoflow/occurrence/service/OccurrenceService.class
+com/jonathanspereira/condoflow/dashboard/dto/SyndicDashboardDTO$CategoryStatDTO.class
 com/jonathanspereira/condoflow/common/security/SecurityConfig.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceRequestDTO.class
 com/jonathanspereira/condoflow/user/dto/UserResponseDTO.class
+com/jonathanspereira/condoflow/auth/dto/ForgotPasswordRequestDTO.class
 com/jonathanspereira/condoflow/auth/dto/AuthResponseDTO.class
 com/jonathanspereira/condoflow/occurrence/entity/Occurrence.class
+com/jonathanspereira/condoflow/dashboard/dto/SyndicDashboardDTO$StatusStatDTO.class
 com/jonathanspereira/condoflow/unit/controller/UnitController.class
 com/jonathanspereira/condoflow/condominium/dto/FocusModeRequestDTO.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceAttachmentDTO.class
@@ -18,6 +23,7 @@ com/jonathanspereira/condoflow/unit/repository/UnitRepository.class
 com/jonathanspereira/condoflow/occurrence/repository/OccurrenceRepository.class
 com/jonathanspereira/condoflow/common/exception/ErrorResponse.class
 com/jonathanspereira/condoflow/dashboard/service/DashboardService.class
+com/jonathanspereira/condoflow/dashboard/dto/SyndicDashboardDTO.class
 com/jonathanspereira/condoflow/auth/service/TokenService.class
 com/jonathanspereira/condoflow/occurrence/dto/MessageRequestDTO.class
 com/jonathanspereira/condoflow/unit/dto/UnitRequestDTO.class
@@ -28,6 +34,7 @@ com/jonathanspereira/condoflow/common/config/DatabaseSeeder.class
 com/jonathanspereira/condoflow/occurrence/repository/OccurrenceMessageRepository.class
 com/jonathanspereira/condoflow/user/controller/UserController.class
 com/jonathanspereira/condoflow/user/entity/User.class
+com/jonathanspereira/condoflow/auth/dto/ResetPasswordRequestDTO.class
 com/jonathanspereira/condoflow/condominium/dto/SindicoCondominiumDTO.class
 com/jonathanspereira/condoflow/condominium/controller/CondominiumController.class
 com/jonathanspereira/condoflow/occurrence/controller/OccurrenceController.class
@@ -35,6 +42,7 @@ com/jonathanspereira/condoflow/common/exception/BusinessException.class
 com/jonathanspereira/condoflow/dashboard/dto/DashboardStatsDTO.class
 com/jonathanspereira/condoflow/auth/dto/AuthRequestDTO.class
 com/jonathanspereira/condoflow/occurrence/dto/AnonymousOccurrenceRequestDTO.class
+com/jonathanspereira/condoflow/auth/repository/PasswordResetTokenRepository.class
 com/jonathanspereira/condoflow/condominium/service/CondominiumService.class
 com/jonathanspereira/condoflow/user/entity/Role.class
 com/jonathanspereira/condoflow/user/service/UserService.class

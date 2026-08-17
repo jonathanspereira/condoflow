@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
@@ -42,7 +44,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/*/attachments/*").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/v1/users/tenant").hasAnyAuthority("SUPER_ADMIN", "ADMIN", "PROPRIETARY")
+                .requestMatchers(HttpMethod.POST, "/api/v1/users/tenant").hasAnyAuthority("SUPER_ADMIN", "SINDICO", "PROPRIETARY")
                 .requestMatchers(HttpMethod.GET, "/api/v1/units/check").authenticated()
                 // NOVO — endpoints do síndico, precisam vir ANTES do matcher genérico de /api/v1/condominiums/**
                 .requestMatchers(HttpMethod.GET, "/api/v1/condominiums/me").hasAuthority("SINDICO")
