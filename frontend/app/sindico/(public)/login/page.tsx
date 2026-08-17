@@ -8,18 +8,34 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 
 const ALLOWED_ROLES = ["SINDICO", "SUPER_ADMIN"]
 
+const loginSchema = z.object({
+  email: z.string().min(1, "O e-mail corporativo é obrigatório.").email("Digite um formato de e-mail válido."),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
+
 export default function LoginSindicoPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  async function onSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  })
+
+  async function onSubmit(data: LoginFormValues) {
     setError("")
     setIsLoading(true)
 
@@ -27,20 +43,20 @@ export default function LoginSindicoPage() {
       const response = await fetch("http://localhost:8080/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: data.email, password: data.password })
       })
 
       if (response.ok) {
-        const data = await response.json()
+        const responseData = await response.json()
 
-        if (!ALLOWED_ROLES.includes(data.role)) {
+        if (!ALLOWED_ROLES.includes(responseData.role)) {
           setError("Este acesso é exclusivo para síndicos. Use o login de morador.")
           toast.error("Acesso negado.", { description: "Este login é exclusivo para síndicos." })
           setIsLoading(false)
           return
         }
 
-        localStorage.setItem("condoflow_token", data.token)
+        localStorage.setItem("condoflow_token", responseData.token)
         toast.success("Login realizado com sucesso!")
         router.push("/sindico/condominio")
       } else {
@@ -81,7 +97,7 @@ export default function LoginSindicoPage() {
                 {error}
               </div>
             )}
-            <form onSubmit={onSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="email">E-mail corporativo</Label>
@@ -89,11 +105,13 @@ export default function LoginSindicoPage() {
                     id="email"
                     type="email"
                     placeholder="sindico@condominio.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
-                    required
+                    {...register("email")}
+                    className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {errors.email && (
+                    <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
@@ -108,11 +126,13 @@ export default function LoginSindicoPage() {
                   <Input
                     id="password"
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    required
+                    {...register("password")}
+                    className={errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {errors.password && (
+                    <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>
+                  )}
                 </div>
                 <Button className="w-full" type="submit" disabled={isLoading}>
                   {isLoading && (

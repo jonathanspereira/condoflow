@@ -9,16 +9,32 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+
+const loginSchema = z.object({
+  email: z.string().min(1, "O e-mail é obrigatório.").email("Digite um formato de e-mail válido."),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginMoradorPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
 
-  async function onSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  })
+
+  async function onSubmit(data: LoginFormValues) {
     setIsLoading(true)
     setErrorMsg("")
 
@@ -28,15 +44,14 @@ export default function LoginMoradorPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: data.email, password: data.password }),
       })
 
       if (response.ok) {
-        const data = await response.json()
+        const responseData = await response.json()
         
-        // Salva o token JWT no localStorage (mesmo padrão usado no restante do app)
-        if (data.token) {
-          localStorage.setItem("condoflow_token", data.token)
+        if (responseData.token) {
+          localStorage.setItem("condoflow_token", responseData.token)
         }
 
         toast.success("Login realizado com sucesso!")
@@ -47,7 +62,7 @@ export default function LoginMoradorPage() {
         setErrorMsg(msg)
         toast.error(msg)
       }
-   } catch (error) {
+    } catch (error) {
       console.error("Erro ao conectar com o servidor:", error)
       setErrorMsg("Não foi possível conectar ao servidor. Tente novamente mais tarde.")
       toast.error("Erro de conexão com o servidor.")
@@ -75,7 +90,7 @@ export default function LoginMoradorPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <form onSubmit={onSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div className="grid gap-4">
                 {errorMsg && (
                   <div className="bg-red-50 border border-red-200 text-red-600 text-xs p-2.5 rounded-md text-center font-medium">
@@ -88,11 +103,13 @@ export default function LoginMoradorPage() {
                     id="email"
                     type="email"
                     placeholder="nome@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
-                    required
+                    {...register("email")}
+                    className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {errors.email && (
+                    <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
@@ -107,11 +124,13 @@ export default function LoginMoradorPage() {
                   <Input 
                     id="password" 
                     type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading} 
-                    required 
+                    {...register("password")}
+                    className={errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {errors.password && (
+                    <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>
+                  )}
                 </div>
                 <Button className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" type="submit" disabled={isLoading}>
                   {isLoading && (
