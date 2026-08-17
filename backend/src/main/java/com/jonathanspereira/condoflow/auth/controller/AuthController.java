@@ -3,6 +3,8 @@ package com.jonathanspereira.condoflow.auth.controller;
 import com.jonathanspereira.condoflow.auth.dto.AuthRequestDTO;
 import com.jonathanspereira.condoflow.auth.dto.AuthResponseDTO;
 import com.jonathanspereira.condoflow.auth.service.AuthService;
+import com.jonathanspereira.condoflow.auth.dto.ForgotPasswordRequestDTO;
+import com.jonathanspereira.condoflow.auth.dto.ResetPasswordRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,5 +22,17 @@ public class AuthController {
     public ResponseEntity<AuthResponseDTO> login(@RequestBody @Valid AuthRequestDTO requestDTO) {
         AuthResponseDTO response = authService.login(requestDTO);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequestDTO requestDTO) {
+        authService.forgotPassword(requestDTO.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequestDTO requestDTO) {
+        authService.resetPassword(requestDTO.getToken(), requestDTO.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 }

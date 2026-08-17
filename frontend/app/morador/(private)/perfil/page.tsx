@@ -37,6 +37,10 @@ export default function PerfilPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSavingEmail, setIsSavingEmail] = useState(false)
   const [isSavingTenant, setIsSavingTenant] = useState(false)
+  const [isSavingPassword, setIsSavingPassword] = useState(false)
+
+  const [oldPassword, setOldPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
 
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
@@ -174,6 +178,45 @@ export default function PerfilPage() {
     }
   }
 
+  const handleUpdatePassword = async () => {
+    if (!oldPassword || !newPassword) {
+      toast.error("Preencha a senha atual e a nova senha.")
+      return
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("A nova senha deve ter pelo menos 6 caracteres.")
+      return
+    }
+
+    setIsSavingPassword(true)
+
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/users/me/password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ oldPassword, newPassword })
+      })
+
+      if (response.ok) {
+        toast.success("Senha alterada com sucesso!")
+        setOldPassword("")
+        setNewPassword("")
+      } else {
+        const errData = await response.json().catch(() => null)
+        toast.error(errData?.message || "Não foi possível alterar a senha. Verifique a senha atual.")
+      }
+    } catch (error) {
+      console.error("Erro ao alterar senha:", error)
+      toast.error("Erro de conexão com o servidor.")
+    } finally {
+      setIsSavingPassword(false)
+    }
+  }
+
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <header>
@@ -184,10 +227,11 @@ export default function PerfilPage() {
 
 
       <Tabs defaultValue="unidade" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-4 max-w-2xl">
           <TabsTrigger value="dados" className="gap-2"><User className="h-4 w-4" /> Pessoal</TabsTrigger>
           <TabsTrigger value="unidade" className="gap-2"><Building className="h-4 w-4" /> Unidade</TabsTrigger>
           <TabsTrigger value="notificacoes" className="gap-2"><Bell className="h-4 w-4" /> Avisos</TabsTrigger>
+          <TabsTrigger value="seguranca" className="gap-2"><Key className="h-4 w-4" /> Segurança</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados">
@@ -346,6 +390,45 @@ export default function PerfilPage() {
                 <Switch defaultChecked />
               </div>
             </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="seguranca">
+          <Card>
+            <CardHeader>
+              <CardTitle>Alterar Senha</CardTitle>
+              <CardDescription>Crie uma nova senha forte e evite compartilhá-la com terceiros.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="oldPassword">Senha Atual</Label>
+                  <Input 
+                    id="oldPassword" 
+                    type="password" 
+                    value={oldPassword} 
+                    onChange={(e) => setOldPassword(e.target.value)} 
+                    disabled={isSavingPassword}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">Nova Senha</Label>
+                  <Input 
+                    id="newPassword" 
+                    type="password" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)} 
+                    disabled={isSavingPassword}
+                  />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="bg-slate-50/50 border-t p-4">
+              <Button onClick={handleUpdatePassword} disabled={isSavingPassword || !oldPassword || !newPassword} className="gap-2 ml-auto">
+                {isSavingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <Key className="h-4 w-4" />}
+                Salvar Nova Senha
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>

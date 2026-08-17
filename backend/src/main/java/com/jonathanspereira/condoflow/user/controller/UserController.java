@@ -1,5 +1,6 @@
 package com.jonathanspereira.condoflow.user.controller;
 
+import com.jonathanspereira.condoflow.user.dto.ChangePasswordRequestDTO;
 import com.jonathanspereira.condoflow.user.dto.UserRequestDTO;
 import com.jonathanspereira.condoflow.user.dto.UserResponseDTO;
 import com.jonathanspereira.condoflow.user.service.UserService;
@@ -61,5 +62,11 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> manageTenant(@RequestBody UserRequestDTO dto, Principal principal) {
         UserResponseDTO response = userService.manageTenant(principal.getName(), dto);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequestDTO dto, Principal principal) {
+        userService.changePassword(principal.getName(), dto.getOldPassword(), dto.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 }

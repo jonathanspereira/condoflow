@@ -226,4 +226,19 @@ public class UserService {
     private String generateTemporaryPassword() {
         return "Cf" + UUID.randomUUID().toString().substring(0, 8) + "!";
     }
+
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        UserDetails userDetails = userRepository.findByEmail(email);
+        if (userDetails == null) {
+            throw new BusinessException("Usuário não encontrado.");
+        }
+        User user = (User) userDetails;
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BusinessException("A senha atual informada está incorreta.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }
