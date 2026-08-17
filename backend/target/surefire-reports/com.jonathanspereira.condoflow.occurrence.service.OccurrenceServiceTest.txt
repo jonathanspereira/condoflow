@@ -1,0 +1,17 @@
+-------------------------------------------------------------------------------
+Test set: com.jonathanspereira.condoflow.occurrence.service.OccurrenceServiceTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 3.834 s <<< FAILURE! -- in com.jonathanspereira.condoflow.occurrence.service.OccurrenceServiceTest
+com.jonathanspereira.condoflow.occurrence.service.OccurrenceServiceTest.create_WithValidData_ShouldSaveAndReturnResponse -- Time elapsed: 3.615 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: java.lang.Long@176333ee<10> but was: java.lang.String@18e6b72b<10>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.jonathanspereira.condoflow.occurrence.service.OccurrenceServiceTest.create_WithValidData_ShouldSaveAndReturnResponse(OccurrenceServiceTest.java:84)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
