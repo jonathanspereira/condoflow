@@ -97,4 +97,24 @@ public class OccurrenceServiceTest {
 
         assertThrows(ResponseStatusException.class, () -> occurrenceService.create("test@email.com", request));
     }
+
+    @Test
+    void update_WithValidData_ShouldUpdateAndReturnResponse() {
+        Occurrence occurrence = new Occurrence();
+        occurrence.setId(1L);
+        occurrence.setStatus(OccurrenceStatus.OPEN);
+        occurrence.setCondominium(mockCondominium);
+
+        when(occurrenceRepository.findById(1L)).thenReturn(Optional.of(occurrence));
+        when(occurrenceRepository.save(any(Occurrence.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO updateDTO = 
+                new com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO(OccurrenceStatus.RESOLVED, "Resolvido com sucesso");
+
+        OccurrenceResponseDTO response = occurrenceService.update(1L, updateDTO);
+
+        assertNotNull(response);
+        assertEquals(OccurrenceStatus.RESOLVED.name(), response.status());
+        assertEquals("Resolvido com sucesso", response.response());
+    }
 }

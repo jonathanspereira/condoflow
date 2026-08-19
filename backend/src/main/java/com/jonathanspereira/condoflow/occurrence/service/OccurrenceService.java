@@ -29,8 +29,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class OccurrenceService {
 
     private final OccurrenceRepository occurrenceRepository;
@@ -131,11 +134,10 @@ public class OccurrenceService {
         message.setSender(sender);
         message.setContent(dto.content());
 
-        occurrenceMessageRepository.save(message);
-
-        // Fetch again or simply add to list, since it's lazy we might need to reload or just return DTO directly
-        // Let's reload to get everything correctly mapped
-        occurrence = occurrenceRepository.findById(id).orElse(occurrence);
+        OccurrenceMessage savedMessage = occurrenceMessageRepository.save(message);
+        if (occurrence.getMessages() != null && !occurrence.getMessages().contains(savedMessage)) {
+            occurrence.getMessages().add(savedMessage);
+        }
 
         return new OccurrenceResponseDTO(occurrence);
     }
@@ -143,10 +145,6 @@ public class OccurrenceService {
     public OccurrenceResponseDTO addAttachment(Long id, MultipartFile file, String userEmail) {
         Occurrence occurrence = occurrenceRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada."));
-
-        // Simplificação: apenas permitindo que participantes ou admin subam arquivo
-        // Pode ser aprimorado com roles futuramente
-        // User uploader = getUserByEmail(userEmail);
 
         if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Arquivo vazio.");
@@ -159,9 +157,11 @@ public class OccurrenceService {
             attachment.setFileType(file.getContentType());
             attachment.setFileData(file.getBytes());
 
-            occurrenceAttachmentRepository.save(attachment);
+            OccurrenceAttachment savedAttachment = occurrenceAttachmentRepository.save(attachment);
+            if (occurrence.getAttachments() != null && !occurrence.getAttachments().contains(savedAttachment)) {
+                occurrence.getAttachments().add(savedAttachment);
+            }
 
-            occurrence = occurrenceRepository.findById(id).orElse(occurrence);
             return new OccurrenceResponseDTO(occurrence);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao processar o arquivo.");

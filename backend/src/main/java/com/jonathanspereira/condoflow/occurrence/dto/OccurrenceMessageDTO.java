@@ -16,7 +16,7 @@ public record OccurrenceMessageDTO(
                 message.getId(),
                 message.getContent(),
                 message.getSender() != null ? message.getSender().getName() : "Sistema",
-                message.getSender() != null ? message.getSender().getRole().name() : "SYSTEM",
+                message.getSender() != null ? (message.getSender().getRole() != null ? message.getSender().getRole().name() : "USER") : "SYSTEM",
                 message.getCreatedAt()
         );
     }
