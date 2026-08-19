@@ -46,10 +46,16 @@ public class OccurrenceService {
     public OccurrenceResponseDTO create(String userEmail, OccurrenceRequestDTO dto) {
         User reporter = getUserByEmail(userEmail);
 
-        Unit unit = unitRepository.findByOwnerId(reporter.getId())
-                .or(() -> unitRepository.findByTenantId(reporter.getId()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Você não possui uma unidade vinculada para abrir um relato."));
+        Unit unit = null;
+        if (dto.unitId() != null) {
+            unit = unitRepository.findById(dto.unitId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unidade informada não encontrada."));
+        } else {
+            unit = unitRepository.findAllByOwnerId(reporter.getId()).stream().findFirst()
+                    .or(() -> unitRepository.findAllByTenantId(reporter.getId()).stream().findFirst())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Você não possui uma unidade vinculada para abrir um relato."));
+        }
 
         Condominium condominium = condominiumRepository.findById(unit.getCondominiumId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Condomínio não encontrado."));

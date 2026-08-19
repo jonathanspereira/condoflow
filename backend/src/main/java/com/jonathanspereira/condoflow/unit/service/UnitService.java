@@ -128,4 +128,16 @@ public class UnitService {
     public Optional<Unit> buscarPorCondominioEUnidade(Long condominiumId, String unit) {
         return unitRepository.findByCondominiumIdAndUnitIgnoreCase(condominiumId, unit.trim());
     }
+
+    public List<Unit> findAllMyUnits(String email) {
+        User user = (User) userRepository.findByEmail(email);
+        if (user == null) {
+            throw new BusinessException("Usuário não encontrado.");
+        }
+        List<Unit> ownedUnits = unitRepository.findAllByOwnerId(user.getId());
+        List<Unit> rentedUnits = unitRepository.findAllByTenantId(user.getId());
+        
+        ownedUnits.addAll(rentedUnits);
+        return ownedUnits.stream().distinct().toList();
+    }
 }

@@ -59,4 +59,11 @@ public class UnitController {
                 .orElseGet(() -> ResponseEntity.ok(
                         new UnitCheckResponseDTO(false, null, name)));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<UnitResponseDTO>> getMyUnits(Authentication authentication) {
+        List<UnitResponseDTO> unidades = unitService.findAllMyUnits(authentication.getName())
+                .stream().map(UnitResponseDTO::from).collect(Collectors.toList());
+        return ResponseEntity.ok(unidades);
+    }
 }

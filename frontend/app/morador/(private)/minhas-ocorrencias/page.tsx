@@ -289,6 +289,7 @@ export default function MinhasOcorrencias() {
           title: titulo,
           description: descricao,
           category: categoria,
+          unitId: localStorage.getItem("condoflow_unit_id") ? Number(localStorage.getItem("condoflow_unit_id")) : undefined,
           relatedUnitId: hasRelatedUnit ? relatedUnitId : null,
           relatedUnitName: hasRelatedUnit ? relatedUnit : null,
         })

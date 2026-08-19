@@ -12,5 +12,7 @@ public record OccurrenceRequestDTO(
         String description,
 
         @NotNull(message = "A categoria é obrigatória")
-        OccurrenceCategory category
+        OccurrenceCategory category,
+
+        Long unitId
 ) {}

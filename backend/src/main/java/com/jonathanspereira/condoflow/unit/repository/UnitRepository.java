@@ -10,8 +10,8 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
 
     List<Unit> findByCondominiumId(Long condominiumId);
 
-    Optional<Unit> findByOwnerId(String ownerId);
-    Optional<Unit> findByTenantId(String tenantId);
+    List<Unit> findAllByOwnerId(String ownerId);
+    List<Unit> findAllByTenantId(String tenantId);
 
     // NOVO — busca a unidade dentro do condomínio, ignorando maiúsc/minúsc
     Optional<Unit> findByCondominiumIdAndUnitIgnoreCase(Long condominiumId, String unit);
