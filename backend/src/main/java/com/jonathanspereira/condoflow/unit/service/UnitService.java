@@ -96,18 +96,19 @@ public class UnitService {
         Condominium condominium = condominiumRepository.findById(condominiumId)
                 .orElseThrow(() -> new RuntimeException("Condomínio não encontrado: " + condominiumId));
 
-        String tempPassword = "tempPassword123"; // UUID.randomUUID().toString().substring(0, 10);
+        // Senha extremamente longa e aleatória, impedindo login sem antes passar pelo "Primeiro Acesso"
+        String randomPassword = java.util.UUID.randomUUID().toString() + java.util.UUID.randomUUID().toString();
 
         User user = new User();
         user.setName(name);
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(tempPassword));
+        user.setPassword(passwordEncoder.encode(randomPassword));
         user.setRole(role);
         user.setCondominium(condominium);
 
         User saved = userRepository.save(user);
 
-        log.info("Usuário {} criado com senha temporária: {}", saved.getEmail(), tempPassword);
+        log.info("Usuário {} criado via Sindico. Deve realizar Primeiro Acesso.", saved.getEmail());
 
         return saved;
     }

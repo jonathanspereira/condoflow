@@ -210,7 +210,12 @@ export default function LoginMoradorPage() {
                 </div>
               </form>
             </CardContent>
-            <CardFooter className="flex flex-col">
+            <CardFooter className="flex flex-col gap-4">
+              <div className="w-full text-center">
+                <Link href="/primeiro-acesso" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 hover:underline">
+                  É o seu primeiro acesso? Clique aqui
+                </Link>
+              </div>
               <p className="mt-2 text-xs text-center text-muted-foreground">
                 Ainda não tem acesso? Solicite cadastro à portaria ou administração.
               </p>
