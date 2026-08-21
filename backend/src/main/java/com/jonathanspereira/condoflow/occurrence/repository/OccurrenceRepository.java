@@ -4,6 +4,8 @@ import com.jonathanspereira.condoflow.occurrence.entity.Occurrence;
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceCategory;
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -27,9 +29,21 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
     long countByCondominiumIdAndStatusInAndCreatedAtBetween(
             Long condominiumId, List<OccurrenceStatus> statuses, LocalDateTime start, LocalDateTime end);
 
-    @org.springframework.data.jpa.repository.Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.status")
+    @Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.status")
     List<Object[]> countByStatusGrouped(Long condominiumId);
 
-    @org.springframework.data.jpa.repository.Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.category")
+    @Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.category")
     List<Object[]> countByCategoryGrouped(Long condominiumId);
+
+    @Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR o.condominium.id = :condominiumId) AND (:startDate IS NULL OR o.createdAt >= :startDate) GROUP BY o.status")
+    List<Object[]> countByStatusFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR o.condominium.id = :condominiumId) AND (:startDate IS NULL OR o.createdAt >= :startDate) GROUP BY o.category")
+    List<Object[]> countByCategoryFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR o.condominium.id = :condominiumId) AND (:startDate IS NULL OR o.createdAt >= :startDate)")
+    long countFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT o.condominium.id, o.condominium.name, COUNT(o) FROM Occurrence o GROUP BY o.condominium.id, o.condominium.name")
+    List<Object[]> countByCondominiumGrouped();
 }
