@@ -15,4 +15,8 @@ public record OccurrenceRequestDTO(
         OccurrenceCategory category,
 
         Long unitId
-) {}
+) {
+    public OccurrenceRequestDTO(String title, String description, OccurrenceCategory category) {
+        this(title, description, category, null);
+    }
+}

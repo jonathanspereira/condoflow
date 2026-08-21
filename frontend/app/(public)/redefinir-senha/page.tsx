@@ -59,8 +59,8 @@ function RedefinirSenhaForm() {
       })
 
       if (response.ok) {
-        toast.success("Senha redefinida com sucesso! Faça login com a nova senha.")
-        router.push("/")
+        toast.success("Senha cadastrada com sucesso! Redirecionando para o login...")
+        router.push("/morador/login")
       } else {
         const errorData = await response.json().catch(() => null)
         const msg = errorData?.message || "Ocorreu um erro. O link pode estar expirado."

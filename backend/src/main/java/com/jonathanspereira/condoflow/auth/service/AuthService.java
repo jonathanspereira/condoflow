@@ -7,6 +7,7 @@ import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import com.jonathanspereira.condoflow.auth.entity.PasswordResetToken;
 import com.jonathanspereira.condoflow.auth.repository.PasswordResetTokenRepository;
+import com.jonathanspereira.condoflow.common.email.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
 
     public AuthResponseDTO login(AuthRequestDTO dto) {
         User user = (User) userRepository.findByEmail(dto.getEmail());
@@ -49,12 +51,8 @@ public class AuthService {
         PasswordResetToken resetToken = new PasswordResetToken(token, user, LocalDateTime.now().plusHours(2));
         passwordResetTokenRepository.save(resetToken);
 
-        // Simulando envio de e-mail no console
-        System.out.println("=================================================");
-        System.out.println("E-MAIL DE RECUPERAÇÃO DE SENHA SOLICITADO");
-        System.out.println("Para redefinir a senha, acesse o link:");
-        System.out.println("http://localhost:3000/redefinir-senha?token=" + token);
-        System.out.println("=================================================");
+        // Envia o e-mail de recuperação de senha
+        emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), token);
     }
 
     public void resetPassword(String token, String newPassword) {

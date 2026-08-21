@@ -38,6 +38,7 @@ public class OccurrenceServiceTest {
     @Mock private CondominiumRepository condominiumRepository;
     @Mock private UserRepository userRepository;
     @Mock private UnitRepository unitRepository;
+    @Mock private com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
 
     @InjectMocks
     private OccurrenceService occurrenceService;
@@ -65,7 +66,7 @@ public class OccurrenceServiceTest {
         OccurrenceRequestDTO request = new OccurrenceRequestDTO("Vazamento", "Água caindo", OccurrenceCategory.MANUTENCAO);
 
         when(userRepository.findByEmail("test@email.com")).thenReturn(mockUser);
-        when(unitRepository.findByOwnerId("user-1")).thenReturn(Optional.of(mockUnit));
+        when(unitRepository.findAllByOwnerId("user-1")).thenReturn(java.util.List.of(mockUnit));
         when(condominiumRepository.findById(1L)).thenReturn(Optional.of(mockCondominium));
 
         Occurrence savedOccurrence = new Occurrence();
@@ -92,8 +93,8 @@ public class OccurrenceServiceTest {
         OccurrenceRequestDTO request = new OccurrenceRequestDTO("Vazamento", "Água caindo", OccurrenceCategory.MANUTENCAO);
 
         when(userRepository.findByEmail("test@email.com")).thenReturn(mockUser);
-        when(unitRepository.findByOwnerId("user-1")).thenReturn(Optional.empty());
-        when(unitRepository.findByTenantId("user-1")).thenReturn(Optional.empty());
+        when(unitRepository.findAllByOwnerId("user-1")).thenReturn(java.util.List.of());
+        when(unitRepository.findAllByTenantId("user-1")).thenReturn(java.util.List.of());
 
         assertThrows(ResponseStatusException.class, () -> occurrenceService.create("test@email.com", request));
     }

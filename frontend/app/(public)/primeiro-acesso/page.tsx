@@ -90,8 +90,6 @@ export default function PrimeiroAcessoPage() {
                   <h3 className="font-bold text-lg text-slate-800">Tudo certo!</h3>
                   <p className="text-sm text-slate-500">
                     Enviamos um link para o seu e-mail. Acesse a mensagem e clique no botão para cadastrar sua senha.
-                    <br/><br/>
-                    <em>(Simulação: veja o console do backend)</em>
                   </p>
                 </div>
               </div>

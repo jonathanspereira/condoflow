@@ -42,6 +42,7 @@ public class OccurrenceService {
     private final CondominiumRepository condominiumRepository;
     private final UserRepository userRepository;
     private final UnitRepository unitRepository;
+    private final com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
 
     public OccurrenceResponseDTO create(String userEmail, OccurrenceRequestDTO dto) {
         User reporter = getUserByEmail(userEmail);
@@ -126,6 +127,18 @@ public class OccurrenceService {
         }
 
         Occurrence saved = occurrenceRepository.save(occurrence);
+
+        if (saved.getReportedBy() != null && saved.getReportedBy().getEmail() != null) {
+            emailService.sendOccurrenceUpdateNotification(
+                    saved.getReportedBy().getEmail(),
+                    saved.getReportedBy().getName(),
+                    saved.getProtocol(),
+                    saved.getTitle(),
+                    saved.getStatus() != null ? saved.getStatus().name() : "ATUALIZADO",
+                    dto.response()
+            );
+        }
+
         return new OccurrenceResponseDTO(saved);
     }
 
@@ -143,6 +156,17 @@ public class OccurrenceService {
         OccurrenceMessage savedMessage = occurrenceMessageRepository.save(message);
         if (occurrence.getMessages() != null && !occurrence.getMessages().contains(savedMessage)) {
             occurrence.getMessages().add(savedMessage);
+        }
+
+        if (occurrence.getReportedBy() != null && !userEmail.equalsIgnoreCase(occurrence.getReportedBy().getEmail())) {
+            emailService.sendOccurrenceUpdateNotification(
+                    occurrence.getReportedBy().getEmail(),
+                    occurrence.getReportedBy().getName(),
+                    occurrence.getProtocol(),
+                    occurrence.getTitle(),
+                    occurrence.getStatus() != null ? occurrence.getStatus().name() : "NOVA MENSAGEM",
+                    dto.content()
+            );
         }
 
         return new OccurrenceResponseDTO(occurrence);

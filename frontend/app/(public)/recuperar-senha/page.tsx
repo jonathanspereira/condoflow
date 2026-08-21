@@ -88,9 +88,7 @@ export default function RecuperarSenhaPage() {
                 <div className="space-y-2">
                   <h3 className="font-bold text-lg text-slate-800">Pronto!</h3>
                   <p className="text-sm text-slate-500">
-                    Se o e-mail informado estiver cadastrado, você receberá um link de recuperação em instantes. 
-                    <br/><br/>
-                    <em>(Simulação: olhe o console do backend)</em>
+                    Se o e-mail informado estiver cadastrado, você receberá um link de recuperação em instantes.
                   </p>
                 </div>
               </div>

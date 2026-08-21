@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.jonathanspereira.condoflow.occurrence.service.OccurrenceServiceTest
 -------------------------------------------------------------------------------
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.529 s -- in com.jonathanspereira.condoflow.occurrence.service.OccurrenceServiceTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.350 s -- in com.jonathanspereira.condoflow.occurrence.service.OccurrenceServiceTest
