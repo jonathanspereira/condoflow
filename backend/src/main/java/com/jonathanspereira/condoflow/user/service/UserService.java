@@ -62,6 +62,13 @@ public class UserService {
         }
         User user = (User) userDetails;
 
+        if (user.getCondominium() == null) {
+            List<CondominiumManager> managers = condominiumManagerRepository.findBySindicoId(user.getId());
+            if (!managers.isEmpty() && managers.get(0).getCondominium() != null) {
+                user.setCondominium(managers.get(0).getCondominium());
+            }
+        }
+
         Unit unit = unitRepository.findByOwnerId(user.getId())
                 .or(() -> unitRepository.findByTenantId(user.getId()))
                 .orElse(null);

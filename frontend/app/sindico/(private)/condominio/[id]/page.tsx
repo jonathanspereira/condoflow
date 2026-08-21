@@ -321,7 +321,9 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
                           <Badge variant="outline" className="text-[10px] uppercase font-bold">{oc.category}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground font-medium mt-0.5">
-                          Por: {oc.authorName} • ID: <span className="font-mono">{oc.protocol}</span>
+                          Por: <span className="font-semibold text-slate-800">{oc.authorName || "Anônimo"}</span>
+                          {oc.unitName ? <span className="ml-1 text-emerald-700 font-semibold">• Unidade {oc.unitName}</span> : ""}
+                          {" • "}ID: <span className="font-mono">{oc.protocol}</span>
                         </p>
                       </div>
                     </div>
@@ -370,7 +372,14 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-bold text-lg text-slate-900">{selectedOcorrencia?.title || "Sem título"}</h3>
-                  <p className="text-sm text-slate-500 mt-1">Por: <span className="font-medium text-slate-700">{selectedOcorrencia?.authorName || "Anônimo"}</span></p>
+                  <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                    <span>Por: <strong className="text-slate-700">{selectedOcorrencia?.authorName || "Anônimo"}</strong></span>
+                    {selectedOcorrencia?.unitName && (
+                      <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-xs">
+                        Unidade {selectedOcorrencia.unitName}
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-200 border-none uppercase text-[10px] tracking-wider">
                   {selectedOcorrencia?.category || "GERAL"}

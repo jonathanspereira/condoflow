@@ -128,10 +128,26 @@ public class OccurrenceService {
 
         Occurrence saved = occurrenceRepository.save(occurrence);
 
+        String recipientEmail = null;
+        String recipientName = null;
+
         if (saved.getReportedBy() != null && saved.getReportedBy().getEmail() != null) {
+            recipientEmail = saved.getReportedBy().getEmail();
+            recipientName = saved.getReportedBy().getName();
+        } else if (saved.getUnit() != null) {
+            if (saved.getUnit().isRented() && saved.getUnit().getTenant() != null && saved.getUnit().getTenant().getEmail() != null) {
+                recipientEmail = saved.getUnit().getTenant().getEmail();
+                recipientName = saved.getUnit().getTenant().getName();
+            } else if (saved.getUnit().getOwner() != null && saved.getUnit().getOwner().getEmail() != null) {
+                recipientEmail = saved.getUnit().getOwner().getEmail();
+                recipientName = saved.getUnit().getOwner().getName();
+            }
+        }
+
+        if (recipientEmail != null) {
             emailService.sendOccurrenceUpdateNotification(
-                    saved.getReportedBy().getEmail(),
-                    saved.getReportedBy().getName(),
+                    recipientEmail,
+                    recipientName,
                     saved.getProtocol(),
                     saved.getTitle(),
                     saved.getStatus() != null ? saved.getStatus().name() : "ATUALIZADO",
@@ -158,10 +174,26 @@ public class OccurrenceService {
             occurrence.getMessages().add(savedMessage);
         }
 
-        if (occurrence.getReportedBy() != null && !userEmail.equalsIgnoreCase(occurrence.getReportedBy().getEmail())) {
+        String recipientEmail = null;
+        String recipientName = null;
+
+        if (occurrence.getReportedBy() != null && occurrence.getReportedBy().getEmail() != null) {
+            recipientEmail = occurrence.getReportedBy().getEmail();
+            recipientName = occurrence.getReportedBy().getName();
+        } else if (occurrence.getUnit() != null) {
+            if (occurrence.getUnit().isRented() && occurrence.getUnit().getTenant() != null && occurrence.getUnit().getTenant().getEmail() != null) {
+                recipientEmail = occurrence.getUnit().getTenant().getEmail();
+                recipientName = occurrence.getUnit().getTenant().getName();
+            } else if (occurrence.getUnit().getOwner() != null && occurrence.getUnit().getOwner().getEmail() != null) {
+                recipientEmail = occurrence.getUnit().getOwner().getEmail();
+                recipientName = occurrence.getUnit().getOwner().getName();
+            }
+        }
+
+        if (recipientEmail != null && !userEmail.equalsIgnoreCase(recipientEmail)) {
             emailService.sendOccurrenceUpdateNotification(
-                    occurrence.getReportedBy().getEmail(),
-                    occurrence.getReportedBy().getName(),
+                    recipientEmail,
+                    recipientName,
                     occurrence.getProtocol(),
                     occurrence.getTitle(),
                     occurrence.getStatus() != null ? occurrence.getStatus().name() : "NOVA MENSAGEM",

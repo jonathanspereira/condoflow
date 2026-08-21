@@ -231,7 +231,7 @@ export default function ConsultaProtocolo() {
                   </div>
                   <div className="bg-slate-50 p-4 rounded-xl rounded-tl-none border border-slate-200 text-sm text-slate-700 w-full">
                     <p className="font-semibold text-xs text-slate-500 mb-2">
-                      {resultado.authorName || "Anônimo"} (Abertura) • {formatDateTime(resultado.createdAt)}
+                      {resultado.authorName || "Anônimo"}{resultado.unitName ? ` • Unidade ${resultado.unitName}` : ""} (Abertura) • {formatDateTime(resultado.createdAt)}
                     </p>
                     <p className="whitespace-pre-wrap">{resultado.description}</p>
                   </div>

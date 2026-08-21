@@ -26,7 +26,15 @@ public class AuthService {
     private final EmailService emailService;
 
     public AuthResponseDTO login(AuthRequestDTO dto) {
-        User user = (User) userRepository.findByEmail(dto.getEmail());
+        if (dto.getEmail() == null || dto.getPassword() == null) {
+            throw new BusinessException("E-mail e senha são obrigatórios");
+        }
+
+        String email = dto.getEmail().trim();
+        User user = (User) userRepository.findByEmail(email);
+        if (user == null) {
+            user = (User) userRepository.findByEmail(email.toLowerCase());
+        }
 
         if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new BusinessException("Credenciais inválidas");
@@ -37,10 +45,15 @@ public class AuthService {
     }
 
     public void forgotPassword(String email) {
-        User user = (User) userRepository.findByEmail(email);
+        if (email == null || email.isBlank()) {
+            throw new BusinessException("E-mail é obrigatório");
+        }
+        String cleanEmail = email.trim();
+        User user = (User) userRepository.findByEmail(cleanEmail);
         if (user == null) {
-            // Não estouramos erro se o e-mail não existir por segurança (enumeração de contas), mas podemos se for requsito.
-            // Aqui vamos estourar erro para facilitar o debug pelo usuário do projeto.
+            user = (User) userRepository.findByEmail(cleanEmail.toLowerCase());
+        }
+        if (user == null) {
             throw new BusinessException("Se o e-mail estiver cadastrado, um link será enviado.");
         }
 

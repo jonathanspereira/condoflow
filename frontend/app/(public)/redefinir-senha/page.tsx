@@ -42,7 +42,7 @@ function RedefinirSenhaForm() {
 
   async function onSubmit(data: ResetFormValues) {
     if (!token) {
-      setErrorMsg("Token de recuperação ausente ou inválido na URL.")
+      setErrorMsg("Token de cadastro/recuperação ausente ou inválido na URL.")
       return
     }
 
@@ -59,7 +59,7 @@ function RedefinirSenhaForm() {
       })
 
       if (response.ok) {
-        toast.success("Senha cadastrada com sucesso! Redirecionando para o login...")
+        toast.success("Senha cadastrada com sucesso! Redirecionando para a página de login...")
         router.push("/morador/login")
       } else {
         const errorData = await response.json().catch(() => null)
@@ -80,10 +80,10 @@ function RedefinirSenhaForm() {
     return (
       <div className="text-center py-8">
         <div className="bg-red-50 text-red-600 p-4 rounded-md mb-6 inline-block">
-          Link de recuperação inválido ou ausente.
+          Link de cadastro inválido ou ausente.
         </div>
         <br/>
-        <Link href="/recuperar-senha">
+        <Link href="/primeiro-acesso">
           <Button variant="outline">Solicitar novo link</Button>
         </Link>
       </div>
@@ -99,7 +99,7 @@ function RedefinirSenhaForm() {
           </div>
         )}
         <div className="grid gap-2">
-          <Label htmlFor="newPassword">Nova Senha</Label>
+          <Label htmlFor="newPassword">Criar Senha</Label>
           <Input
             id="newPassword"
             type="password"
@@ -113,11 +113,11 @@ function RedefinirSenhaForm() {
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+          <Label htmlFor="confirmPassword">Confirmar Senha</Label>
           <Input
             id="confirmPassword"
             type="password"
-            placeholder="Repita a nova senha"
+            placeholder="Repita a senha criada"
             disabled={isLoading}
             {...register("confirmPassword")}
             className={errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""}
@@ -127,13 +127,13 @@ function RedefinirSenhaForm() {
           )}
         </div>
         
-        <Button className="w-full font-bold mt-2" type="submit" disabled={isLoading}>
+        <Button className="w-full font-bold mt-2 bg-emerald-600 hover:bg-emerald-700 text-white" type="submit" disabled={isLoading}>
           {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <KeyRound className="mr-2 h-4 w-4" />
           )}
-          Salvar Nova Senha
+          Cadastrar Senha
         </Button>
       </div>
     </form>
@@ -144,19 +144,19 @@ export default function RedefinirSenhaPage() {
   return (
     <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0">
       <Link
-        href="/"
+        href="/morador/login"
         className="absolute left-4 top-4 md:left-8 md:top-8 flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar para o início
+        Voltar para o Login
       </Link>
 
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-emerald-100">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center font-bold">Redefinir Senha</CardTitle>
+            <CardTitle className="text-2xl text-center font-bold text-slate-800">Criar Senha de Acesso</CardTitle>
             <CardDescription className="text-center">
-              Crie uma nova senha segura para acessar sua conta.
+              Defina sua senha de acesso para entrar no CondoFlow.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">

@@ -285,7 +285,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                         Módulo Administrativo
                     </Badge>
                     <span className="text-sm font-bold text-slate-700 hidden sm:block italic">
-                        {userData?.condominiumName || "Carregando..."}
+                        {userData ? (userData.condominiumName || "Gestão Geral") : "Carregando..."}
                     </span>
                 </div>
             ) : (

@@ -514,9 +514,9 @@ export default function HistoricoOcorrenciasPage() {
 
                             <TableCell>
                               <div className="flex flex-col text-xs">
-                                <span className="font-medium text-slate-800">{item.authorName || "Anônimo"}</span>
+                                <span className="font-semibold text-slate-800">{item.authorName || "Anônimo"}</span>
                                 {item.unitName && (
-                                  <span className="text-[10px] text-muted-foreground">{item.unitName}</span>
+                                  <span className="text-[11px] font-bold text-emerald-700 mt-0.5">Unidade {item.unitName}</span>
                                 )}
                               </div>
                             </TableCell>
@@ -577,9 +577,13 @@ export default function HistoricoOcorrenciasPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-bold text-base text-slate-900">{selectedOcorrencia?.title || "Sem título"}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Por: <span className="font-medium text-slate-700">{selectedOcorrencia?.authorName || "Anônimo"}</span>
-                    {selectedOcorrencia?.unitName && ` • ${selectedOcorrencia.unitName}`}
+                  <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <span>Por: <strong className="text-slate-700">{selectedOcorrencia?.authorName || "Anônimo"}</strong></span>
+                    {selectedOcorrencia?.unitName && (
+                      <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[11px]">
+                        Unidade {selectedOcorrencia.unitName}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-200 border-none uppercase text-[10px]">
