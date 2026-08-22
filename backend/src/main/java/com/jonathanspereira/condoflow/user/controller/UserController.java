@@ -18,6 +18,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class UserController {
+    @PostMapping("/mass")
+    public ResponseEntity<List<UserResponseDTO>> createUsersMass(@RequestBody List<UserRequestDTO> dtos) {
+        List<UserResponseDTO> responses = userService.createUsersMass(dtos);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responses);
+    }
+
 
     private final UserService userService;
 

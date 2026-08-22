@@ -50,7 +50,7 @@ public class DashboardService {
         long totalCondominiums = condominiumRepository.count();
         long totalUsers = userRepository.countFiltered(condominiumId);
 
-        LocalDateTime startDate = null;
+        LocalDateTime startDate = LocalDateTime.of(2000, 1, 1, 0, 0);
         if (days != null && days > 0) {
             startDate = LocalDateTime.now().minusDays(days);
         }

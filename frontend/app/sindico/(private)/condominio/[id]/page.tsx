@@ -330,7 +330,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
 
                     <div className="flex items-center gap-4">
                        <Badge className={oc.status === 'OPEN' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}>
-                        {(oc.status || "OPEN").replace("_", " ")}
+                        {{"OPEN": "Aberto", "IN_PROGRESS": "Em Andamento", "RESOLVED": "Resolvido", "CLOSED": "Concluído"}[oc.status as string] || oc.status}
                        </Badge>
                        <Button variant="ghost" size="icon" onClick={() => handleOpenResponder(oc)}>
                           <MessageCircle className="h-5 w-5 text-slate-400 hover:text-emerald-600" />

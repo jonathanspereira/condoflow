@@ -285,7 +285,7 @@ export default function MinhasOcorrencias() {
     e.preventDefault()
     setFormError("")
 
-    if (hasRelatedUnit && relatedUnitStatus !== "valid") {
+    if (hasRelatedUnit && relatedUnitsList.length === 0 && relatedUnitStatus !== "valid") {
       setFormError("Informe uma unidade relacionada válida (diferente da sua) antes de enviar.")
       return
     }

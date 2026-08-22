@@ -210,13 +210,7 @@ export default function LoginMoradorPage() {
                 </div>
               </form>
             </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-              <div className="w-full text-center">
-                <Link href="/primeiro-acesso" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 hover:underline">
-                  É o seu primeiro acesso? Clique aqui
-                </Link>
-              </div>
-            </CardFooter>
+            {/* CardFooter Removed as requested */}
           </Card>
         ) : (
           <Card className="shadow-lg animate-in fade-in zoom-in duration-300">

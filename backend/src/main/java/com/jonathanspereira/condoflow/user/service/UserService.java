@@ -34,6 +34,12 @@ public class UserService {
     private final UnitRepository unitRepository;
     private final PasswordEncoder passwordEncoder;
 
+    
+    @Transactional
+    public List<UserResponseDTO> createUsersMass(List<UserRequestDTO> dtos) {
+        return dtos.stream().map(this::createUser).collect(Collectors.toList());
+    }
+
     public UserResponseDTO createUser(UserRequestDTO dto) {
         if (userRepository.findByEmail(dto.getEmail()) != null) {
             throw new BusinessException("Email já cadastrado no sistema.");
