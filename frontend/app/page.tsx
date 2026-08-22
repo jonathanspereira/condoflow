@@ -85,8 +85,15 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 border-t text-center text-sm text-slate-400">
-        <p>© 2026 CondoFlow. Sistema de Gestão de Ocorrências.</p>
+      <footer className="py-8 border-t bg-slate-50">
+        <div className="max-w-5xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-slate-500">© 2026 CondoFlow. Sistema de Gestão de Ocorrências.</p>
+          <div className="flex gap-6 text-sm text-slate-500">
+            <Link href="/privacidade" className="hover:text-primary transition-colors">Política de Privacidade</Link>
+            <Link href="/cookies" className="hover:text-primary transition-colors">Política de Cookies</Link>
+            <Link href="/lgpd" className="hover:text-primary transition-colors">Sobre a LGPD</Link>
+          </div>
+        </div>
       </footer>
     </div>
   );
