@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/focus-mode").hasAuthority("SINDICO")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/*/focus-mode").hasAuthority("SINDICO")
                 .requestMatchers(HttpMethod.GET, "/api/v1/units/condominium/**").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
-                .requestMatchers(HttpMethod.POST, "/api/v1/units").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                .requestMatchers(HttpMethod.POST, "/api/v1/units/**").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/units/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/units/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                 .requestMatchers("/api/v1/condominiums/**").hasAuthority("SUPER_ADMIN")

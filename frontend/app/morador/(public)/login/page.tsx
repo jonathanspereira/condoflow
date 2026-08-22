@@ -216,9 +216,6 @@ export default function LoginMoradorPage() {
                   É o seu primeiro acesso? Clique aqui
                 </Link>
               </div>
-              <p className="mt-2 text-xs text-center text-muted-foreground">
-                Ainda não tem acesso? Solicite cadastro à portaria ou administração.
-              </p>
             </CardFooter>
           </Card>
         ) : (

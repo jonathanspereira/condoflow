@@ -5,8 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Building, Loader2, User, KeySquare, Plus, Trash2, Pencil, UserPlus, AlertTriangle } from "lucide-react"
+import {
+  Building,
+  Loader2,
+  User,
+  KeySquare,
+  Plus,
+  Trash2,
+  Pencil,
+  UserPlus,
+  AlertTriangle,
+  FileSpreadsheet,
+  CheckCircle2,
+  HelpCircle,
+  Upload
+} from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -50,6 +65,17 @@ interface UnitData {
   tenantEmail?: string
 }
 
+interface BulkUnitItem {
+  unit: string
+  ownerName: string
+  ownerEmail: string
+  rented: boolean
+  tenantName?: string
+  tenantEmail?: string
+  isValid: boolean
+  error?: string
+}
+
 export default function MoradoresPage() {
   const [condominios, setCondominios] = useState<CondominiumOption[]>([])
   const [selectedCondoId, setSelectedCondoId] = useState<string>("")
@@ -70,6 +96,12 @@ export default function MoradoresPage() {
   // Modal de Confirmação de Exclusão
   const [deletingUnit, setDeletingUnit] = useState<UnitData | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Modal de Cadastro em Massa
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
+  const [bulkText, setBulkText] = useState("")
+  const [parsedBulkUnits, setParsedBulkUnits] = useState<BulkUnitItem[]>([])
+  const [isSubmittingBulk, setIsSubmittingBulk] = useState(false)
 
   const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
 
@@ -224,6 +256,125 @@ export default function MoradoresPage() {
     }
   }
 
+  // --- LÓGICA DE CADASTRO EM MASSA ---
+  const parseBulkText = (text: string) => {
+    const lines = text.split("\n").map((l) => l.trim()).filter((l) => l.length > 0)
+    const items: BulkUnitItem[] = []
+
+    for (const line of lines) {
+      // Formato: Unidade, Nome Proprietário, Email Proprietário [, Nome Inquilino, Email Inquilino]
+      const parts = line.split(",").map((p) => p.trim())
+      if (parts.length < 3) {
+        items.push({
+          unit: parts[0] || "",
+          ownerName: parts[1] || "",
+          ownerEmail: parts[2] || "",
+          rented: false,
+          isValid: false,
+          error: "Campos insuficientes. Requer: Unidade, Nome Proprietário, Email Proprietário",
+        })
+        continue
+      }
+
+      const unit = parts[0]
+      const ownerName = parts[1]
+      const ownerEmail = parts[2]
+      const tenantName = parts[3] || ""
+      const tenantEmail = parts[4] || ""
+      const rented = tenantName.length > 0 && tenantEmail.length > 0
+
+      const isEmailValid = (e: string) => /\S+@\S+\.\S+/.test(e)
+
+      if (!unit || !ownerName || !ownerEmail) {
+        items.push({
+          unit, ownerName, ownerEmail, rented, tenantName, tenantEmail,
+          isValid: false, error: "Unidade, Nome ou E-mail do proprietário em branco."
+        })
+      } else if (!isEmailValid(ownerEmail)) {
+        items.push({
+          unit, ownerName, ownerEmail, rented, tenantName, tenantEmail,
+          isValid: false, error: `E-mail do proprietário inválido: ${ownerEmail}`
+        })
+      } else if (tenantEmail && !isEmailValid(tenantEmail)) {
+        items.push({
+          unit, ownerName, ownerEmail, rented, tenantName, tenantEmail,
+          isValid: false, error: `E-mail do inquilino inválido: ${tenantEmail}`
+        })
+      } else {
+        items.push({
+          unit, ownerName, ownerEmail, rented, tenantName, tenantEmail,
+          isValid: true
+        })
+      }
+    }
+    setParsedBulkUnits(items)
+  }
+
+  const handleBulkTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value
+    setBulkText(text)
+    parseBulkText(text)
+  }
+
+  const insertBulkExample = () => {
+    const example = `101, Carlos Andrade, carlos@email.com
+102, Mariana Lima, mariana@email.com, João Silva, joao.inquilino@email.com
+201, Roberto Souza, roberto@email.com
+202, Fernanda Costa, fernanda@email.com`
+    setBulkText(example)
+    parseBulkText(example)
+  }
+
+  const handleSaveBulk = async () => {
+    const validItems = parsedBulkUnits.filter((item) => item.isValid)
+    if (validItems.length === 0) {
+      toast.error("Nenhum morador válido para cadastrar.")
+      return
+    }
+
+    setIsSubmittingBulk(true)
+
+    try {
+      const payload = validItems.map((item) => ({
+        unit: item.unit,
+        ownerName: item.ownerName,
+        ownerEmail: item.ownerEmail,
+        rented: item.rented,
+        tenantName: item.tenantName || null,
+        tenantEmail: item.tenantEmail || null,
+      }))
+
+      const res = await fetch(`http://localhost:8080/api/v1/units/batch?condominiumId=${selectedCondoId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (res.ok) {
+        const createdList = await res.json()
+        toast.success(`${createdList.length} moradores cadastrados com sucesso em massa!`)
+        setIsBulkModalOpen(false)
+        setBulkText("")
+        setParsedBulkUnits([])
+        fetchMoradores()
+      } else {
+        const err = await res.json().catch(() => null)
+        toast.error(err?.message || "Erro ao efetuar cadastro em massa.")
+      }
+    } catch (err) {
+      console.error("Erro no cadastro em massa:", err)
+      toast.error("Erro de conexão ao enviar dados em massa.")
+    } finally {
+      setIsSubmittingBulk(false)
+    }
+  }
+
+  const validCount = parsedBulkUnits.filter((i) => i.isValid).length
+  const invalidCount = parsedBulkUnits.filter((i) => !i.isValid).length
+
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -252,6 +403,15 @@ export default function MoradoresPage() {
               </Select>
             </div>
           )}
+
+          <Button
+            onClick={() => setIsBulkModalOpen(true)}
+            variant="outline"
+            className="border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold gap-2"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+            Cadastro em Massa
+          </Button>
 
           <Button onClick={handleOpenAddModal} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2">
             <Plus className="h-4 w-4" />
@@ -354,7 +514,121 @@ export default function MoradoresPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Adicionar / Editar Morador */}
+      {/* Modal Cadastro em Massa */}
+      <Dialog open={isBulkModalOpen} onOpenChange={setIsBulkModalOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
+                Cadastro de Moradores em Massa
+              </DialogTitle>
+              <Button variant="ghost" size="sm" onClick={insertBulkExample} className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold">
+                <HelpCircle className="h-3.5 w-3.5 mr-1" />
+                Carregar Exemplo
+              </Button>
+            </div>
+            <DialogDescription className="text-xs text-slate-500">
+              Cole abaixo uma lista de moradores (um por linha) ou arquivo CSV separado por vírgula no formato:
+              <br />
+              <code className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-mono text-slate-800 font-semibold">
+                Unidade, Nome do Proprietário, Email Proprietário [, Nome Inquilino, Email Inquilino]
+              </code>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-700">Linhas de Moradores</Label>
+              <Textarea
+                placeholder="Exemplo:&#10;101, Carlos Silva, carlos@email.com&#10;102, Maria Souza, maria@email.com, Roberto Lima, roberto@email.com"
+                rows={5}
+                className="font-mono text-xs bg-slate-50 border-slate-200 resize-y"
+                value={bulkText}
+                onChange={handleBulkTextChange}
+              />
+            </div>
+
+            {/* Pré-visualização com Tabela */}
+            {parsedBulkUnits.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase">
+                    Pré-visualização do Processamento ({parsedBulkUnits.length} linhas)
+                  </span>
+                  <div className="flex gap-2 text-xs font-semibold">
+                    {validCount > 0 && <span className="text-emerald-600">{validCount} válidos</span>}
+                    {invalidCount > 0 && <span className="text-red-600">{invalidCount} com erro</span>}
+                  </div>
+                </div>
+
+                <div className="rounded-md border bg-slate-50/50 max-h-56 overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-slate-100 text-xs">
+                        <TableHead>Unidade</TableHead>
+                        <TableHead>Proprietário</TableHead>
+                        <TableHead>Inquilino</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {parsedBulkUnits.map((item, idx) => (
+                        <TableRow key={idx} className={item.isValid ? "hover:bg-emerald-50/30" : "bg-red-50/40"}>
+                          <TableCell className="font-bold text-xs">{item.unit || "-"}</TableCell>
+                          <TableCell className="text-xs">
+                            <div>{item.ownerName || "-"}</div>
+                            <div className="text-[10px] text-muted-foreground">{item.ownerEmail}</div>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {item.rented ? (
+                              <div>
+                                <div>{item.tenantName}</div>
+                                <div className="text-[10px] text-muted-foreground">{item.tenantEmail}</div>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic text-[11px]">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {item.isValid ? (
+                              <Badge className="bg-emerald-100 text-emerald-800 text-[10px] font-semibold border-none">
+                                <CheckCircle2 className="h-3 w-3 mr-1 text-emerald-600" />
+                                Válido
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-red-100 text-red-800 text-[10px] font-semibold border-none" title={item.error}>
+                                <AlertTriangle className="h-3 w-3 mr-1 text-red-600" />
+                                Erro
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="pt-2 border-t">
+            <Button variant="outline" onClick={() => setIsBulkModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveBulk}
+              disabled={isSubmittingBulk || validCount === 0}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2"
+            >
+              {isSubmittingBulk ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              Cadastrar {validCount} Morador{validCount !== 1 ? "es" : ""}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Adicionar / Editar Morador Individual */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-lg bg-white">
           <form onSubmit={handleSaveUnit}>

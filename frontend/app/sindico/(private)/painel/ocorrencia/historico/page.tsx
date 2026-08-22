@@ -38,7 +38,6 @@ import {
 } from "@/components/ui/table"
 import {
   Search,
-  Filter,
   MessageCircle,
   User,
   Shield,
@@ -48,8 +47,9 @@ import {
   Building,
   Paperclip,
   Camera,
-  AlertCircle,
-  FileText
+  FileText,
+  Building2,
+  X
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -83,6 +83,7 @@ interface Occurrence {
   status: string
   condominiumName: string
   unitName?: string
+  relatedUnits?: string
   authorName?: string
   createdAt: string
   updatedAt?: string
@@ -102,7 +103,7 @@ const STATUS_LABELS: Record<string, string> = {
   OPEN: "Aberto",
   IN_PROGRESS: "Em Andamento",
   RESOLVED: "Resolvido",
-  CLOSED: "Fechado",
+  CLOSED: "Concluído",
 }
 
 export default function HistoricoOcorrenciasPage() {
@@ -113,6 +114,7 @@ export default function HistoricoOcorrenciasPage() {
 
   const [busca, setBusca] = useState("")
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("TODAS")
+  const [unidadeFiltro, setUnidadeFiltro] = useState<string>("TODAS")
   const [abaStatus, setAbaStatus] = useState<string>("todas")
 
   // Modal de Detalhes / Resposta
@@ -188,6 +190,20 @@ export default function HistoricoOcorrenciasPage() {
     fetchOcorrencias()
   }, [selectedCondoId, condominios])
 
+  // Extrai lista única de unidades para badging / filtro
+  const listaUnidadesUnicas = Array.from(
+    new Set(
+      ocorrencias.flatMap((o) => {
+        const list: string[] = []
+        if (o.unitName) list.push(o.unitName)
+        if (o.relatedUnits) {
+          o.relatedUnits.split(",").forEach((u) => list.push(u.trim()))
+        }
+        return list
+      })
+    )
+  ).filter(Boolean)
+
   // Abrir Modal de Gestão
   const handleOpenResponder = (oc: Occurrence) => {
     setSelectedOcorrencia(oc)
@@ -202,7 +218,6 @@ export default function HistoricoOcorrenciasPage() {
     setIsSubmitting(true)
 
     try {
-      // 1. Atualiza Status
       const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}`, {
         method: "PUT",
         headers: {
@@ -223,7 +238,6 @@ export default function HistoricoOcorrenciasPage() {
 
       let updatedOcorrencia: Occurrence = await response.json()
 
-      // 2. Envia mensagem caso preenchida
       if (novaResposta.trim()) {
         const msgRes = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/messages`, {
           method: "POST",
@@ -241,7 +255,6 @@ export default function HistoricoOcorrenciasPage() {
         }
       }
 
-      // Atualiza lista local
       setOcorrencias((prev) => prev.map((o) => (o.id === updatedOcorrencia.id ? updatedOcorrencia : o)))
       setSelectedOcorrencia(updatedOcorrencia)
       setIsDialogOpen(false)
@@ -311,12 +324,19 @@ export default function HistoricoOcorrenciasPage() {
       oc.title?.toLowerCase().includes(busca.toLowerCase()) ||
       oc.protocol?.toLowerCase().includes(busca.toLowerCase()) ||
       oc.authorName?.toLowerCase().includes(busca.toLowerCase()) ||
-      oc.unitName?.toLowerCase().includes(busca.toLowerCase())
+      oc.unitName?.toLowerCase().includes(busca.toLowerCase()) ||
+      oc.relatedUnits?.toLowerCase().includes(busca.toLowerCase())
 
     if (!matchBusca) return false
 
     if (categoriaFiltro !== "TODAS" && oc.category !== categoriaFiltro) {
       return false
+    }
+
+    if (unidadeFiltro !== "TODAS") {
+      const isOriginUnit = oc.unitName?.toLowerCase() === unidadeFiltro.toLowerCase()
+      const isRelated = oc.relatedUnits?.toLowerCase().includes(unidadeFiltro.toLowerCase())
+      if (!isOriginUnit && !isRelated) return false
     }
 
     if (abaStatus === "abertas") return oc.status === "OPEN"
@@ -334,7 +354,7 @@ export default function HistoricoOcorrenciasPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Dynamic Header */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Histórico de Ocorrências</h1>
@@ -407,13 +427,13 @@ export default function HistoricoOcorrenciasPage() {
         </Card>
       </div>
 
-      {/* Main Card with Tabs & Search */}
+      {/* Main Card */}
       <Card className="shadow-sm">
         <CardHeader className="pb-4 border-b border-slate-100">
           <div className="flex flex-col md:flex-row gap-4 justify-between md:items-center">
             <div>
               <CardTitle className="text-lg">Registros de Ocorrências</CardTitle>
-              <CardDescription>Lista consolidada com detalhes e canal de atendimento.</CardDescription>
+              <CardDescription>Lista consolidada com detalhes, unidades relacionadas e canal de atendimento.</CardDescription>
             </div>
 
             {/* Controls: Search & Category */}
@@ -421,7 +441,7 @@ export default function HistoricoOcorrenciasPage() {
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar protocolo, título ou morador..."
+                  placeholder="Buscar protocolo, título ou unidade..."
                   className="pl-9 h-9 text-xs bg-slate-50"
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
@@ -445,6 +465,36 @@ export default function HistoricoOcorrenciasPage() {
               </div>
             </div>
           </div>
+
+          {/* FILTRO DE UNIDADES VIA BADGES */}
+          {listaUnidadesUnicas.length > 0 && (
+            <div className="pt-3 flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                <Building2 className="h-3.5 w-3.5" />
+                Filtrar por Unidade:
+              </span>
+              <Badge
+                onClick={() => setUnidadeFiltro("TODAS")}
+                className={`cursor-pointer text-[11px] font-semibold transition-all ${
+                  unidadeFiltro === "TODAS" ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                Todas
+              </Badge>
+              {listaUnidadesUnicas.map((u) => (
+                <Badge
+                  key={u}
+                  onClick={() => setUnidadeFiltro(unidadeFiltro === u ? "TODAS" : u)}
+                  className={`cursor-pointer text-[11px] font-semibold transition-all ${
+                    unidadeFiltro === u ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
+                  }`}
+                >
+                  {u}
+                  {unidadeFiltro === u && <X className="h-3 w-3 ml-1" />}
+                </Badge>
+              ))}
+            </div>
+          )}
         </CardHeader>
 
         <CardContent className="pt-4">
@@ -463,7 +513,7 @@ export default function HistoricoOcorrenciasPage() {
                     <TableRow className="bg-slate-50">
                       <TableHead className="w-[140px]">Protocolo</TableHead>
                       <TableHead>Título / Relato</TableHead>
-                      <TableHead>Solicitante</TableHead>
+                      <TableHead>Solicitante & Unidades</TableHead>
                       <TableHead>Categoria</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Ação</TableHead>
@@ -513,11 +563,22 @@ export default function HistoricoOcorrenciasPage() {
                             </TableCell>
 
                             <TableCell>
-                              <div className="flex flex-col text-xs">
+                              <div className="flex flex-col text-xs gap-1">
                                 <span className="font-semibold text-slate-800">{item.authorName || "Anônimo"}</span>
-                                {item.unitName && (
-                                  <span className="text-[11px] font-bold text-emerald-700 mt-0.5">Unidade {item.unitName}</span>
-                                )}
+                                <div className="flex flex-wrap gap-1 items-center">
+                                  {item.unitName && (
+                                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-bold">
+                                      Origem: {item.unitName}
+                                    </Badge>
+                                  )}
+                                  {item.relatedUnits && (
+                                    item.relatedUnits.split(",").map((ru, i) => (
+                                      <Badge key={i} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-bold">
+                                        Relacionada: {ru.trim()}
+                                      </Badge>
+                                    ))
+                                  )}
+                                </div>
                               </div>
                             </TableCell>
 
@@ -577,14 +638,21 @@ export default function HistoricoOcorrenciasPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-bold text-base text-slate-900">{selectedOcorrencia?.title || "Sem título"}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                  <div className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
                     <span>Por: <strong className="text-slate-700">{selectedOcorrencia?.authorName || "Anônimo"}</strong></span>
                     {selectedOcorrencia?.unitName && (
                       <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[11px]">
                         Unidade {selectedOcorrencia.unitName}
                       </span>
                     )}
-                  </p>
+                    {selectedOcorrencia?.relatedUnits && (
+                      selectedOcorrencia.relatedUnits.split(",").map((ru, idx) => (
+                        <span key={idx} className="font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded text-[11px]">
+                          Relacionada: {ru.trim()}
+                        </span>
+                      ))
+                    )}
+                  </div>
                 </div>
                 <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-200 border-none uppercase text-[10px]">
                   {CATEGORIA_LABELS[selectedOcorrencia?.category || ""] || selectedOcorrencia?.category || "GERAL"}
@@ -635,7 +703,7 @@ export default function HistoricoOcorrenciasPage() {
                       <SelectItem value="CLOSED">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-slate-500" />
-                          Fechado
+                          Concluído
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -645,19 +713,6 @@ export default function HistoricoOcorrenciasPage() {
                 {/* Histórico de Mensagens */}
                 <div className="space-y-3">
                   <Label className="text-xs font-semibold text-slate-700">Histórico de Mensagens e Interações</Label>
-
-                  {/* Resposta original legada (se houver e não houver mensagens) */}
-                  {selectedOcorrencia?.response && (!selectedOcorrencia.messages || selectedOcorrencia.messages.length === 0) && (
-                    <div className="flex gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                        <Building className="h-3.5 w-3.5 text-blue-600" />
-                      </div>
-                      <div className="bg-blue-50/60 p-3 rounded-lg border border-blue-100 text-xs text-slate-700 w-full">
-                        <p className="font-semibold text-[10px] text-blue-600 mb-1">Administração / Síndico</p>
-                        <p className="whitespace-pre-wrap">{selectedOcorrencia.response}</p>
-                      </div>
-                    </div>
-                  )}
 
                   {selectedOcorrencia?.messages && selectedOcorrencia.messages.length > 0 ? (
                     <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">

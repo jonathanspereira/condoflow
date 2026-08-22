@@ -1,3 +1,4 @@
+com/jonathanspereira/condoflow/CondoflowApplicationTests.class
 com/jonathanspereira/condoflow/occurrence/controller/OccurrenceControllerIT.class
 com/jonathanspereira/condoflow/auth/service/AuthServiceTest.class
-com/jonathanspereira/condoflow/CondoflowApplicationTests.class
+com/jonathanspereira/condoflow/occurrence/service/OccurrenceServiceTest.class

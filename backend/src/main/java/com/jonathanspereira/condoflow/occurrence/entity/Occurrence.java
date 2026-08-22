@@ -45,6 +45,9 @@ public class Occurrence {
     @JoinColumn(name = "reported_by_id")
     private User reportedBy;
 
+    @Column(name = "related_units", length = 500)
+    private String relatedUnits;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

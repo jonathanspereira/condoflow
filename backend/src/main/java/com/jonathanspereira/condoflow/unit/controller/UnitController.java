@@ -34,6 +34,13 @@ public class UnitController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UnitResponseDTO.from(novaUnidade));
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<List<UnitResponseDTO>> criarUnidadesEmMassa(@RequestBody List<UnitRequestDTO> dtos, @RequestParam Long condominiumId) {
+        List<UnitResponseDTO> unidades = unitService.salvarEmMassa(condominiumId, dtos)
+                .stream().map(UnitResponseDTO::from).collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.CREATED).body(unidades);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<UnitResponseDTO> atualizarUnidade(@PathVariable Long id, @RequestBody UnitRequestDTO dto) {
         Unit unidadeAtualizada = unitService.atualizar(id, dto);

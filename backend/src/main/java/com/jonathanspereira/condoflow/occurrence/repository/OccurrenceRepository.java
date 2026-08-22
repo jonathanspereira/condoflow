@@ -35,15 +35,15 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
     @Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.category")
     List<Object[]> countByCategoryGrouped(Long condominiumId);
 
-    @Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR o.condominium.id = :condominiumId) AND (:startDate IS NULL OR o.createdAt >= :startDate) GROUP BY o.status")
+    @Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR (o.condominium IS NOT NULL AND o.condominium.id = :condominiumId)) AND (:startDate IS NULL OR o.createdAt >= :startDate) GROUP BY o.status")
     List<Object[]> countByStatusFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);
 
-    @Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR o.condominium.id = :condominiumId) AND (:startDate IS NULL OR o.createdAt >= :startDate) GROUP BY o.category")
+    @Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR (o.condominium IS NOT NULL AND o.condominium.id = :condominiumId)) AND (:startDate IS NULL OR o.createdAt >= :startDate) GROUP BY o.category")
     List<Object[]> countByCategoryFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);
 
-    @Query("SELECT COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR o.condominium.id = :condominiumId) AND (:startDate IS NULL OR o.createdAt >= :startDate)")
+    @Query("SELECT COUNT(o) FROM Occurrence o WHERE (:condominiumId IS NULL OR (o.condominium IS NOT NULL AND o.condominium.id = :condominiumId)) AND (:startDate IS NULL OR o.createdAt >= :startDate)")
     long countFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);
 
-    @Query("SELECT o.condominium.id, o.condominium.name, COUNT(o) FROM Occurrence o GROUP BY o.condominium.id, o.condominium.name")
+    @Query("SELECT o.condominium.id, o.condominium.name, COUNT(o) FROM Occurrence o WHERE o.condominium IS NOT NULL GROUP BY o.condominium.id, o.condominium.name")
     List<Object[]> countByCondominiumGrouped();
 }

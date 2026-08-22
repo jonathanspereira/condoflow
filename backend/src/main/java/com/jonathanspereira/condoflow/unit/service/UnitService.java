@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UnitService {
@@ -62,6 +63,12 @@ public class UnitService {
         unit.setTenant(tenant);
 
         return unitRepository.save(unit);
+    }
+
+    public List<Unit> salvarEmMassa(Long condominiumId, List<UnitRequestDTO> dtos) {
+        return dtos.stream()
+                .map(dto -> salvar(condominiumId, dto))
+                .collect(Collectors.toList());
     }
 
     public Unit atualizar(Long id, UnitRequestDTO dto) {

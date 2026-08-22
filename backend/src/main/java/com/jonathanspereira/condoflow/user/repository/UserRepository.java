@@ -1,5 +1,6 @@
 package com.jonathanspereira.condoflow.user.repository;
 
+import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,7 +14,11 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<User, String> {
     UserDetails findByEmail(String email);
 
-    @Query("SELECT COUNT(u) FROM User u WHERE (:condominiumId IS NULL OR u.condominium.id = :condominiumId)")
+    List<User> findByCondominiumIdAndRole(Long condominiumId, Role role);
+
+    List<User> findByRole(Role role);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE (:condominiumId IS NULL OR (u.condominium IS NOT NULL AND u.condominium.id = :condominiumId))")
     long countFiltered(@Param("condominiumId") Long condominiumId);
 
     @Query("SELECT u.condominium.id, u.condominium.name, COUNT(u) FROM User u WHERE u.condominium IS NOT NULL GROUP BY u.condominium.id, u.condominium.name")

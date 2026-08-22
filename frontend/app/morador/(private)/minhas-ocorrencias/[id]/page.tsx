@@ -61,7 +61,7 @@ const CATEGORIA_LABELS: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "Aberto",
-  IN_PROGRESS: "Em Execução",
+  IN_PROGRESS: "Em Andamento",
   RESOLVED: "Resolvido",
   CLOSED: "Concluído",
 }
@@ -69,7 +69,7 @@ const STATUS_LABELS: Record<string, string> = {
 // Ordem canônica do fluxo de status, usada para montar a timeline
 const STATUS_FLOW: { key: string; label: string; icon: typeof Clock }[] = [
   { key: "OPEN", label: "Aberto", icon: Clock },
-  { key: "IN_PROGRESS", label: "Em Execução", icon: MessageSquare },
+  { key: "IN_PROGRESS", label: "Em Andamento", icon: MessageSquare },
   { key: "RESOLVED", label: "Resolvido", icon: CheckCircle2 },
   { key: "CLOSED", label: "Concluído", icon: CheckCircle2 },
 ]

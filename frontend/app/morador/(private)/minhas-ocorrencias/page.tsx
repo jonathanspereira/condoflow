@@ -69,7 +69,7 @@ const CATEGORIA_LABELS: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "Aberto",
-  IN_PROGRESS: "Em Execução",
+  IN_PROGRESS: "Em Andamento",
   RESOLVED: "Resolvido",
   CLOSED: "Concluído",
 }
@@ -95,6 +95,7 @@ export default function MinhasOcorrencias() {
   // --- Unidade relacionada (deve ser DIFERENTE da unidade do morador) ---
   const [hasRelatedUnit, setHasRelatedUnit] = useState(false)
   const [relatedUnit, setRelatedUnit] = useState("")
+  const [relatedUnitsList, setRelatedUnitsList] = useState<string[]>([])
   const [relatedUnitId, setRelatedUnitId] = useState<string | null>(null)
   const [relatedUnitStatus, setRelatedUnitStatus] = useState<RelatedUnitStatus>("idle")
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -253,6 +254,7 @@ export default function MinhasOcorrencias() {
     setArquivos([])
     setHasRelatedUnit(false)
     setRelatedUnit("")
+    setRelatedUnitsList([])
     setRelatedUnitId(null)
     setRelatedUnitStatus("idle")
   }
@@ -260,11 +262,23 @@ export default function MinhasOcorrencias() {
   const handleToggleHasRelatedUnit = (checked: boolean) => {
     setHasRelatedUnit(checked)
     if (!checked) {
-      // limpa a busca ao desmarcar
       setRelatedUnit("")
+      setRelatedUnitsList([])
       setRelatedUnitId(null)
       setRelatedUnitStatus("idle")
     }
+  }
+
+  const handleAddRelatedUnitBadge = () => {
+    if (relatedUnit.trim() && !relatedUnitsList.includes(relatedUnit.trim())) {
+      setRelatedUnitsList((prev) => [...prev, relatedUnit.trim()])
+      setRelatedUnit("")
+      setRelatedUnitStatus("valid")
+    }
+  }
+
+  const handleRemoveRelatedUnitBadge = (unitToRemove: string) => {
+    setRelatedUnitsList((prev) => prev.filter((u) => u !== unitToRemove))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -290,8 +304,7 @@ export default function MinhasOcorrencias() {
           description: descricao,
           category: categoria,
           unitId: localStorage.getItem("condoflow_unit_id") ? Number(localStorage.getItem("condoflow_unit_id")) : undefined,
-          relatedUnitId: hasRelatedUnit ? relatedUnitId : null,
-          relatedUnitName: hasRelatedUnit ? relatedUnit : null,
+          relatedUnits: hasRelatedUnit && relatedUnitsList.length > 0 ? relatedUnitsList.join(", ") : (hasRelatedUnit ? relatedUnit : null),
         })
       })
 
@@ -383,60 +396,58 @@ export default function MinhasOcorrencias() {
                   </div>
 
                   {hasRelatedUnit && (
-                    <>
-                      <Label htmlFor="unidade-relacionada">Unidade Relacionada</Label>
-                      <div className="relative">
-                        <Input
-                          id="unidade-relacionada"
-                          placeholder="Digite a unidade relacionada ao relato (ex: Apto 302)"
-                          value={relatedUnit}
-                          onChange={(e) => setRelatedUnit(e.target.value)}
-                          required={hasRelatedUnit}
-                          className={
-                            relatedUnitStatus === "valid"
-                              ? "border-green-400 pr-9"
-                              : relatedUnitStatus === "not_found" ||
-                                relatedUnitStatus === "same_unit" ||
-                                relatedUnitStatus === "error" ||
-                                relatedUnitStatus === "forbidden"
-                              ? "border-red-400 pr-9"
-                              : "pr-9"
-                          }
-                        />
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                          {relatedUnitStatus === "checking" && (
-                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                          )}
-                          {relatedUnitStatus === "valid" && (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          )}
-                          {(relatedUnitStatus === "not_found" ||
-                            relatedUnitStatus === "same_unit" ||
-                            relatedUnitStatus === "error" ||
-                            relatedUnitStatus === "forbidden") && (
-                            <AlertCircle className="h-4 w-4 text-red-500" />
-                          )}
+                    <div className="space-y-2">
+                      <Label htmlFor="unidade-relacionada">Unidades Relacionadas</Label>
+
+                      {/* Lista de Badges Selecionadas */}
+                      {relatedUnitsList.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border rounded-md">
+                          {relatedUnitsList.map((unitName, i) => (
+                            <Badge key={i} className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs gap-1">
+                              {unitName}
+                              <X
+                                className="h-3 w-3 cursor-pointer text-emerald-600 hover:text-emerald-900"
+                                onClick={() => handleRemoveRelatedUnitBadge(unitName)}
+                              />
+                            </Badge>
+                          ))}
                         </div>
-                      </div>
-                      {relatedUnitMessage[relatedUnitStatus] && (
-                        <p
-                          className={`text-xs ${
-                            relatedUnitStatus === "valid"
-                              ? "text-green-600"
-                              : relatedUnitStatus === "checking"
-                              ? "text-slate-500"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {relatedUnitMessage[relatedUnitStatus]}
-                        </p>
                       )}
+
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            id="unidade-relacionada"
+                            placeholder="Digite a unidade relacionada (ex: Apto 302) e clique +"
+                            value={relatedUnit}
+                            onChange={(e) => setRelatedUnit(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault()
+                                handleAddRelatedUnitBadge()
+                              }
+                            }}
+                            required={hasRelatedUnit && relatedUnitsList.length === 0}
+                            className="pr-9"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleAddRelatedUnitBadge}
+                          disabled={!relatedUnit.trim()}
+                          className="shrink-0 border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+                        >
+                          + Adicionar
+                        </Button>
+                      </div>
+
                       {unitLabel && (
                         <p className="text-[11px] text-muted-foreground">
-                          Sua unidade: <span className="font-medium">{unitLabel}</span> (não pode ser usada aqui)
+                          Sua unidade: <span className="font-medium">{unitLabel}</span> (não pode ser usada como relacionada)
                         </p>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
 

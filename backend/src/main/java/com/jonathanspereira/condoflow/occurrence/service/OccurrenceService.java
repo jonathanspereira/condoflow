@@ -2,6 +2,7 @@ package com.jonathanspereira.condoflow.occurrence.service;
 
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
+import com.jonathanspereira.condoflow.notification.service.NotificationService;
 import com.jonathanspereira.condoflow.occurrence.dto.AnonymousOccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
@@ -16,6 +17,7 @@ import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceAttachment;
 import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceAttachmentRepository;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
+import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ public class OccurrenceService {
     private final UserRepository userRepository;
     private final UnitRepository unitRepository;
     private final com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
+    private final NotificationService notificationService;
 
     public OccurrenceResponseDTO create(String userEmail, OccurrenceRequestDTO dto) {
         User reporter = getUserByEmail(userEmail);
@@ -69,8 +72,21 @@ public class OccurrenceService {
         occurrence.setUnit(unit);
         occurrence.setReportedBy(reporter);
         occurrence.setStatus(OccurrenceStatus.OPEN);
+        occurrence.setRelatedUnits(dto.relatedUnits());
 
         Occurrence saved = occurrenceRepository.save(occurrence);
+
+        // Notificar Síndico(s) do Condomínio via Sininho
+        List<User> sindicos = userRepository.findByCondominiumIdAndRole(condominium.getId(), Role.SINDICO);
+        for (User sindico : sindicos) {
+            notificationService.createNotification(
+                    sindico,
+                    "Nova Ocorrência Recebida",
+                    "Nova ocorrência #" + saved.getProtocol() + " (" + saved.getTitle() + ") foi registrada.",
+                    saved.getProtocol()
+            );
+        }
+
         return new OccurrenceResponseDTO(saved);
     }
 
@@ -85,9 +101,21 @@ public class OccurrenceService {
         occurrence.setCategory(dto.category());
         occurrence.setCondominium(condominium);
         occurrence.setStatus(OccurrenceStatus.OPEN);
-        // reportedBy fica null para ocorrências anônimas
+        occurrence.setRelatedUnits(dto.relatedUnits());
 
         Occurrence saved = occurrenceRepository.save(occurrence);
+
+        // Notificar Síndico(s) do Condomínio via Sininho
+        List<User> sindicos = userRepository.findByCondominiumIdAndRole(condominium.getId(), Role.SINDICO);
+        for (User sindico : sindicos) {
+            notificationService.createNotification(
+                    sindico,
+                    "Nova Ocorrência Anônima",
+                    "Nova ocorrência anônima #" + saved.getProtocol() + " (" + saved.getTitle() + ") foi recebida.",
+                    saved.getProtocol()
+            );
+        }
+
         return new OccurrenceResponseDTO(saved);
     }
 
@@ -128,31 +156,36 @@ public class OccurrenceService {
 
         Occurrence saved = occurrenceRepository.save(occurrence);
 
-        String recipientEmail = null;
-        String recipientName = null;
-
-        if (saved.getReportedBy() != null && saved.getReportedBy().getEmail() != null) {
-            recipientEmail = saved.getReportedBy().getEmail();
-            recipientName = saved.getReportedBy().getName();
-        } else if (saved.getUnit() != null) {
-            if (saved.getUnit().isRented() && saved.getUnit().getTenant() != null && saved.getUnit().getTenant().getEmail() != null) {
-                recipientEmail = saved.getUnit().getTenant().getEmail();
-                recipientName = saved.getUnit().getTenant().getName();
-            } else if (saved.getUnit().getOwner() != null && saved.getUnit().getOwner().getEmail() != null) {
-                recipientEmail = saved.getUnit().getOwner().getEmail();
-                recipientName = saved.getUnit().getOwner().getName();
+        // Resolve recipiente (Morador)
+        User recipientUser = saved.getReportedBy();
+        if (recipientUser == null && saved.getUnit() != null) {
+            if (saved.getUnit().isRented() && saved.getUnit().getTenant() != null) {
+                recipientUser = saved.getUnit().getTenant();
+            } else if (saved.getUnit().getOwner() != null) {
+                recipientUser = saved.getUnit().getOwner();
             }
         }
 
-        if (recipientEmail != null) {
-            emailService.sendOccurrenceUpdateNotification(
-                    recipientEmail,
-                    recipientName,
-                    saved.getProtocol(),
-                    saved.getTitle(),
-                    saved.getStatus() != null ? saved.getStatus().name() : "ATUALIZADO",
-                    dto.response()
+        if (recipientUser != null) {
+            // Notificação no Sininho
+            notificationService.createNotification(
+                    recipientUser,
+                    "Ocorrência Atualizada",
+                    "A ocorrência #" + saved.getProtocol() + " teve seu status alterado para " + translateStatus(saved.getStatus()) + ".",
+                    saved.getProtocol()
             );
+
+            // Notificação por E-mail
+            if (recipientUser.getEmail() != null) {
+                emailService.sendOccurrenceUpdateNotification(
+                        recipientUser.getEmail(),
+                        recipientUser.getName(),
+                        saved.getProtocol(),
+                        saved.getTitle(),
+                        saved.getStatus() != null ? saved.getStatus().name() : "ATUALIZADO",
+                        dto.response()
+                );
+            }
         }
 
         return new OccurrenceResponseDTO(saved);
@@ -174,31 +207,46 @@ public class OccurrenceService {
             occurrence.getMessages().add(savedMessage);
         }
 
-        String recipientEmail = null;
-        String recipientName = null;
-
-        if (occurrence.getReportedBy() != null && occurrence.getReportedBy().getEmail() != null) {
-            recipientEmail = occurrence.getReportedBy().getEmail();
-            recipientName = occurrence.getReportedBy().getName();
-        } else if (occurrence.getUnit() != null) {
-            if (occurrence.getUnit().isRented() && occurrence.getUnit().getTenant() != null && occurrence.getUnit().getTenant().getEmail() != null) {
-                recipientEmail = occurrence.getUnit().getTenant().getEmail();
-                recipientName = occurrence.getUnit().getTenant().getName();
-            } else if (occurrence.getUnit().getOwner() != null && occurrence.getUnit().getOwner().getEmail() != null) {
-                recipientEmail = occurrence.getUnit().getOwner().getEmail();
-                recipientName = occurrence.getUnit().getOwner().getName();
+        // Determinar recipiente (se o remetente for síndico, o recipiente é o morador, e vice-versa)
+        User recipientUser = occurrence.getReportedBy();
+        if (recipientUser == null && occurrence.getUnit() != null) {
+            if (occurrence.getUnit().isRented() && occurrence.getUnit().getTenant() != null) {
+                recipientUser = occurrence.getUnit().getTenant();
+            } else if (occurrence.getUnit().getOwner() != null) {
+                recipientUser = occurrence.getUnit().getOwner();
             }
         }
 
-        if (recipientEmail != null && !userEmail.equalsIgnoreCase(recipientEmail)) {
-            emailService.sendOccurrenceUpdateNotification(
-                    recipientEmail,
-                    recipientName,
-                    occurrence.getProtocol(),
-                    occurrence.getTitle(),
-                    occurrence.getStatus() != null ? occurrence.getStatus().name() : "NOVA MENSAGEM",
-                    dto.content()
+        // Se o remetente for o próprio morador, notificar o síndico
+        if (recipientUser != null && sender.getId().equals(recipientUser.getId())) {
+            List<User> sindicos = userRepository.findByCondominiumIdAndRole(occurrence.getCondominium().getId(), Role.SINDICO);
+            for (User sindico : sindicos) {
+                notificationService.createNotification(
+                        sindico,
+                        "Nova Resposta na Ocorrência",
+                        sender.getName() + " enviou uma nova resposta na ocorrência #" + occurrence.getProtocol() + ".",
+                        occurrence.getProtocol()
+                );
+            }
+        } else if (recipientUser != null && !sender.getId().equals(recipientUser.getId())) {
+            // Se o remetente for o síndico, notificar o morador
+            notificationService.createNotification(
+                    recipientUser,
+                    "Nova Resposta do Síndico",
+                    sender.getName() + " respondeu à ocorrência #" + occurrence.getProtocol() + ".",
+                    occurrence.getProtocol()
             );
+
+            if (recipientUser.getEmail() != null) {
+                emailService.sendOccurrenceUpdateNotification(
+                        recipientUser.getEmail(),
+                        recipientUser.getName(),
+                        occurrence.getProtocol(),
+                        occurrence.getTitle(),
+                        occurrence.getStatus() != null ? occurrence.getStatus().name() : "NOVA MENSAGEM",
+                        dto.content()
+                );
+            }
         }
 
         return new OccurrenceResponseDTO(occurrence);
@@ -237,6 +285,16 @@ public class OccurrenceService {
         return occurrenceAttachmentRepository.findById(attachmentId)
                 .filter(att -> att.getOccurrence().getId().equals(occurrence.getId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anexo não encontrado."));
+    }
+
+    private String translateStatus(OccurrenceStatus status) {
+        if (status == null) return "Atualizado";
+        return switch (status) {
+            case OPEN -> "Aberto";
+            case IN_PROGRESS -> "Em Andamento";
+            case RESOLVED -> "Resolvido";
+            case CLOSED -> "Concluído";
+        };
     }
 
     private User getUserByEmail(String email) {
