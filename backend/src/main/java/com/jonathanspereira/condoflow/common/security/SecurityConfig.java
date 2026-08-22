@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/occurrences/anonymous").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/*/attachments/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/occurrences/*/attachments").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/tenant").hasAnyAuthority("SUPER_ADMIN", "SINDICO", "PROPRIETARY")

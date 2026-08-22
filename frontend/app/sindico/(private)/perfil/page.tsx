@@ -237,7 +237,6 @@ export default function PerfilSindicoPage() {
               Salvar Nova Senha
             </Button>
           </div>
-                  </>)}
         </CardContent>
       </Card>
     </div>

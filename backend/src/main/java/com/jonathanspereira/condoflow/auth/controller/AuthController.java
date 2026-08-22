@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -24,7 +25,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+
+    @PostMapping("/first-access")
+    public ResponseEntity<Void> firstAccess(@RequestBody Map<String, String> request) {
+        authService.firstAccess(request.get("email"));
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/forgot-password")
+
     public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequestDTO requestDTO) {
         authService.forgotPassword(requestDTO.getEmail());
         return ResponseEntity.ok().build();

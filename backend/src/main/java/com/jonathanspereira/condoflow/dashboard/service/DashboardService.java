@@ -196,7 +196,7 @@ public class DashboardService {
         );
     }
 
-    public SyndicDashboardDTO getSyndicDashboard(String email) {
+    public SyndicDashboardDTO getSyndicDashboard(String email, Integer days) {
         org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(email);
         if (!(userDetails instanceof User user)) {
             throw new IllegalArgumentException("User not found or invalid type");
@@ -208,8 +208,13 @@ public class DashboardService {
 
         Long condominiumId = user.getCondominium().getId();
 
-        List<Object[]> byStatus = occurrenceRepository.countByStatusGrouped(condominiumId);
-        List<Object[]> byCategory = occurrenceRepository.countByCategoryGrouped(condominiumId);
+        LocalDateTime startDate = LocalDateTime.of(2000, 1, 1, 0, 0);
+        if (days != null && days > 0) {
+            startDate = LocalDateTime.now().minusDays(days);
+        }
+
+        List<Object[]> byStatus = occurrenceRepository.countByStatusGroupedFiltered(condominiumId, startDate);
+        List<Object[]> byCategory = occurrenceRepository.countByCategoryGroupedFiltered(condominiumId, startDate);
 
         long total = 0;
         long open = 0;

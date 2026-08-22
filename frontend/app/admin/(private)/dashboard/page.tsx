@@ -99,6 +99,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [days, setDays] = useState<string>('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Filtros

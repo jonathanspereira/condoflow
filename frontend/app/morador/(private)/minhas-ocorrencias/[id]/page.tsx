@@ -32,6 +32,7 @@ interface OccurrenceDetail {
   condominiumName?: string
   unitName?: string
   relatedUnitName?: string
+  relatedUnits?: string
   authorName?: string
   createdAt: string
   updatedAt?: string
@@ -371,10 +372,9 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
                   <span className="text-slate-600">Unidade: <strong>{occurrence.unitName}</strong></span>
                 </div>
               )}
-              {occurrence.relatedUnitName && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Building className="h-4 w-4 text-slate-400" />
-                  <span className="text-slate-600">Unidade relacionada: <strong>{occurrence.relatedUnitName}</strong></span>
+              {occurrence.relatedUnits && (
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-slate-600">Unidade relacionada: <strong>{occurrence.relatedUnits}</strong></span>
                 </div>
               )}
               <div className="flex items-center gap-3 text-sm">

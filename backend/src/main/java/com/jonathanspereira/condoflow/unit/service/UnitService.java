@@ -45,6 +45,11 @@ public class UnitService {
     }
 
     public Unit salvar(Long condominiumId, UnitRequestDTO dto) {
+        Optional<Unit> existing = buscarPorCondominioEUnidade(condominiumId, dto.getUnit());
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException("A unidade " + dto.getUnit() + " já possui cadastro neste condomínio.");
+        }
+
         User owner = resolveOrCreateUser(dto.getOwnerName(), dto.getOwnerEmail(), Role.PROPRIETARY, condominiumId);
 
         User tenant = null;

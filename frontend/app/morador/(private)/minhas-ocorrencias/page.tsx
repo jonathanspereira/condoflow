@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
+import { toast } from "sonner"
 import {
   Table,
   TableBody,
@@ -550,7 +551,7 @@ export default function MinhasOcorrencias() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isSubmitting || (hasRelatedUnit && relatedUnitStatus !== "valid")}
+                  disabled={isSubmitting || (hasRelatedUnit && relatedUnitStatus !== "valid" && relatedUnitsList.length === 0)}
                   className="gap-2"
                 >
                   {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}

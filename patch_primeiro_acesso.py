@@ -3,12 +3,40 @@ import re
 with open("frontend/app/morador/(public)/primeiro-acesso/page.tsx", "r") as f:
     content = f.read()
 
-content = content.replace("Esqueceu a senha?", "Primeiro Acesso")
-content = content.replace("AdminForgotPasswordPage", "MoradorPrimeiroAcessoPage")
-content = content.replace("Digite seu e-mail de administrador para receber um link de recuperação de senha.", "Digite o e-mail cadastrado pelo seu síndico para criar sua senha de acesso inicial.")
-content = content.replace("Recuperar Senha", "Solicitar Acesso")
-content = content.replace("Enviando...", "Processando...")
-content = content.replace('href="/admin/login"', 'href="/morador/login"')
+new_submit = """
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/auth/first-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+
+      if (response.ok) {
+        setIsSent(true)
+      } else {
+        const errorData = await response.json().catch(() => null)
+        alert(errorData?.message || "Erro ao processar a requisição.")
+      }
+    } catch (error) {
+      alert("Erro de conexão com o servidor.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+"""
+
+content = re.sub(
+    r'const handleSubmit = async \(e: React\.FormEvent\) => \{.*?\n  \}',
+    new_submit.strip(),
+    content,
+    flags=re.DOTALL
+)
 
 with open("frontend/app/morador/(public)/primeiro-acesso/page.tsx", "w") as f:
     f.write(content)

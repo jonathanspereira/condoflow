@@ -30,10 +30,16 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
             Long condominiumId, List<OccurrenceStatus> statuses, LocalDateTime start, LocalDateTime end);
 
     @Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.status")
-    List<Object[]> countByStatusGrouped(Long condominiumId);
+    List<Object[]> countByStatusGrouped(@Param("condominiumId") Long condominiumId);
 
     @Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId GROUP BY o.category")
-    List<Object[]> countByCategoryGrouped(Long condominiumId);
+    List<Object[]> countByCategoryGrouped(@Param("condominiumId") Long condominiumId);
+
+    @Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId AND o.createdAt >= :startDate GROUP BY o.status")
+    List<Object[]> countByStatusGroupedFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT o.category, COUNT(o) FROM Occurrence o WHERE o.condominium.id = :condominiumId AND o.createdAt >= :startDate GROUP BY o.category")
+    List<Object[]> countByCategoryGroupedFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);
 
     @Query("SELECT o.status, COUNT(o) FROM Occurrence o WHERE (:condominiumId = -1L OR (o.condominium IS NOT NULL AND o.condominium.id = :condominiumId)) AND o.createdAt >= :startDate GROUP BY o.status")
     List<Object[]> countByStatusFiltered(@Param("condominiumId") Long condominiumId, @Param("startDate") LocalDateTime startDate);

@@ -128,7 +128,6 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
 
       const updatedOcorrencia = await response.json()
 
-      }
 
       // Atualiza a lista localmente
       setOcorrencias(prev => prev.map(o => o.id === updatedOcorrencia.id ? updatedOcorrencia : o))

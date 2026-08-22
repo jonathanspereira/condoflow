@@ -51,6 +51,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function PainelSindico() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [days, setDays] = useState<string>('all')
   const [error, setError] = useState("")
 
   const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
@@ -59,7 +60,7 @@ export default function PainelSindico() {
     const fetchStats = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("http://localhost:8080/api/v1/dashboard/syndic", {
+        const res = await fetch(`http://localhost:8080/api/v1/dashboard/syndic${days !== 'all' ? `?days=${days}` : ''}`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         })
 
@@ -77,7 +78,7 @@ export default function PainelSindico() {
     }
 
     fetchStats()
-  }, [])
+  }, [days])
 
   if (isLoading) {
     return (
