@@ -10,7 +10,8 @@ import {
   LogOut, 
   ChevronRight, // Ícone para abrir
   ChevronLeft,  // Ícone para fechar
-  Globe
+  Globe,
+  User
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -20,6 +21,7 @@ import { toast } from "sonner"
 const MENU_ADMIN = [
   { name: "Visão Geral", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Condomínios", href: "/admin/condominios", icon: Building2 },
+  { name: "Meu Perfil", href: "/admin/perfil", icon: User },
 ]
 
 export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -47,18 +47,20 @@ public class DashboardService {
     }
 
     public DashboardStatsDTO getGlobalStatsFiltered(Long condominiumId, Integer days) {
+        Long searchCondoId = condominiumId != null ? condominiumId : -1L;
+        
         long totalCondominiums = condominiumRepository.count();
-        long totalUsers = userRepository.countFiltered(condominiumId);
+        long totalUsers = userRepository.countFiltered(searchCondoId);
 
         LocalDateTime startDate = LocalDateTime.of(2000, 1, 1, 0, 0);
         if (days != null && days > 0) {
             startDate = LocalDateTime.now().minusDays(days);
         }
 
-        long totalOccurrences = occurrenceRepository.countFiltered(condominiumId, startDate);
+        long totalOccurrences = occurrenceRepository.countFiltered(searchCondoId, startDate);
 
         // Group by status
-        List<Object[]> statusRows = occurrenceRepository.countByStatusFiltered(condominiumId, startDate);
+        List<Object[]> statusRows = occurrenceRepository.countByStatusFiltered(searchCondoId, startDate);
         long openCount = 0;
         long inProgressCount = 0;
         long resolvedCount = 0;
@@ -84,7 +86,7 @@ public class DashboardService {
         }
 
         // Group by category
-        List<Object[]> categoryRows = occurrenceRepository.countByCategoryFiltered(condominiumId, startDate);
+        List<Object[]> categoryRows = occurrenceRepository.countByCategoryFiltered(searchCondoId, startDate);
         List<DashboardStatsDTO.CategoryStatDTO> categoryStats = new ArrayList<>();
         if (categoryRows != null) {
             for (Object[] row : categoryRows) {
@@ -144,14 +146,38 @@ public class DashboardService {
                 ? Math.round(((double) resolvedCount / totalOccurrences) * 1000.0) / 10.0
                 : 0.0;
 
-        // Generate monthly trend data scaled by totalOccurrences
-        List<DashboardStatsDTO.MonthlyTrendDTO> monthlyTrends = new ArrayList<>();
+        // Fetch actual monthly trend data
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime sixMonthsAgo = now.minusMonths(5).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime queryStartDate = startDate.isAfter(sixMonthsAgo) ? startDate : sixMonthsAgo;
+        List<Object[]> trendRows = occurrenceRepository.countByMonthAndStatusFiltered(searchCondoId, queryStartDate);
+        
+        List<DashboardStatsDTO.MonthlyTrendDTO> monthlyTrends = new ArrayList<>();
         for (int i = 5; i >= 0; i--) {
             LocalDateTime monthTime = now.minusMonths(i);
             String monthName = monthTime.getMonth().getDisplayName(TextStyle.SHORT, new Locale("pt", "BR"));
-            long monthTotal = Math.max(0, Math.round((totalOccurrences / 6.0) + (i % 2 == 0 ? i : -i)));
-            long monthResolved = Math.max(0, Math.round(monthTotal * (resolutionRate / 100.0)));
+            int targetYear = monthTime.getYear();
+            int targetMonth = monthTime.getMonthValue();
+            
+            long monthTotal = 0;
+            long monthResolved = 0;
+            
+            if (trendRows != null) {
+                for (Object[] row : trendRows) {
+                    if (row != null && row.length >= 4) {
+                        int year = ((Number) row[0]).intValue();
+                        int month = ((Number) row[1]).intValue();
+                        if (year == targetYear && month == targetMonth) {
+                            long count = ((Number) row[3]).longValue();
+                            monthTotal += count;
+                            OccurrenceStatus status = (OccurrenceStatus) row[2];
+                            if (status == OccurrenceStatus.RESOLVED || status == OccurrenceStatus.CLOSED) {
+                                monthResolved += count;
+                            }
+                        }
+                    }
+                }
+            }
             monthlyTrends.add(new DashboardStatsDTO.MonthlyTrendDTO(monthName, monthTotal, monthResolved));
         }
 

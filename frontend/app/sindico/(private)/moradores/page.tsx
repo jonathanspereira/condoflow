@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
+import * as XLSX from "xlsx"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -102,6 +103,78 @@ export default function MoradoresPage() {
   const [bulkText, setBulkText] = useState("")
   const [parsedBulkUnits, setParsedBulkUnits] = useState<BulkUnitItem[]>([])
   const [isSubmittingBulk, setIsSubmittingBulk] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as string[][];
+
+        let parsedText = "";
+        // Assume first row might be header, skip if so
+        let startIndex = 0;
+        if (data.length > 0 && String(data[0][0]).toLowerCase().includes('unidad')) {
+            startIndex = 1;
+        }
+
+        for (let i = startIndex; i < data.length; i++) {
+          const row = data[i];
+          if (row.length === 0 || !row[0]) continue;
+          
+          parsedText += row.join(", ") + "\n";
+        }
+
+        setBulkText(parsedText);
+        // We can optionally trigger handleBulkTextChange automatically
+        // but it requires a synthetic event or extracting the logic.
+        // Let's just process it manually here:
+        const lines = parsedText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+        const parsed: BulkUnitItem[] = lines.map(line => {
+          const parts = line.split(",").map(p => p.trim());
+          const item: BulkUnitItem = {
+            unit: parts[0] || "",
+            ownerName: parts[1] || "",
+            ownerEmail: parts[2] || "",
+            rented: false,
+            isValid: false
+          };
+          if (parts.length >= 5) {
+            item.rented = true;
+            item.tenantName = parts[3];
+            item.tenantEmail = parts[4];
+          }
+          item.isValid = Boolean(item.unit && item.ownerName && item.ownerEmail && item.ownerEmail.includes("@"));
+          if (item.rented) {
+            if (!item.tenantName || !item.tenantEmail || !item.tenantEmail.includes("@")) {
+              item.isValid = false;
+              item.error = "Dados do inquilino incompletos ou email inválido";
+            }
+          }
+          if (!item.isValid && !item.error) {
+            item.error = "Unidade, Nome e Email do proprietário (válido) são obrigatórios";
+          }
+          return item;
+        });
+        setParsedBulkUnits(parsed);
+
+      } catch (error) {
+        toast.error("Erro ao ler arquivo Excel.");
+      }
+    };
+    reader.readAsBinaryString(file);
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
 
   const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
 
@@ -537,7 +610,22 @@ export default function MoradoresPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-3">
+          
+            <div className="space-y-4 py-3">
+              <div className="flex items-center gap-4">
+                <Button variant="outline" className="flex items-center gap-2" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" />
+                  Selecionar Planilha (XLS/XLSX)
+                </Button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload} 
+                  accept=".xls,.xlsx" 
+                  className="hidden" 
+                />
+              </div>
+
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-slate-700">Linhas de Moradores</Label>
               <Textarea

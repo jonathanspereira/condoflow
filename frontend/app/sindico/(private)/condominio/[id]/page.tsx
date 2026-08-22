@@ -244,10 +244,6 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">Relatórios</Button>
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">Comunicado Geral</Button>
-        </div>
       </div>
 
       {/* Cards de Métricas */}

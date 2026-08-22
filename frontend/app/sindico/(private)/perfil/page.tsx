@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,13 +11,11 @@ import { toast } from "sonner"
 type PerfilForm = {
   nome: string
   email: string
-  telefone: string
 }
 
 const INITIAL_PROFILE: PerfilForm = {
-  nome: "Jonathan Silva",
-  email: "sindico@condoflow.com",
-  telefone: "(11) 99999-0000",
+  nome: "",
+  email: "",
 }
 
 export default function PerfilSindicoPage() {
@@ -30,6 +28,37 @@ export default function PerfilSindicoPage() {
   const [isSavingPassword, setIsSavingPassword] = useState(false)
 
   const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : ""
+
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchProfileData() {
+      setIsLoading(true)
+      try {
+        const response = await fetch("http://localhost:8080/api/v1/users/me", {
+          headers: {
+            Authorization: `Bearer ${getToken()}`
+          }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          const profile = { nome: data.name, email: data.email }
+          setFormData(profile)
+          setSavedData(profile)
+        } else {
+          toast.error("Não foi possível carregar os dados do perfil.")
+        }
+      } catch (error) {
+        console.error("Erro ao carregar perfil:", error)
+        toast.error("Erro de conexão com o servidor.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProfileData()
+  }, [])
+
 
   const handleChange = (field: keyof PerfilForm, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -45,9 +74,39 @@ export default function PerfilSindicoPage() {
     setIsEditing(false)
   }
 
-  const handleSave = () => {
-    setSavedData(formData)
-    setIsEditing(false)
+  const [isSavingEmail, setIsSavingEmail] = useState(false)
+
+  const handleSave = async () => {
+    setIsSavingEmail(true)
+
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/users/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ 
+          name: formData.nome,
+          email: formData.email,
+          role: "SINDICO" 
+        })
+      })
+
+      if (response.ok) {
+        setSavedData(formData)
+        setIsEditing(false)
+        toast.success("Perfil atualizado com sucesso!")
+      } else {
+        const errData = await response.json().catch(() => null)
+        toast.error(errData?.message || "Não foi possível atualizar o perfil.")
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error)
+      toast.error("Erro de conexão com o servidor.")
+    } finally {
+      setIsSavingEmail(false)
+    }
   }
 
   const handleUpdatePassword = async () => {
@@ -97,6 +156,11 @@ export default function PerfilSindicoPage() {
           <CardDescription>Visualize e atualize os dados da sua conta administrativa.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
+          {isLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+            </div>
+          ) : (<>
           <div className="space-y-2">
             <Label htmlFor="nome">Nome</Label>
             <Input
@@ -118,15 +182,7 @@ export default function PerfilSindicoPage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="telefone">Telefone</Label>
-            <Input
-              id="telefone"
-              value={formData.telefone}
-              disabled={!isEditing}
-              onChange={(event) => handleChange("telefone", event.target.value)}
-            />
-          </div>
+          
 
           <div className="space-y-2">
             <Label htmlFor="perfil">Perfil</Label>
@@ -136,13 +192,14 @@ export default function PerfilSindicoPage() {
           <div className="flex flex-wrap gap-2 pt-2">
             {isEditing ? (
               <>
-                <Button onClick={handleSave}>Salvar alterações</Button>
+                <Button onClick={handleSave} disabled={isSavingEmail}>{isSavingEmail ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Salvar alterações</Button>
                 <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
               </>
             ) : (
               <Button onClick={handleEdit}>Editar perfil</Button>
             )}
           </div>
+                  </>)}
         </CardContent>
       </Card>
 
@@ -180,6 +237,7 @@ export default function PerfilSindicoPage() {
               Salvar Nova Senha
             </Button>
           </div>
+                  </>)}
         </CardContent>
       </Card>
     </div>

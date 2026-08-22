@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { ShieldCheck, Lock, Mail, ArrowRight, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -113,7 +114,9 @@ export default function AdminLogin() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="pass" className="text-slate-300 text-xs uppercase font-bold tracking-widest">Senha</Label>
-                  <Button variant="link" type="button" className="text-[10px] text-emerald-500 p-0 h-auto">Esqueceu a chave?</Button>
+                  <Link href="/admin/esqueceu-senha" className="text-[10px] text-emerald-500 hover:underline">
+                    Esqueceu a chave?
+                  </Link>
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />

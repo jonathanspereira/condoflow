@@ -309,6 +309,29 @@ export default function MinhasOcorrencias() {
       })
 
       if (response.ok) {
+        const occData = await response.json()
+        
+        // Upload arquivos se houver
+        if (arquivos && arquivos.length > 0) {
+          for (const arquivo of arquivos) {
+            const formData = new FormData();
+            formData.append("file", arquivo);
+            
+            try {
+              await fetch(`http://localhost:8080/api/v1/occurrences/${occData.id}/attachments`, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${getToken()}`
+                },
+                body: formData
+              });
+            } catch (err) {
+              console.error("Erro ao fazer upload do anexo:", err);
+              toast.error(`Falha ao anexar o arquivo ${arquivo.name}`);
+            }
+          }
+        }
+
         resetForm()
         setIsModalOpen(false)
         fetchOccurrences()
