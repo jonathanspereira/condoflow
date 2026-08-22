@@ -105,7 +105,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
     setIsSubmitting(true)
 
     try {
-      // 1. Atualizar o status
+      // 1. Atualizar o status e a mensagem em uma única chamada
       const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}`, {
         method: "PUT",
         headers: {
@@ -113,7 +113,8 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
           Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({
-          status: novoStatus
+          status: novoStatus,
+          response: respostaOficial.trim() || null
         })
       })
 
@@ -125,23 +126,8 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
         return
       }
 
-      // 2. Enviar nova mensagem, se houver texto
-      let updatedOcorrencia = await response.json()
-      
-      if (respostaOficial.trim()) {
-        const msgResponse = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/messages`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`
-          },
-          body: JSON.stringify({ content: respostaOficial.trim() })
-        })
-        if (msgResponse.ok) {
-          updatedOcorrencia = await msgResponse.json()
-        } else {
-          toast.error("Status atualizado, mas houve erro ao enviar a mensagem.")
-        }
+      const updatedOcorrencia = await response.json()
+
       }
 
       // Atualiza a lista localmente
