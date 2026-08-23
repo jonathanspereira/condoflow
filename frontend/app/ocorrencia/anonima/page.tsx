@@ -1,6 +1,12 @@
+import { Metadata } from "next"
 import RegistrarOcorrencia from "../../../components/forms/OcorrenciaForm"; // Importa o componente que criamos
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+
+
+export const metadata: Metadata = {
+  title: "Ocorrência Anônima",
+}
 
 export default function PaginaAnonima() {
   return (

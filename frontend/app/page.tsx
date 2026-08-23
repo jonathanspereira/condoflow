@@ -1,6 +1,12 @@
+import { Metadata } from "next"
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Building2, Clock, PlusCircle, Search, User, UserCog, ShieldCheck } from "lucide-react";
+
+
+export const metadata: Metadata = {
+  title: "Página",
+}
 
 export default function LandingPage() {
   return (

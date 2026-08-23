@@ -17,7 +17,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CondoFlow | Sistema de Gestão de Condomínios",
+  title: {
+    template: '%s | CondoFlow',
+    default: 'CondoFlow | Sistema de Gestão de Condomínios',
+  },
   description: "Plataforma completa para gestão inteligente de condomínios, moradores e ocorrências.",
 };
 

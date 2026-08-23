@@ -1,7 +1,13 @@
+import { Metadata } from "next"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert, UserCheck, Info, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+
+
+export const metadata: Metadata = {
+  title: "Ocorrências",
+}
 
 export default function EntryPage() {
   return (
