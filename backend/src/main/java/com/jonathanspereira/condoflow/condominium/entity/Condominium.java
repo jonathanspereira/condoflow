@@ -24,4 +24,14 @@ public class Condominium {
 
     @Column(nullable = false)
     private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PlanType plan = PlanType.TRIAL;
+
+    @Column(name = "trial_end_date")
+    private java.time.LocalDate trialEndDate;
+
+    @Column(name = "subscription_end_date")
+    private java.time.LocalDate subscriptionEndDate;
 }

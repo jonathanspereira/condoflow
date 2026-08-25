@@ -196,17 +196,12 @@ public class DashboardService {
         );
     }
 
-    public SyndicDashboardDTO getSyndicDashboard(String email, Integer days) {
+    public SyndicDashboardDTO getSyndicDashboard(String email, Long condominiumId, Integer days) {
         org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(email);
         if (!(userDetails instanceof User user)) {
             throw new IllegalArgumentException("User not found or invalid type");
         }
 
-        if (user.getCondominium() == null) {
-            throw new IllegalArgumentException("User condominium not found");
-        }
-
-        Long condominiumId = user.getCondominium().getId();
 
         LocalDateTime startDate = LocalDateTime.of(2000, 1, 1, 0, 0);
         if (days != null && days > 0) {

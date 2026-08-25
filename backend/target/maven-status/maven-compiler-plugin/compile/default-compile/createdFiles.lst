@@ -2,10 +2,12 @@ com/jonathanspereira/condoflow/notification/dto/NotificationResponseDTO.class
 com/jonathanspereira/condoflow/condominium/dto/CondominiumRequestDTO.class
 com/jonathanspereira/condoflow/user/dto/ChangePasswordRequestDTO.class
 com/jonathanspereira/condoflow/unit/service/UnitService.class
+com/jonathanspereira/condoflow/auth/dto/RegisterSindicoRequestDTO.class
 com/jonathanspereira/condoflow/auth/entity/PasswordResetToken.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceResponseDTO.class
 com/jonathanspereira/condoflow/common/security/SecurityFilter.class
 com/jonathanspereira/condoflow/occurrence/service/OccurrenceService.class
+com/jonathanspereira/condoflow/condominium/entity/PlanType.class
 com/jonathanspereira/condoflow/dashboard/dto/SyndicDashboardDTO$CategoryStatDTO.class
 com/jonathanspereira/condoflow/common/security/SecurityConfig.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceRequestDTO.class
@@ -13,6 +15,8 @@ com/jonathanspereira/condoflow/user/dto/UserResponseDTO.class
 com/jonathanspereira/condoflow/auth/dto/ForgotPasswordRequestDTO.class
 com/jonathanspereira/condoflow/auth/dto/AuthResponseDTO.class
 com/jonathanspereira/condoflow/dashboard/dto/DashboardStatsDTO$MonthlyTrendDTO.class
+com/jonathanspereira/condoflow/unit/service/UnitImportService.class
+com/jonathanspereira/condoflow/unit/service/UnitImportService$1.class
 com/jonathanspereira/condoflow/occurrence/entity/Occurrence.class
 com/jonathanspereira/condoflow/dashboard/dto/SyndicDashboardDTO$StatusStatDTO.class
 com/jonathanspereira/condoflow/unit/controller/UnitController.class
@@ -34,7 +38,6 @@ com/jonathanspereira/condoflow/occurrence/dto/MessageRequestDTO.class
 com/jonathanspereira/condoflow/unit/dto/UnitRequestDTO.class
 com/jonathanspereira/condoflow/notification/service/NotificationService.class
 com/jonathanspereira/condoflow/user/dto/LinkSindicoRequestDTO.class
-com/jonathanspereira/condoflow/condominium/entity/CondominiumManager.class
 com/jonathanspereira/condoflow/notification/repository/NotificationRepository.class
 com/jonathanspereira/condoflow/auth/controller/AuthController.class
 com/jonathanspereira/condoflow/common/config/DatabaseSeeder.class
@@ -43,7 +46,9 @@ com/jonathanspereira/condoflow/occurrence/repository/OccurrenceMessageRepository
 com/jonathanspereira/condoflow/user/controller/UserController.class
 com/jonathanspereira/condoflow/user/entity/User.class
 com/jonathanspereira/condoflow/auth/dto/ResetPasswordRequestDTO.class
+com/jonathanspereira/condoflow/common/config/TenantContext.class
 com/jonathanspereira/condoflow/condominium/dto/SindicoCondominiumDTO.class
+com/jonathanspereira/condoflow/condominium/entity/CondominiumRole.class
 com/jonathanspereira/condoflow/condominium/controller/CondominiumController.class
 com/jonathanspereira/condoflow/occurrence/controller/OccurrenceController.class
 com/jonathanspereira/condoflow/common/exception/BusinessException.class
@@ -58,6 +63,8 @@ com/jonathanspereira/condoflow/user/service/UserService.class
 com/jonathanspereira/condoflow/user/repository/UserRepository.class
 com/jonathanspereira/condoflow/CondoflowApplication.class
 com/jonathanspereira/condoflow/condominium/service/CondominiumManagementService.class
+com/jonathanspereira/condoflow/condominium/dto/PlanSelectionRequestDTO.class
+com/jonathanspereira/condoflow/common/config/TenantAspect.class
 com/jonathanspereira/condoflow/user/dto/LinkSindicoResponseDTO.class
 com/jonathanspereira/condoflow/unit/dto/UnitCheckResponseDTO.class
 com/jonathanspereira/condoflow/occurrence/entity/OccurrenceStatus.class
@@ -69,10 +76,10 @@ com/jonathanspereira/condoflow/unit/dto/UnitResponseDTO.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceUpdateDTO.class
 com/jonathanspereira/condoflow/dashboard/controller/DashboardController.class
 com/jonathanspereira/condoflow/condominium/entity/Condominium.class
+com/jonathanspereira/condoflow/condominium/repository/CondominiumRoleRepository.class
 com/jonathanspereira/condoflow/occurrence/entity/OccurrenceCategory.class
 com/jonathanspereira/condoflow/common/email/service/EmailService.class
 com/jonathanspereira/condoflow/dashboard/dto/DashboardStatsDTO$CategoryStatDTO.class
-com/jonathanspereira/condoflow/condominium/repository/CondominiumManagerRepository.class
 com/jonathanspereira/condoflow/user/dto/UserRequestDTO.class
 com/jonathanspereira/condoflow/occurrence/dto/OccurrenceMessageDTO.class
 com/jonathanspereira/condoflow/occurrence/entity/OccurrenceMessage.class

@@ -106,73 +106,40 @@ export default function MoradoresPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as string[][];
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("condominiumId", selectedCondoId);
 
-        let parsedText = "";
-        // Assume first row might be header, skip if so
-        let startIndex = 0;
-        if (data.length > 0 && String(data[0][0]).toLowerCase().includes('unidad')) {
-            startIndex = 1;
-        }
+    setIsSubmittingBulk(true);
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/units/import`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": selectedCondoId
+        },
+        body: formData,
+      });
 
-        for (let i = startIndex; i < data.length; i++) {
-          const row = data[i];
-          if (row.length === 0 || !row[0]) continue;
-          
-          parsedText += row.join(", ") + "\n";
-        }
-
-        setBulkText(parsedText);
-        // We can optionally trigger handleBulkTextChange automatically
-        // but it requires a synthetic event or extracting the logic.
-        // Let's just process it manually here:
-        const lines = parsedText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-        const parsed: BulkUnitItem[] = lines.map(line => {
-          const parts = line.split(",").map(p => p.trim());
-          const item: BulkUnitItem = {
-            unit: parts[0] || "",
-            ownerName: parts[1] || "",
-            ownerEmail: parts[2] || "",
-            rented: false,
-            isValid: false
-          };
-          if (parts.length >= 5) {
-            item.rented = true;
-            item.tenantName = parts[3];
-            item.tenantEmail = parts[4];
-          }
-          item.isValid = Boolean(item.unit && item.ownerName && item.ownerEmail && item.ownerEmail.includes("@"));
-          if (item.rented) {
-            if (!item.tenantName || !item.tenantEmail || !item.tenantEmail.includes("@")) {
-              item.isValid = false;
-              item.error = "Dados do inquilino incompletos ou email inválido";
-            }
-          }
-          if (!item.isValid && !item.error) {
-            item.error = "Unidade, Nome e Email do proprietário (válido) são obrigatórios";
-          }
-          return item;
-        });
-        setParsedBulkUnits(parsed);
-
-      } catch (error) {
-        toast.error("Erro ao ler arquivo Excel.");
+      if (res.ok) {
+        const createdList = await res.json();
+        toast.success(`${createdList.length} moradores importados com sucesso!`);
+        setIsBulkModalOpen(false);
+        fetchMoradores();
+      } else {
+        const err = await res.json().catch(() => null);
+        toast.error(err?.message || "Erro ao importar a planilha.");
       }
-    };
-    reader.readAsBinaryString(file);
-    // Reset file input
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error) {
+      toast.error("Erro de conexão ao enviar o arquivo.");
+    } finally {
+      setIsSubmittingBulk(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
 
@@ -205,7 +172,10 @@ export default function MoradoresPage() {
     setIsLoading(true)
     try {
       const res = await fetch(`http://localhost:8080/api/v1/units/condominium/${selectedCondoId}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: { 
+          Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": selectedCondoId
+        },
       })
       if (res.ok) {
         const data: UnitData[] = await res.json()
@@ -283,6 +253,7 @@ export default function MoradoresPage() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": selectedCondoId
         },
         body: JSON.stringify(payload),
       })
@@ -312,6 +283,7 @@ export default function MoradoresPage() {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": selectedCondoId
         },
       })
       if (res.ok) {
@@ -422,6 +394,7 @@ export default function MoradoresPage() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": selectedCondoId
         },
         body: JSON.stringify(payload),
       })

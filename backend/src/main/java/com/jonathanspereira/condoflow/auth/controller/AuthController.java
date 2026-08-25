@@ -25,6 +25,12 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/register-sindico")
+    public ResponseEntity<AuthResponseDTO> registerSindico(@RequestBody @Valid com.jonathanspereira.condoflow.auth.dto.RegisterSindicoRequestDTO requestDTO) {
+        AuthResponseDTO response = authService.registerSindico(requestDTO);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(response);
+    }
+
 
     @PostMapping("/first-access")
     public ResponseEntity<Void> firstAccess(@RequestBody Map<String, String> request) {

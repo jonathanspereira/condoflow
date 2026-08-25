@@ -36,7 +36,6 @@ public class DatabaseSeeder implements CommandLineRunner {
             superAdmin.setEmail(adminEmail);
             superAdmin.setPassword(passwordEncoder.encode(adminPassword));
             superAdmin.setRole(Role.SUPER_ADMIN);
-            superAdmin.setCondominium(null);
 
             userRepository.save(superAdmin);
             System.out.println("✅ Super Admin padrão criado com sucesso: " + adminEmail);

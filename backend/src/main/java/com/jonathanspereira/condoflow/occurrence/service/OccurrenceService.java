@@ -2,8 +2,8 @@ package com.jonathanspereira.condoflow.occurrence.service;
 
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
-import com.jonathanspereira.condoflow.condominium.repository.CondominiumManagerRepository;
-import com.jonathanspereira.condoflow.condominium.entity.CondominiumManager;
+import com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepository;
+import com.jonathanspereira.condoflow.condominium.entity.CondominiumRole;
 import com.jonathanspereira.condoflow.notification.service.NotificationService;
 import com.jonathanspereira.condoflow.occurrence.dto.AnonymousOccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
@@ -48,7 +48,7 @@ public class OccurrenceService {
     private final UnitRepository unitRepository;
     private final com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
     private final NotificationService notificationService;
-    private final CondominiumManagerRepository condominiumManagerRepository;
+    private final CondominiumRoleRepository condominiumRoleRepository;
 
     public OccurrenceResponseDTO create(String userEmail, OccurrenceRequestDTO dto) {
         User reporter = getUserByEmail(userEmail);
@@ -80,7 +80,7 @@ public class OccurrenceService {
         Occurrence saved = occurrenceRepository.save(occurrence);
 
         // Notificar Síndico(s) do Condomínio via Sininho e E-mail
-        List<User> sindicos = condominiumManagerRepository.findByCondominiumId(condominium.getId()).stream().map(CondominiumManager::getSindico).collect(Collectors.toList());
+        List<User> sindicos = condominiumRoleRepository.findByCondominiumId(condominium.getId()).stream().map(CondominiumRole::getUser).collect(Collectors.toList());
         for (User sindico : sindicos) {
             notificationService.createNotification(
                     sindico,
@@ -119,7 +119,7 @@ public class OccurrenceService {
         Occurrence saved = occurrenceRepository.save(occurrence);
 
         // Notificar Síndico(s) do Condomínio via Sininho e E-mail
-        List<User> sindicos = condominiumManagerRepository.findByCondominiumId(condominium.getId()).stream().map(CondominiumManager::getSindico).collect(Collectors.toList());
+        List<User> sindicos = condominiumRoleRepository.findByCondominiumId(condominium.getId()).stream().map(CondominiumRole::getUser).collect(Collectors.toList());
         for (User sindico : sindicos) {
             notificationService.createNotification(
                     sindico,

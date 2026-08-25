@@ -2,8 +2,8 @@ package com.jonathanspereira.condoflow.user.service;
 
 import com.jonathanspereira.condoflow.common.exception.BusinessException;
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
-import com.jonathanspereira.condoflow.condominium.entity.CondominiumManager;
-import com.jonathanspereira.condoflow.condominium.repository.CondominiumManagerRepository;
+import com.jonathanspereira.condoflow.condominium.entity.CondominiumRole;
+import com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepository;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
@@ -30,7 +30,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final CondominiumRepository condominiumRepository;
-    private final CondominiumManagerRepository condominiumManagerRepository;
+    private final CondominiumRoleRepository condominiumRoleRepository;
     private final UnitRepository unitRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -54,7 +54,6 @@ public class UserService {
         if (dto.getCondominiumId() != null) {
             Condominium condominium = condominiumRepository.findById(dto.getCondominiumId())
                     .orElseThrow(() -> new RuntimeException("Condomínio não encontrado."));
-            user.setCondominium(condominium);
         }
 
         User savedUser = userRepository.save(user);
@@ -68,12 +67,7 @@ public class UserService {
         }
         User user = (User) userDetails;
 
-        if (user.getCondominium() == null) {
-            List<CondominiumManager> managers = condominiumManagerRepository.findBySindicoId(user.getId());
-            if (!managers.isEmpty() && managers.get(0).getCondominium() != null) {
-                user.setCondominium(managers.get(0).getCondominium());
-            }
-        }
+
 
         Unit unit = unitRepository.findByOwnerId(user.getId())
                 .or(() -> unitRepository.findByTenantId(user.getId()))
@@ -129,9 +123,7 @@ public class UserService {
         if (dto.getCondominiumId() != null) {
             Condominium condominium = condominiumRepository.findById(dto.getCondominiumId())
                     .orElseThrow(() -> new RuntimeException("Condomínio não encontrado."));
-            user.setCondominium(condominium);
         } else {
-            user.setCondominium(null);
         }
 
         User updatedUser = userRepository.save(user);
@@ -178,7 +170,6 @@ public class UserService {
                 tenant.setEmail(dto.getEmail());
                 tenant.setPassword(passwordEncoder.encode(dto.getPassword()));
                 tenant.setRole(Role.TENANT);
-                tenant.setCondominium(owner.getCondominium());
                 tenant = userRepository.save(tenant);
             }
             unit.setTenant(tenant);
@@ -219,18 +210,21 @@ public class UserService {
             user = userRepository.save(user);
         }
 
-        List<CondominiumManager> existingManagers = condominiumManagerRepository.findByCondominiumId(condominiumId);
+        List<CondominiumRole> existingManagers = condominiumRoleRepository.findByCondominiumId(condominiumId);
         String userId = user.getId();
-        boolean alreadyLinked = existingManagers.stream().anyMatch(m -> m.getSindico().getId().equals(userId));
+        boolean alreadyLinked = existingManagers.stream().anyMatch(m -> m.getUser().getId().equals(userId));
 
         if (!alreadyLinked) {
-            condominiumManagerRepository.deleteAll(existingManagers); // Enforce 1:1 by removing old managers
+            existingManagers.forEach(m -> m.setActive(false));
+            condominiumRoleRepository.saveAll(existingManagers);
 
-            CondominiumManager management = new CondominiumManager();
+            CondominiumRole management = new CondominiumRole();
+            management.setUser(user);
             management.setCondominium(condominium);
-            management.setSindico(user);
+            management.setRole(Role.SINDICO);
+            management.setActive(true);
             management.setFocusModeEnabled(false);
-            condominiumManagerRepository.save(management);
+            condominiumRoleRepository.save(management);
         }
 
         return new LinkSindicoResponseDTO(new UserResponseDTO(user), temporaryPassword);

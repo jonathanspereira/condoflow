@@ -82,6 +82,7 @@ interface Occurrence {
   category: string
   status: string
   condominiumName: string
+  condominiumId?: number
   unitName?: string
   relatedUnits?: string
   authorName?: string
@@ -167,7 +168,10 @@ export default function HistoricoOcorrenciasPage() {
       // Busca ocorrências de cada condomínio
       for (const cid of condoIdsToFetch) {
         const res = await fetch(`http://localhost:8080/api/v1/occurrences/condominium/${cid}`, {
-          headers: { Authorization: `Bearer ${getToken()}` },
+          headers: { 
+            Authorization: `Bearer ${getToken()}`,
+            "X-Tenant-ID": cid.toString()
+          },
         })
         if (res.ok) {
           const list: Occurrence[] = await res.json()
@@ -223,6 +227,7 @@ export default function HistoricoOcorrenciasPage() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": selectedOcorrencia.condominiumId ? String(selectedOcorrencia.condominiumId) : ""
         },
         body: JSON.stringify({
           status: novoStatus,
@@ -244,6 +249,7 @@ export default function HistoricoOcorrenciasPage() {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${getToken()}`,
+            "X-Tenant-ID": selectedOcorrencia.condominiumId ? String(selectedOcorrencia.condominiumId) : ""
           },
           body: JSON.stringify({ content: novaResposta.trim() }),
         })
@@ -281,6 +287,7 @@ export default function HistoricoOcorrenciasPage() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": selectedOcorrencia.condominiumId ? String(selectedOcorrencia.condominiumId) : ""
         },
         body: formData,
       })

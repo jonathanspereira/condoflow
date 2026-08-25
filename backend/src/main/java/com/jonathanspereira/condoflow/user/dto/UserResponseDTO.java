@@ -27,9 +27,6 @@ public class UserResponseDTO {
         this.name = user.getName();
         this.email = user.getEmail();
         this.role = user.getRole();
-        if (user.getCondominium() != null) {
-            this.condominiumName = user.getCondominium().getName();
-        }
     }
 
     public UserResponseDTO(User user, Unit unit) {

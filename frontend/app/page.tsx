@@ -30,6 +30,11 @@ export default function LandingPage() {
               Área do Síndico
             </Link>
           </Button>
+          <Button asChild className="hidden sm:flex bg-emerald-600 hover:bg-emerald-700 text-white font-bold ml-2">
+            <Link href="/sindico/cadastro">
+              Cadastre-se Agora
+            </Link>
+          </Button>
         </div>
       </header>
 

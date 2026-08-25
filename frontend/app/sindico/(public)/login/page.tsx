@@ -144,8 +144,11 @@ export default function LoginSindicoPage() {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <p className="mt-2 text-xs text-center text-muted-foreground">
-              Sem credenciais? Solicite liberação ao administrador master da conta.
+            <p className="mt-4 text-xs text-center text-muted-foreground">
+              Não possui uma conta?{" "}
+              <Link href="/sindico/cadastro" className="text-emerald-600 hover:text-emerald-700 font-bold hover:underline transition-all">
+                Cadastre seu condomínio
+              </Link>
             </p>
           </CardFooter>
         </Card>

@@ -2,8 +2,8 @@ package com.jonathanspereira.condoflow.condominium.service;
 
 import com.jonathanspereira.condoflow.common.exception.BusinessException;
 import com.jonathanspereira.condoflow.condominium.dto.SindicoCondominiumDTO;
-import com.jonathanspereira.condoflow.condominium.entity.CondominiumManager;
-import com.jonathanspereira.condoflow.condominium.repository.CondominiumManagerRepository;
+import com.jonathanspereira.condoflow.condominium.entity.CondominiumRole;
+import com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepository;
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceCategory;
 import com.jonathanspereira.condoflow.occurrence.entity.OccurrenceStatus;
 import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceRepository;
@@ -29,13 +29,14 @@ public class CondominiumManagementService {
     private static final List<OccurrenceStatus> CLOSED_STATUSES =
             List.of(OccurrenceStatus.RESOLVED, OccurrenceStatus.CLOSED);
 
-    private final CondominiumManagerRepository condominiumManagerRepository;
+    private final CondominiumRoleRepository condominiumRoleRepository;
     private final OccurrenceRepository occurrenceRepository;
     private final UserRepository userRepository;
+    private final com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository condominiumRepository;
 
     public List<SindicoCondominiumDTO> listMyCondominiums(String sindicoEmail) {
         User sindico = getUserByEmail(sindicoEmail);
-        List<CondominiumManager> managements = condominiumManagerRepository.findBySindicoId(sindico.getId());
+        List<CondominiumRole> managements = condominiumRoleRepository.findByUserId(sindico.getId());
 
         YearMonth currentMonth = YearMonth.now();
         LocalDateTime monthStart = currentMonth.atDay(1).atStartOfDay();
@@ -69,42 +70,57 @@ public class CondominiumManagementService {
     public void setFocusMode(String sindicoEmail, Long condominiumId, boolean enabled) {
         User sindico = getUserByEmail(sindicoEmail);
 
-        CondominiumManager management = condominiumManagerRepository
-                .findByCondominiumIdAndSindicoId(condominiumId, sindico.getId())
+        CondominiumRole management = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
                 .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
 
         management.setFocusModeEnabled(enabled);
-        condominiumManagerRepository.save(management);
+        condominiumRoleRepository.save(management);
+    }
+
+    public void setPlan(String sindicoEmail, Long condominiumId, com.jonathanspereira.condoflow.condominium.dto.PlanSelectionRequestDTO dto) {
+        User sindico = getUserByEmail(sindicoEmail);
+
+        CondominiumRole management = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
+                .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
+
+        com.jonathanspereira.condoflow.condominium.entity.Condominium condo = management.getCondominium();
+        condo.setPlan(dto.plan());
+        if (dto.plan() != com.jonathanspereira.condoflow.condominium.entity.PlanType.TRIAL) {
+            condo.setSubscriptionEndDate(java.time.LocalDate.now().plusMonths(1)); // example 1 month
+        }
+        condominiumRepository.save(condo);
     }
 
     public void setFocusModeForAll(String sindicoEmail, boolean enabled) {
         User sindico = getUserByEmail(sindicoEmail);
 
-        List<CondominiumManager> managements = condominiumManagerRepository.findBySindicoId(sindico.getId());
+        List<CondominiumRole> managements = condominiumRoleRepository.findByUserId(sindico.getId());
         managements.forEach(m -> m.setFocusModeEnabled(enabled));
-        condominiumManagerRepository.saveAll(managements);
+        condominiumRoleRepository.saveAll(managements);
     }
 
-    public List<UserResponseDTO> getSindicosForCondominium(Long condominiumId) {
-        return condominiumManagerRepository.findByCondominiumId(condominiumId)
+    public List<UserResponseDTO> getUsersForCondominium(Long condominiumId) {
+        return condominiumRoleRepository.findByCondominiumId(condominiumId)
                 .stream()
-                .map(m -> new UserResponseDTO(m.getSindico()))
+                .map(m -> new UserResponseDTO(m.getUser()))
                 .collect(Collectors.toList());
     }
 
     public void removeSindico(Long condominiumId, String sindicoId) {
-        CondominiumManager management = condominiumManagerRepository
-                .findByCondominiumIdAndSindicoId(condominiumId, sindicoId)
+        CondominiumRole management = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, sindicoId)
                 .orElseThrow(() -> new RuntimeException("Vínculo não encontrado."));
-        condominiumManagerRepository.delete(management);
+        condominiumRoleRepository.delete(management);
     }
 
     public UserResponseDTO updateSindico(Long condominiumId, String sindicoId, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
-        CondominiumManager management = condominiumManagerRepository
-                .findByCondominiumIdAndSindicoId(condominiumId, sindicoId)
+        CondominiumRole management = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, sindicoId)
                 .orElseThrow(() -> new RuntimeException("Vínculo não encontrado."));
 
-        User sindico = management.getSindico();
+        User sindico = management.getUser();
 
         if (dto.getEmail() != null && !dto.getEmail().isBlank() && !sindico.getEmail().equalsIgnoreCase(dto.getEmail())) {
             if (userRepository.findByEmail(dto.getEmail()) != null) {

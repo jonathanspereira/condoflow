@@ -8,6 +8,14 @@ import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import com.jonathanspereira.condoflow.auth.entity.PasswordResetToken;
 import com.jonathanspereira.condoflow.auth.repository.PasswordResetTokenRepository;
 import com.jonathanspereira.condoflow.common.email.service.EmailService;
+
+import com.jonathanspereira.condoflow.auth.dto.RegisterSindicoRequestDTO;
+import com.jonathanspereira.condoflow.condominium.entity.Condominium;
+import com.jonathanspereira.condoflow.condominium.entity.CondominiumRole;
+import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
+import com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepository;
+import com.jonathanspereira.condoflow.user.entity.Role;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +32,43 @@ public class AuthService {
     private final TokenService tokenService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
+
+    private final CondominiumRepository condominiumRepository;
+    private final CondominiumRoleRepository condominiumRoleRepository;
+
+
+    
+    @Transactional
+    public AuthResponseDTO registerSindico(RegisterSindicoRequestDTO dto) {
+        if (userRepository.findByEmail(dto.getEmail()) != null) {
+            throw new BusinessException("E-mail já cadastrado.");
+        }
+
+        User user = new User();
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setRole(Role.SINDICO);
+        User savedUser = userRepository.save(user);
+
+        Condominium condominium = new Condominium();
+        condominium.setName(dto.getCondominiumName());
+        condominium.setCnpj(dto.getCondominiumCnpj());
+        condominium.setAddress(dto.getCondominiumAddress());
+        condominium.setTrialEndDate(java.time.LocalDate.now().plusDays(30));
+        Condominium savedCondo = condominiumRepository.save(condominium);
+
+        CondominiumRole role = new CondominiumRole();
+        role.setCondominium(savedCondo);
+        role.setUser(savedUser);
+        role.setRole(Role.SINDICO);
+        role.setActive(true);
+        role.setFocusModeEnabled(false);
+        condominiumRoleRepository.save(role);
+
+        String token = tokenService.generateToken(savedUser);
+        return new AuthResponseDTO(token, savedUser.getName(), savedUser.getEmail(), savedUser.getRole().name());
+    }
 
     public AuthResponseDTO login(AuthRequestDTO dto) {
         if (dto.getEmail() == null || dto.getPassword() == null) {

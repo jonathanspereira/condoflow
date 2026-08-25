@@ -4,9 +4,15 @@ import com.jonathanspereira.condoflow.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+
 @Entity
 @Data
 @Table(name = "tb_units")
+
+@Filter(name = "tenantFilter", condition = "condominium_id = :tenantId")
 public class Unit {
 
     @Id

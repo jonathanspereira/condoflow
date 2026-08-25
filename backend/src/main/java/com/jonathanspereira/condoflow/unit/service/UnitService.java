@@ -116,7 +116,6 @@ public class UnitService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(randomPassword));
         user.setRole(role);
-        user.setCondominium(condominium);
 
         User saved = userRepository.save(user);
 
@@ -131,10 +130,8 @@ public class UnitService {
         if (user == null) {
             throw new BusinessException("Usuário não encontrado: " + email);
         }
-        if (user.getCondominium() == null) {
-            throw new BusinessException("Usuário sem condomínio vinculado: " + email);
-        }
-        return user.getCondominium().getId();
+
+        return 0L;
     }
 
     // Busca a unidade por nome/número, restrita ao condomínio informado

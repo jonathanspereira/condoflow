@@ -65,7 +65,10 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
       try {
         // Busca detalhes do condomínio selecionado
         const resCondo = await fetch(`http://localhost:8080/api/v1/condominiums/${id}`, {
-          headers: { Authorization: `Bearer ${getToken()}` }
+          headers: { 
+            Authorization: `Bearer ${getToken()}`,
+            "X-Tenant-ID": id
+          }
         })
         if (resCondo.ok) {
           const condoData = await resCondo.json()
@@ -74,7 +77,10 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
 
         // Busca as ocorrências vinculadas a este condomínio
         const resOco = await fetch(`http://localhost:8080/api/v1/occurrences/condominium/${id}`, {
-          headers: { Authorization: `Bearer ${getToken()}` }
+          headers: { 
+            Authorization: `Bearer ${getToken()}`,
+            "X-Tenant-ID": id
+          }
         })
         if (resOco.ok) {
           const ocoData = await resOco.json()
@@ -110,7 +116,8 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}`
+          Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": id
         },
         body: JSON.stringify({
           status: novoStatus,
@@ -153,7 +160,8 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
       const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/attachments`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${getToken()}`
+          Authorization: `Bearer ${getToken()}`,
+          "X-Tenant-ID": id
         },
         body: formData
       })

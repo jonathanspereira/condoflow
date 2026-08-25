@@ -4,10 +4,12 @@ import com.jonathanspereira.condoflow.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import com.jonathanspereira.condoflow.user.entity.Role;
+
 @Entity
 @Data
-@Table(name = "condominium_manager", uniqueConstraints = @UniqueConstraint(columnNames = {"condominium_id", "sindico_id"}))
-public class CondominiumManager {
+@Table(name = "condominium_roles", uniqueConstraints = @UniqueConstraint(columnNames = {"condominium_id", "user_id"}))
+public class CondominiumRole {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,8 +20,15 @@ public class CondominiumManager {
     private Condominium condominium;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sindico_id", nullable = false)
-    private User sindico;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @Column(nullable = false)
+    private boolean active = true;
 
     @Column(name = "focus_mode_enabled", nullable = false)
     private boolean focusModeEnabled = false;

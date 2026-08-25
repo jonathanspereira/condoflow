@@ -81,7 +81,7 @@ public class CondominiumController {
 
     @GetMapping("/{id}/sindicos")
     public ResponseEntity<List<UserResponseDTO>> getSindicos(@PathVariable Long id) {
-        return ResponseEntity.ok(condominiumManagementService.getSindicosForCondominium(id));
+        return ResponseEntity.ok(condominiumManagementService.getUsersForCondominium(id));
     }
 
     @DeleteMapping("/{id}/sindicos/{sindicoId}")
@@ -112,6 +112,15 @@ public class CondominiumController {
             @RequestBody FocusModeRequestDTO dto,
             Principal principal) {
         condominiumManagementService.setFocusModeForAll(principal.getName(), dto.enabled());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/plan")
+    public ResponseEntity<Void> selecionarPlano(
+            @PathVariable Long id,
+            @RequestBody @Valid com.jonathanspereira.condoflow.condominium.dto.PlanSelectionRequestDTO dto,
+            Principal principal) {
+        condominiumManagementService.setPlan(principal.getName(), id, dto);
         return ResponseEntity.noContent().build();
     }
 }

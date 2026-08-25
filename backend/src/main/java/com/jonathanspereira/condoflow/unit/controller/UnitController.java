@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.jonathanspereira.condoflow.unit.service.UnitImportService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +22,9 @@ public class UnitController {
 
     @Autowired
     private UnitService unitService;
+
+    @Autowired
+    private UnitImportService unitImportService;
 
     @GetMapping("/condominium/{condoId}")
     public ResponseEntity<List<UnitResponseDTO>> listarUnidadesPorCondominio(@PathVariable Long condoId) {
@@ -32,6 +37,14 @@ public class UnitController {
     public ResponseEntity<UnitResponseDTO> criarUnidade(@RequestBody UnitRequestDTO dto, @RequestParam Long condominiumId) {
         Unit novaUnidade = unitService.salvar(condominiumId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(UnitResponseDTO.from(novaUnidade));
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<List<UnitResponseDTO>> importFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("condominiumId") Long condominiumId) {
+        List<UnitResponseDTO> response = unitImportService.importFile(file, condominiumId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/batch")

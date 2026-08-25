@@ -29,8 +29,9 @@ public class DashboardController {
     @GetMapping("/syndic")
     public ResponseEntity<SyndicDashboardDTO> getSyndicStats(
             Principal principal,
+            @RequestParam(required = false) Long condominiumId,
             @RequestParam(required = false) Integer days) {
-        SyndicDashboardDTO stats = dashboardService.getSyndicDashboard(principal.getName(), days);
+        SyndicDashboardDTO stats = dashboardService.getSyndicDashboard(principal.getName(), condominiumId, days);
         return ResponseEntity.ok(stats);
     }
 }

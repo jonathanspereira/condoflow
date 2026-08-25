@@ -16,6 +16,7 @@ import {
   Building2,
   Bell,
   Users,
+  UserCog,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -43,6 +44,7 @@ const MENU_SINDICO = [
   { name: "Painel Geral", href: "/sindico/condominio/1", icon: LayoutDashboard },
   { name: "Ocorrências", href: "/sindico/painel/ocorrencia/historico", icon: ClipboardList },
   { name: "Moradores", href: "/sindico/moradores", icon: Users },
+  { name: "Configurações", href: "/sindico/painel/configuracoes", icon: UserCog },
 ]
 
 
