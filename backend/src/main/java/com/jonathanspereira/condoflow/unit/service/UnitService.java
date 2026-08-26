@@ -45,6 +45,8 @@ public class UnitService {
     }
 
     public Unit salvar(Long condominiumId, UnitRequestDTO dto) {
+        checkPlanLimit(condominiumId, 1);
+
         Optional<Unit> existing = buscarPorCondominioEUnidade(condominiumId, dto.getUnit());
         if (existing.isPresent()) {
             throw new IllegalArgumentException("A unidade " + dto.getUnit() + " já possui cadastro neste condomínio.");
@@ -71,9 +73,46 @@ public class UnitService {
     }
 
     public List<Unit> salvarEmMassa(Long condominiumId, List<UnitRequestDTO> dtos) {
+        checkPlanLimit(condominiumId, dtos.size());
         return dtos.stream()
-                .map(dto -> salvar(condominiumId, dto))
+                .map(dto -> salvarInterno(condominiumId, dto)) // Use inner method to avoid duplicate limit check
                 .collect(Collectors.toList());
+    }
+
+    private Unit salvarInterno(Long condominiumId, UnitRequestDTO dto) {
+        Optional<Unit> existing = buscarPorCondominioEUnidade(condominiumId, dto.getUnit());
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException("A unidade " + dto.getUnit() + " já possui cadastro neste condomínio.");
+        }
+
+        User owner = resolveOrCreateUser(dto.getOwnerName(), dto.getOwnerEmail(), Role.PROPRIETARY, condominiumId);
+
+        User tenant = null;
+        if (dto.isRented()) {
+            tenant = resolveOrCreateUser(dto.getTenantName(), dto.getTenantEmail(), Role.TENANT, condominiumId);
+        }
+
+        Unit unit = new Unit();
+        unit.setUnit(dto.getUnit());
+        unit.setCondominiumId(condominiumId);
+        unit.setOwner(owner);
+        unit.setRented(dto.isRented());
+        unit.setTenant(tenant);
+
+        return unitRepository.save(unit);
+    }
+
+    private void checkPlanLimit(Long condominiumId, int requestedAmount) {
+        Condominium condo = condominiumRepository.findById(condominiumId)
+                .orElseThrow(() -> new IllegalArgumentException("Condomínio não encontrado"));
+
+        if (condo.getPlan() == com.jonathanspereira.condoflow.condominium.entity.PlanType.UP_TO_150) {
+            long currentCount = unitRepository.findByCondominiumId(condominiumId).size();
+            if (currentCount + requestedAmount > 150) {
+                throw new BusinessException("O limite do seu plano (até 150 unidades) foi excedido. Faça upgrade para continuar.");
+            }
+        }
+        // FREE and OVER_150 are unlimited for now (FREE is temporary trial, OVER_150 is paid unlimited).
     }
 
     public Unit atualizar(Long id, UnitRequestDTO dto) {

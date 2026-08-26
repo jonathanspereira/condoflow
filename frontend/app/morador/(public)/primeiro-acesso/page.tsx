@@ -1,15 +1,16 @@
 "use client"
 
-import React, { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import Link from "next/link"
-import { ShieldCheck, Mail, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react"
+import { toast } from "sonner"
 
-export default function AdminEsqueceuSenha() {
+export default function PrimeiroAcessoPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -19,99 +20,96 @@ export default function AdminEsqueceuSenha() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulando uma requisição de recuperação de senha
-    setTimeout(() => {
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/auth/first-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+
+      if (response.ok) {
+        setIsSent(true)
+      } else {
+        const errorData = await response.json().catch(() => null)
+        const msg = errorData?.message || "E-mail não encontrado ou erro no servidor."
+        toast.error(msg)
+      }
+    } catch (error) {
+      console.error("Erro ao conectar com o servidor:", error)
+      toast.error("Erro de conexão com o servidor.")
+    } finally {
       setIsLoading(false)
-      setIsSent(true)
-    }, 1500)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Detalhes de Background para estética Tech */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-900/20 blur-[120px] rounded-full" />
-      </div>
+    <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0">
+      <Link
+        href="/"
+        className="absolute left-4 top-4 md:left-8 md:top-8 flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Link>
 
-      <div className="w-full max-w-[400px] z-10">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-emerald-500 p-3 rounded-2xl shadow-lg shadow-emerald-500/20 mb-4">
-            <ShieldCheck className="h-8 w-8 text-slate-950" />
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">CondoFlow <span className="text-emerald-500">HQ</span></h1>
-          <p className="text-slate-400 text-sm">Recuperação de Acesso Administrativo</p>
-        </div>
-
-        <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl shadow-2xl">
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[380px]">
+        <Card className="shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl text-white">Primeiro Acesso</CardTitle>
-            <CardDescription className="text-slate-500 text-xs">
-              Informe seu e-mail de administrador para receber as instruções de recuperação.
+            <CardTitle className="text-2xl text-center font-bold">Primeiro Acesso</CardTitle>
+            <CardDescription className="text-center">
+              Informe seu e-mail para receber as instruções de criação de senha.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="grid gap-4">
             {isSent ? (
               <div className="flex flex-col items-center space-y-4 text-center py-4">
                 <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
                   <CheckCircle2 className="h-6 w-6 text-emerald-500" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-medium text-white">E-mail enviado!</h3>
-                  <p className="text-xs text-slate-400">Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.</p>
+                  <h3 className="font-medium">E-mail enviado!</h3>
+                  <p className="text-xs text-muted-foreground">Verifique sua caixa de entrada e siga as instruções para criar sua senha.</p>
                 </div>
                 <Link href="/morador/login" className="w-full mt-4">
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11">
-                    Voltar ao login
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold">
+                    Ir para Login
                   </Button>
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleResetPassword} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-slate-300 text-xs uppercase font-bold tracking-widest">E-mail Admin</Label>
-                  <div className="relative group">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
-                    <Input 
-                      id="email" 
-                      type="email" 
+              <form onSubmit={handleResetPassword}>
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input
+                      id="email"
+                      type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="nome@condoflow.com" 
-                      className="bg-slate-950 border-slate-800 text-white pl-10 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-500 h-11"
+                      placeholder="nome@exemplo.com"
+                      disabled={isLoading}
                       required
                     />
                   </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading || !email}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 transition-all active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      "Enviar instruções"
-                    )}
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" type="submit" disabled={isLoading || !email}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Enviar instruções
                   </Button>
-                  
-                  <Link href="/morador/login" className="block text-center mt-4">
-                    <Button variant="link" type="button" className="text-xs text-slate-400 hover:text-emerald-500 flex items-center justify-center gap-2 w-full">
-                      <ArrowLeft className="h-3 w-3" />
-                      Voltar para o login
-                    </Button>
-                  </Link>
                 </div>
               </form>
             )}
           </CardContent>
+          <CardFooter className="flex flex-col items-center justify-center space-y-2">
+            {!isSent && (
+              <div className="text-sm text-slate-500">
+                Lembrou a senha?{" "}
+                <Link href="/morador/login" className="text-emerald-600 font-semibold hover:underline">
+                  Faça login
+                </Link>
+              </div>
+            )}
+          </CardFooter>
         </Card>
-
-        <p className="mt-8 text-center text-[10px] text-slate-600 uppercase tracking-[0.2em]">
-          Powered by CondoFlow Engine &copy; 2026
-        </p>
       </div>
     </div>
   )

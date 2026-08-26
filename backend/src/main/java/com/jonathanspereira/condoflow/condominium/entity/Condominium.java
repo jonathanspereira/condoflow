@@ -27,7 +27,7 @@ public class Condominium {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PlanType plan = PlanType.TRIAL;
+    private PlanType plan = PlanType.FREE;
 
     @Column(name = "trial_end_date")
     private java.time.LocalDate trialEndDate;

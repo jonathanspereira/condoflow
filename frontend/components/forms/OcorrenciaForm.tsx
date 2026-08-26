@@ -55,17 +55,23 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
       let response: Response;
 
       if (isAnonimo) {
-        // Envio anônimo — não precisa de autenticação
+        // Envio anônimo — não precisa de autenticação, usa multipart/form-data
+        const formData = new FormData()
+        formData.append("data", new Blob([JSON.stringify({
+          condominiumId: Number(values.condominiumId),
+          relatedUnits: values.unidadeEnvolvida || null,
+          title: values.titulo,
+          description: values.descricao,
+          category: values.categoria,
+        })], { type: "application/json" }))
+
+        if (values.midias && values.midias.length > 0) {
+          formData.append("file", values.midias[0])
+        }
+
         response = await fetch("http://localhost:8080/api/v1/occurrences/anonymous", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            condominiumId: Number(values.condominiumId),
-            unitName: values.unidadeEnvolvida || null,
-            title: values.titulo,
-            description: values.descricao,
-            category: values.categoria,
-          }),
+          body: formData,
         })
       } else {
         // Envio autenticado
@@ -79,6 +85,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
             title: values.titulo,
             description: values.descricao,
             category: values.categoria,
+            relatedUnits: values.unidadeEnvolvida || null,
           }),
         })
       }

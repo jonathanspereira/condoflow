@@ -87,7 +87,7 @@ public class CondominiumManagementService {
 
         com.jonathanspereira.condoflow.condominium.entity.Condominium condo = management.getCondominium();
         condo.setPlan(dto.plan());
-        if (dto.plan() != com.jonathanspereira.condoflow.condominium.entity.PlanType.TRIAL) {
+        if (dto.plan() != com.jonathanspereira.condoflow.condominium.entity.PlanType.FREE) {
             condo.setSubscriptionEndDate(java.time.LocalDate.now().plusMonths(1)); // example 1 month
         }
         condominiumRepository.save(condo);

@@ -28,9 +28,11 @@ public class OccurrenceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/anonymous")
-    public ResponseEntity<OccurrenceResponseDTO> createAnonymous(@RequestBody @Valid AnonymousOccurrenceRequestDTO dto) {
-        OccurrenceResponseDTO response = service.createAnonymous(dto);
+    @PostMapping(value = "/anonymous", consumes = "multipart/form-data")
+    public ResponseEntity<OccurrenceResponseDTO> createAnonymous(
+            @RequestPart("data") @Valid AnonymousOccurrenceRequestDTO dto,
+            @RequestPart(value = "file", required = false) org.springframework.web.multipart.MultipartFile file) {
+        OccurrenceResponseDTO response = service.createAnonymous(dto, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

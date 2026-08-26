@@ -575,15 +575,13 @@ export default function HistoricoOcorrenciasPage() {
                                 <div className="flex flex-wrap gap-1 items-center">
                                   {item.unitName && (
                                     <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-bold">
-                                      Origem: {item.unitName}
+                                      Origem: Unidade {item.unitName}
                                     </Badge>
                                   )}
                                   {item.relatedUnits && (
-                                    item.relatedUnits.split(",").map((ru, i) => (
-                                      <Badge key={i} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-bold">
-                                        Relacionada: {ru.trim()}
-                                      </Badge>
-                                    ))
+                                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
+                                      Envolvidos: {item.relatedUnits.split(",").map((ru: string) => ru.trim()).join(", ")}
+                                    </Badge>
                                   )}
                                 </div>
                               </div>
@@ -649,15 +647,13 @@ export default function HistoricoOcorrenciasPage() {
                     <span>Por: <strong className="text-slate-700">{selectedOcorrencia?.authorName || "Anônimo"}</strong></span>
                     {selectedOcorrencia?.unitName && (
                       <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[11px]">
-                        Unidade {selectedOcorrencia.unitName}
+                        Unidade Origem: {selectedOcorrencia.unitName}
                       </span>
                     )}
                     {selectedOcorrencia?.relatedUnits && (
-                      selectedOcorrencia.relatedUnits.split(",").map((ru, idx) => (
-                        <span key={idx} className="font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded text-[11px]">
-                          Relacionada: {ru.trim()}
-                        </span>
-                      ))
+                      <span className="font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded text-[11px]">
+                        Unidades Envolvidas: {selectedOcorrencia.relatedUnits.split(",").map((ru: string) => ru.trim()).join(", ")}
+                      </span>
                     )}
                   </div>
                 </div>

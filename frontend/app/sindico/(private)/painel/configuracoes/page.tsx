@@ -33,8 +33,13 @@ export default function ConfiguracoesPage() {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<TransferFormValues>({
+  } = useForm({
     resolver: zodResolver(transferSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      confirmation: "",
+    }
   })
 
   async function onSubmit(data: TransferFormValues) {

@@ -311,7 +311,8 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
                         </div>
                         <p className="text-xs text-muted-foreground font-medium mt-0.5">
                           Por: <span className="font-semibold text-slate-800">{oc.authorName || "Anônimo"}</span>
-                          {oc.unitName ? <span className="ml-1 text-emerald-700 font-semibold">• Unidade {oc.unitName}</span> : ""}
+                          {oc.unitName ? <span className="ml-1 text-emerald-700 font-semibold">• Origem: Unidade {oc.unitName}</span> : ""}
+                          {oc.relatedUnits && oc.relatedUnits.length > 0 ? <span className="ml-1 text-amber-700 font-semibold">• Envolvidos: {oc.relatedUnits.join(", ")}</span> : ""}
                           {" • "}ID: <span className="font-mono">{oc.protocol}</span>
                         </p>
                       </div>
@@ -365,7 +366,12 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
                     <span>Por: <strong className="text-slate-700">{selectedOcorrencia?.authorName || "Anônimo"}</strong></span>
                     {selectedOcorrencia?.unitName && (
                       <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-xs">
-                        Unidade {selectedOcorrencia.unitName}
+                        Unidade Origem: {selectedOcorrencia.unitName}
+                      </span>
+                    )}
+                    {selectedOcorrencia?.relatedUnits && selectedOcorrencia.relatedUnits.length > 0 && (
+                      <span className="font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-xs">
+                        Unidades Envolvidas: {selectedOcorrencia.relatedUnits.join(", ")}
                       </span>
                     )}
                   </p>

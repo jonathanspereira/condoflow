@@ -103,7 +103,7 @@ public class OccurrenceService {
         return new OccurrenceResponseDTO(saved);
     }
 
-    public OccurrenceResponseDTO createAnonymous(AnonymousOccurrenceRequestDTO dto) {
+    public OccurrenceResponseDTO createAnonymous(AnonymousOccurrenceRequestDTO dto, MultipartFile file) {
         Condominium condominium = condominiumRepository.findById(dto.condominiumId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Condomínio não encontrado com o ID informado."));
@@ -117,6 +117,23 @@ public class OccurrenceService {
         occurrence.setRelatedUnits(dto.relatedUnits());
 
         Occurrence saved = occurrenceRepository.save(occurrence);
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                OccurrenceAttachment attachment = new OccurrenceAttachment();
+                attachment.setOccurrence(saved);
+                attachment.setFileName(file.getOriginalFilename());
+                attachment.setFileType(file.getContentType());
+                attachment.setFileData(file.getBytes());
+                OccurrenceAttachment savedAttachment = occurrenceAttachmentRepository.save(attachment);
+                if (saved.getAttachments() == null) {
+                    saved.setAttachments(new java.util.ArrayList<>());
+                }
+                saved.getAttachments().add(savedAttachment);
+            } catch (IOException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao processar o arquivo.");
+            }
+        }
 
         // Notificar Síndico(s) do Condomínio via Sininho e E-mail
         List<User> sindicos = condominiumRoleRepository.findByCondominiumId(condominium.getId()).stream().map(CondominiumRole::getUser).collect(Collectors.toList());
