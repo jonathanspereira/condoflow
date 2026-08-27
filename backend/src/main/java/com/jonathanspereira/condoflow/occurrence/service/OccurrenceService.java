@@ -89,13 +89,13 @@ public class OccurrenceService {
                     saved.getProtocol()
             );
             if (sindico.getEmail() != null) {
-                emailService.sendOccurrenceUpdateNotification(
+                emailService.sendNewOccurrenceToSindicoEmail(
                         sindico.getEmail(),
                         sindico.getName(),
                         saved.getProtocol(),
                         saved.getTitle(),
-                        "OPEN",
-                        "Uma nova ocorrência foi registrada por " + reporter.getName() + " (" + unit.getUnit() + ")."
+                        reporter.getName(),
+                        unit.getUnit()
                 );
             }
         }
@@ -145,13 +145,13 @@ public class OccurrenceService {
                     saved.getProtocol()
             );
             if (sindico.getEmail() != null) {
-                emailService.sendOccurrenceUpdateNotification(
+                emailService.sendNewOccurrenceToSindicoEmail(
                         sindico.getEmail(),
                         sindico.getName(),
                         saved.getProtocol(),
                         saved.getTitle(),
-                        "OPEN",
-                        "Uma nova ocorrência anônima foi registrada no condomínio."
+                        "Anônimo",
+                        null
                 );
             }
         }

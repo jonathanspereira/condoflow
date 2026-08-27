@@ -107,6 +107,15 @@ public class CondominiumController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/transfer-sindico")
+    public ResponseEntity<Void> transferSindico(
+            @PathVariable Long id,
+            @RequestBody @Valid com.jonathanspereira.condoflow.condominium.dto.TransferSindicoRequestDTO dto,
+            Principal principal) {
+        condominiumManagementService.transferSindico(id, principal.getName(), dto);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/focus-mode")
     public ResponseEntity<Void> alternarModoFocoGlobal(
             @RequestBody FocusModeRequestDTO dto,

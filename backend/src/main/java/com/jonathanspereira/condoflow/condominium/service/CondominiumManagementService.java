@@ -33,6 +33,9 @@ public class CondominiumManagementService {
     private final OccurrenceRepository occurrenceRepository;
     private final UserRepository userRepository;
     private final com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository condominiumRepository;
+    private final com.jonathanspereira.condoflow.auth.repository.PasswordResetTokenRepository passwordResetTokenRepository;
+    private final com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public List<SindicoCondominiumDTO> listMyCondominiums(String sindicoEmail) {
         User sindico = getUserByEmail(sindicoEmail);
@@ -113,6 +116,61 @@ public class CondominiumManagementService {
                 .findByCondominiumIdAndUserId(condominiumId, sindicoId)
                 .orElseThrow(() -> new RuntimeException("Vínculo não encontrado."));
         condominiumRoleRepository.delete(management);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void transferSindico(Long condominiumId, String currentSindicoEmail, com.jonathanspereira.condoflow.condominium.dto.TransferSindicoRequestDTO dto) {
+        User currentSindico = getUserByEmail(currentSindicoEmail);
+
+        CondominiumRole currentManagement = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, currentSindico.getId())
+                .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
+
+        if (!currentManagement.isActive() || currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO) {
+            throw new BusinessException("Você não tem permissão de síndico para transferir este condomínio.");
+        }
+
+        com.jonathanspereira.condoflow.condominium.entity.Condominium condominium = currentManagement.getCondominium();
+
+        UserDetails existingDetails = userRepository.findByEmail(dto.email());
+        User newSindico;
+        boolean isNewUser = false;
+
+        if (existingDetails != null) {
+            newSindico = (User) existingDetails;
+            newSindico.setRole(com.jonathanspereira.condoflow.user.entity.Role.SINDICO);
+            userRepository.save(newSindico);
+        } else {
+            isNewUser = true;
+            newSindico = new User();
+            newSindico.setName(dto.name());
+            newSindico.setEmail(dto.email());
+            newSindico.setPassword(passwordEncoder.encode(java.util.UUID.randomUUID().toString())); // Senha aleatória inacessível
+            newSindico.setRole(com.jonathanspereira.condoflow.user.entity.Role.SINDICO);
+            newSindico = userRepository.save(newSindico);
+        }
+
+        final String newSindicoId = newSindico.getId();
+        boolean alreadyLinked = condominiumRoleRepository.findByCondominiumId(condominiumId).stream()
+                .anyMatch(m -> m.getUser().getId().equals(newSindicoId));
+
+        if (!alreadyLinked) {
+            CondominiumRole newManagement = new CondominiumRole();
+            newManagement.setUser(newSindico);
+            newManagement.setCondominium(condominium);
+            newManagement.setRole(com.jonathanspereira.condoflow.user.entity.Role.SINDICO);
+            newManagement.setActive(true);
+            newManagement.setFocusModeEnabled(false);
+            condominiumRoleRepository.save(newManagement);
+        }
+
+        // Criar token para primeiro acesso/redefinição de senha
+        passwordResetTokenRepository.findByUser(newSindico).ifPresent(passwordResetTokenRepository::delete);
+        String token = java.util.UUID.randomUUID().toString();
+        com.jonathanspereira.condoflow.auth.entity.PasswordResetToken resetToken = new com.jonathanspereira.condoflow.auth.entity.PasswordResetToken(token, newSindico, LocalDateTime.now().plusHours(48));
+        passwordResetTokenRepository.save(resetToken);
+
+        emailService.sendSindicoInviteEmail(newSindico.getEmail(), newSindico.getName(), token, condominium.getName());
     }
 
     public UserResponseDTO updateSindico(Long condominiumId, String sindicoId, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {

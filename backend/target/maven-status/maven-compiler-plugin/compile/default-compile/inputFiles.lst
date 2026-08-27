@@ -24,6 +24,7 @@
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/dto/FocusModeRequestDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/dto/PlanSelectionRequestDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/dto/SindicoCondominiumDTO.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/dto/TransferSindicoRequestDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/entity/Condominium.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/entity/CondominiumRole.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/condominium/entity/PlanType.java

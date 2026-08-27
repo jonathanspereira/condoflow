@@ -33,6 +33,7 @@ com/jonathanspereira/condoflow/occurrence/repository/OccurrenceRepository.class
 com/jonathanspereira/condoflow/common/exception/ErrorResponse.class
 com/jonathanspereira/condoflow/dashboard/service/DashboardService.class
 com/jonathanspereira/condoflow/dashboard/dto/SyndicDashboardDTO.class
+com/jonathanspereira/condoflow/condominium/dto/TransferSindicoRequestDTO.class
 com/jonathanspereira/condoflow/auth/service/TokenService.class
 com/jonathanspereira/condoflow/occurrence/dto/MessageRequestDTO.class
 com/jonathanspereira/condoflow/unit/dto/UnitRequestDTO.class

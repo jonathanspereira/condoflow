@@ -150,6 +150,21 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
+        if (user.getRole() == Role.SINDICO) {
+            java.util.List<CondominiumRole> myRoles = condominiumRoleRepository.findByUserId(user.getId());
+            for (CondominiumRole role : myRoles) {
+                if (role.isActive() && role.getRole() == Role.SINDICO) {
+                    java.util.List<CondominiumRole> allCondoRoles = condominiumRoleRepository.findByCondominiumId(role.getCondominium().getId());
+                    for (CondominiumRole other : allCondoRoles) {
+                        if (!other.getUser().getId().equals(user.getId()) && other.isActive() && other.getRole() == Role.SINDICO) {
+                            other.setActive(false);
+                        }
+                    }
+                    condominiumRoleRepository.saveAll(allCondoRoles);
+                }
+            }
+        }
+
         passwordResetTokenRepository.delete(resetToken);
     }
 }

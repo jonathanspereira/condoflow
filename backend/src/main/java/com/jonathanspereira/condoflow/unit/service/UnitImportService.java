@@ -35,14 +35,24 @@ public class UnitImportService {
         try {
             if (filename.toLowerCase().endsWith(".csv")) {
                 Reader reader = new InputStreamReader(file.getInputStream());
-                CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
+                CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT);
+                boolean isHeader = true;
                 for (CSVRecord record : parser) {
-                    requests.add(parseRecord(
-                            record.get("bloco"),
-                            record.get("numero"),
-                            record.get("nome"),
-                            record.get("email")
-                    ));
+                    if (isHeader) {
+                        isHeader = false;
+                        continue;
+                    }
+                    if (record.size() >= 3) {
+                        String unidade = record.get(0).trim();
+                        String nome = record.get(1).trim();
+                        String email = record.get(2).trim();
+                        String nomeInq = record.size() > 3 ? record.get(3).trim() : "";
+                        String emailInq = record.size() > 4 ? record.get(4).trim() : "";
+
+                        if (!unidade.isBlank()) {
+                            requests.add(parseRecord(unidade, nome, email, nomeInq, emailInq));
+                        }
+                    }
                 }
             } else if (filename.toLowerCase().endsWith(".xls") || filename.toLowerCase().endsWith(".xlsx")) {
                 Workbook workbook = WorkbookFactory.create(file.getInputStream());
@@ -53,13 +63,14 @@ public class UnitImportService {
                         isHeader = false;
                         continue;
                     }
-                    String bloco = getCellString(row.getCell(0));
-                    String numero = getCellString(row.getCell(1));
-                    String nome = getCellString(row.getCell(2));
-                    String email = getCellString(row.getCell(3));
+                    String unidade = getCellString(row.getCell(0));
+                    String nome = getCellString(row.getCell(1));
+                    String email = getCellString(row.getCell(2));
+                    String nomeInq = getCellString(row.getCell(3));
+                    String emailInq = getCellString(row.getCell(4));
 
-                    if (numero != null && !numero.isBlank()) {
-                        requests.add(parseRecord(bloco, numero, nome, email));
+                    if (unidade != null && !unidade.isBlank()) {
+                        requests.add(parseRecord(unidade, nome, email, nomeInq, emailInq));
                     }
                 }
             } else {
@@ -79,16 +90,30 @@ public class UnitImportService {
         if (cell == null) return "";
         return switch (cell.getCellType()) {
             case STRING -> cell.getStringCellValue().trim();
-            case NUMERIC -> String.valueOf((int) cell.getNumericCellValue());
+            case NUMERIC -> {
+                double value = cell.getNumericCellValue();
+                if (value == Math.floor(value)) {
+                    yield String.valueOf((long) value);
+                } else {
+                    yield String.valueOf(value);
+                }
+            }
             default -> "";
         };
     }
 
-    private UnitRequestDTO parseRecord(String block, String number, String ownerName, String ownerEmail) {
+    private UnitRequestDTO parseRecord(String unitName, String ownerName, String ownerEmail, String tenantName, String tenantEmail) {
         UnitRequestDTO dto = new UnitRequestDTO();
-        dto.setUnit((block != null && !block.isBlank() ? block + " " : "") + number);
+        dto.setUnit(unitName);
         dto.setOwnerName(ownerName);
         dto.setOwnerEmail(ownerEmail);
+        if ((tenantName != null && !tenantName.isBlank()) || (tenantEmail != null && !tenantEmail.isBlank())) {
+            dto.setRented(true);
+            dto.setTenantName(tenantName);
+            dto.setTenantEmail(tenantEmail);
+        } else {
+            dto.setRented(false);
+        }
         return dto;
     }
 }

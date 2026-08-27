@@ -65,8 +65,8 @@ public class EmailService {
      * Envia e-mail de primeiro acesso com credenciais temporárias ou convite.
      */
     @Async
-    public void sendFirstAccessEmail(String toEmail, String userName, String initialPassword) {
-        String loginLink = frontendUrl + "/morador/login";
+    public void sendFirstAccessEmail(String toEmail, String userName, String token) {
+        String resetLink = frontendUrl + "/redefinir-senha?token=" + token;
         String subject = "Bem-vindo ao CondoFlow - Seu Primeiro Acesso";
 
         String htmlContent = """
@@ -81,16 +81,10 @@ public class EmailService {
                     <div style='padding: 32px; color: #334155;'>
                         <h2 style='color: #0f172a; font-size: 18px; margin-top: 0; margin-bottom: 16px;'>Seu Primeiro Acesso</h2>
                         <p style='font-size: 15px; line-height: 1.6; margin-bottom: 16px;'>Olá, <strong>%s</strong>!</p>
-                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 20px;'>Sua conta foi criada no sistema CondoFlow pelo síndico ou administrador do seu condomínio.</p>
-                        <!-- Box Credenciais -->
-                        <div style='background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 18px 20px; border-radius: 8px; margin: 20px 0;'>
-                            <p style='margin: 0 0 8px 0; font-size: 14px; color: #065f46;'><strong>E-mail:</strong> %s</p>
-                            <p style='margin: 0; font-size: 14px; color: #065f46;'><strong>Senha Temporária:</strong> <code style='background: #ffffff; padding: 3px 8px; border-radius: 4px; border: 1px solid #6ee7b7; font-family: monospace; font-weight: bold; color: #047857;'>%s</code></p>
-                        </div>
-                        <p style='font-size: 14px; color: #475569; line-height: 1.5;'>Acesse o sistema no botão abaixo e recomendamos alterar sua senha no primeiro acesso:</p>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 20px;'>Sua conta foi criada no sistema CondoFlow. Para acessar, você precisa definir sua senha.</p>
                         <!-- Botão CTA -->
                         <div style='margin: 28px 0; text-align: center;'>
-                            <a href='%s' style='background-color: #059669; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);'>Acessar o CondoFlow</a>
+                            <a href='%s' style='background-color: #059669; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);'>Definir Minha Senha</a>
                         </div>
                     </div>
                     <!-- Rodapé -->
@@ -99,9 +93,9 @@ public class EmailService {
                     </div>
                 </div>
             </div>
-            """.formatted(userName != null ? userName : "Morador", toEmail, initialPassword, loginLink);
+            """.formatted(userName != null ? userName : "Morador", resetLink);
 
-        sendEmail(toEmail, subject, htmlContent, "Login: " + toEmail + " | Senha: " + initialPassword);
+        sendEmail(toEmail, subject, htmlContent, "Link de Acesso: " + resetLink);
     }
 
     /**
@@ -193,6 +187,81 @@ public class EmailService {
             case "CLOSED" -> "CONCLUÍDO";
             default -> status;
         };
+    }
+
+    /**
+     * Envia e-mail de notificação de nova ocorrência para o Síndico.
+     */
+    @Async
+    public void sendNewOccurrenceToSindicoEmail(String toEmail, String sindicoName, String protocol, String title, String authorName, String unitName) {
+        String occurrenceLink = frontendUrl + "/sindico/painel/ocorrencia/historico";
+        String subject = "CondoFlow - Nova Ocorrência Registrada #" + protocol;
+
+        String unitDisplay = unitName != null ? " (" + unitName + ")" : " (Anônima)";
+
+        String htmlContent = """
+            <div style='background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px;'>
+                <div style='max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;'>
+                    <div style='background: linear-gradient(135deg, #059669, #10b981); padding: 28px 32px; text-align: left;'>
+                        <h1 style='color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;'>CondoFlow</h1>
+                        <p style='color: #d1fae5; margin: 4px 0 0 0; font-size: 13px; font-weight: 500;'>Gestão de Ocorrências</p>
+                    </div>
+                    <div style='padding: 32px; color: #334155;'>
+                        <h2 style='color: #0f172a; font-size: 18px; margin-top: 0; margin-bottom: 16px;'>Nova Ocorrência</h2>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 16px;'>Olá, <strong>%s</strong>!</p>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 20px;'>Uma nova ocorrência foi registrada no seu condomínio.</p>
+                        <div style='background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 18px 20px; border-radius: 8px; margin: 20px 0;'>
+                            <p style='margin: 0 0 8px 0; font-size: 14px; color: #065f46;'><strong>Protocolo:</strong> #%s</p>
+                            <p style='margin: 0 0 8px 0; font-size: 14px; color: #065f46;'><strong>Título:</strong> %s</p>
+                            <p style='margin: 0; font-size: 14px; color: #065f46;'><strong>Aberto por:</strong> %s%s</p>
+                        </div>
+                        <p style='font-size: 14px; color: #475569; line-height: 1.5;'>Acesse o painel para iniciar o atendimento:</p>
+                        <div style='margin: 28px 0; text-align: center;'>
+                            <a href='%s' style='background-color: #059669; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);'>Ver Ocorrências</a>
+                        </div>
+                    </div>
+                    <div style='background-color: #f8fafc; padding: 20px 32px; border-top: 1px solid #f1f5f9; text-align: center;'>
+                        <p style='margin: 0; font-size: 12px; color: #94a3b8;'>CondoFlow • Plataforma de Comunicação Condominial</p>
+                    </div>
+                </div>
+            </div>
+            """.formatted(sindicoName, protocol, title, authorName, unitDisplay, occurrenceLink);
+
+        sendEmail(toEmail, subject, htmlContent, "Nova Ocorrência #" + protocol + " (" + title + ")");
+    }
+
+    /**
+     * Envia e-mail de convite para transferência de cargo de Síndico.
+     */
+    @Async
+    public void sendSindicoInviteEmail(String toEmail, String newSindicoName, String token, String condominiumName) {
+        String resetLink = frontendUrl + "/redefinir-senha?token=" + token;
+        String subject = "CondoFlow - Convite para Assumir o Condomínio " + condominiumName;
+
+        String htmlContent = """
+            <div style='background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px;'>
+                <div style='max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;'>
+                    <div style='background: linear-gradient(135deg, #059669, #10b981); padding: 28px 32px; text-align: left;'>
+                        <h1 style='color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;'>CondoFlow</h1>
+                        <p style='color: #d1fae5; margin: 4px 0 0 0; font-size: 13px; font-weight: 500;'>Convite de Transferência de Síndico</p>
+                    </div>
+                    <div style='padding: 32px; color: #334155;'>
+                        <h2 style='color: #0f172a; font-size: 18px; margin-top: 0; margin-bottom: 16px;'>Novo Cargo Recebido</h2>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 16px;'>Olá, <strong>%s</strong>!</p>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 20px;'>O síndico atual transferiu a gestão do condomínio <strong>%s</strong> para você.</p>
+                        <p style='font-size: 14px; color: #475569; line-height: 1.5;'>Para assumir o cargo e acessar o painel do condomínio, por favor defina a sua senha clicando no botão abaixo:</p>
+                        <div style='margin: 28px 0; text-align: center;'>
+                            <a href='%s' style='background-color: #059669; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);'>Aceitar Convite e Criar Senha</a>
+                        </div>
+                    </div>
+                    <div style='background-color: #f8fafc; padding: 20px 32px; border-top: 1px solid #f1f5f9; text-align: center;'>
+                        <p style='margin: 0; font-size: 12px; color: #94a3b8;'>CondoFlow • Gestão Inteligente de Condomínios</p>
+                    </div>
+                </div>
+            </div>
+            """.formatted(newSindicoName, condominiumName, resetLink);
+
+        sendEmail(toEmail, subject, htmlContent, "Convite Síndico: " + resetLink);
     }
 
     /**
