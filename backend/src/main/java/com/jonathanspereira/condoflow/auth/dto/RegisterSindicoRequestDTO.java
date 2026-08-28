@@ -23,6 +23,23 @@ public class RegisterSindicoRequestDTO {
     @NotBlank(message = "CNPJ do condomínio é obrigatório")
     private String condominiumCnpj;
 
-    @NotBlank(message = "Endereço do condomínio é obrigatório")
-    private String condominiumAddress;
+    @NotBlank(message = "Rua do condomínio é obrigatória")
+    private String condominiumStreet;
+
+    @NotBlank(message = "Número do condomínio é obrigatório")
+    private String condominiumNumber;
+
+    @NotBlank(message = "CEP do condomínio é obrigatório")
+    private String condominiumZipCode;
+
+    @NotBlank(message = "Bairro do condomínio é obrigatório")
+    private String condominiumNeighborhood;
+
+    @NotBlank(message = "Cidade do condomínio é obrigatória")
+    private String condominiumCity;
+
+    @NotBlank(message = "Estado do condomínio é obrigatório")
+    private String condominiumState;
+
+    private String plan; // optional, since default is FREE, but we can accept it for the wizard
 }

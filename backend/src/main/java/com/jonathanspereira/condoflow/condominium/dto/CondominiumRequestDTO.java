@@ -12,6 +12,21 @@ public class CondominiumRequestDTO {
     @NotBlank(message = "O CNPJ é obrigatório")
     private String cnpj;
 
-    @NotBlank(message = "O endereço é obrigatório")
-    private String address;
+    @NotBlank(message = "A rua é obrigatória")
+    private String street;
+
+    @NotBlank(message = "O número é obrigatório")
+    private String number;
+
+    @NotBlank(message = "O CEP é obrigatório")
+    private String zipCode;
+
+    @NotBlank(message = "O bairro é obrigatório")
+    private String neighborhood;
+
+    @NotBlank(message = "A cidade é obrigatória")
+    private String city;
+
+    @NotBlank(message = "O estado é obrigatório")
+    private String state;
 }

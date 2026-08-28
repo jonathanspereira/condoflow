@@ -29,7 +29,12 @@ public class CondominiumService {
         return condominiumRepository.findById(id).map(condo -> {
             condo.setName(condominiumData.getName());
             condo.setCnpj(condominiumData.getCnpj());
-            condo.setAddress(condominiumData.getAddress());
+            condo.setStreet(condominiumData.getStreet());
+            condo.setNumber(condominiumData.getNumber());
+            condo.setZipCode(condominiumData.getZipCode());
+            condo.setNeighborhood(condominiumData.getNeighborhood());
+            condo.setCity(condominiumData.getCity());
+            condo.setState(condominiumData.getState());
             return condominiumRepository.save(condo);
         }).orElseThrow(() -> new RuntimeException("Condomínio não encontrado com o ID: " + id));
     }

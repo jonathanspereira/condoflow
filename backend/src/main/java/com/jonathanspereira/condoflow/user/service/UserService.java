@@ -73,7 +73,14 @@ public class UserService {
                 .or(() -> unitRepository.findByTenantId(user.getId()))
                 .orElse(null);
 
-        return new UserResponseDTO(user, unit);
+        String condoName = null;
+        if (unit != null) {
+            condoName = condominiumRepository.findById(unit.getCondominiumId())
+                    .map(Condominium::getName)
+                    .orElse(null);
+        }
+
+        return new UserResponseDTO(user, unit, condoName);
     }
 
     public UserResponseDTO updateMyProfile(String currentEmail, UserRequestDTO dto) {
@@ -97,7 +104,14 @@ public class UserService {
                 .or(() -> unitRepository.findByTenantId(updated.getId()))
                 .orElse(null);
 
-        return new UserResponseDTO(updated, unit);
+        String condoName = null;
+        if (unit != null) {
+            condoName = condominiumRepository.findById(unit.getCondominiumId())
+                    .map(Condominium::getName)
+                    .orElse(null);
+        }
+
+        return new UserResponseDTO(updated, unit, condoName);
     }
 
     public List<UserResponseDTO> findAll() {
@@ -180,7 +194,14 @@ public class UserService {
         }
 
         Unit savedUnit = unitRepository.save(unit);
-        return new UserResponseDTO(owner, savedUnit);
+        String condoName = null;
+        if (savedUnit != null) {
+            condoName = condominiumRepository.findById(savedUnit.getCondominiumId())
+                    .map(Condominium::getName)
+                    .orElse(null);
+        }
+
+        return new UserResponseDTO(owner, savedUnit, condoName);
     }
 
     @Transactional

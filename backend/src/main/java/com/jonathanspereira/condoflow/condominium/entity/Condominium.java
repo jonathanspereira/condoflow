@@ -23,7 +23,22 @@ public class Condominium {
     private String cnpj;
 
     @Column(nullable = false)
-    private String address;
+    private String street;
+
+    @Column(nullable = false)
+    private String number;
+
+    @Column(nullable = false)
+    private String zipCode;
+
+    @Column(nullable = false)
+    private String neighborhood;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String state;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

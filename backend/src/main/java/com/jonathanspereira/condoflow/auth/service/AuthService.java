@@ -54,7 +54,25 @@ public class AuthService {
         Condominium condominium = new Condominium();
         condominium.setName(dto.getCondominiumName());
         condominium.setCnpj(dto.getCondominiumCnpj());
-        condominium.setAddress(dto.getCondominiumAddress());
+        condominium.setStreet(dto.getCondominiumStreet());
+        condominium.setNumber(dto.getCondominiumNumber());
+        condominium.setZipCode(dto.getCondominiumZipCode());
+        condominium.setNeighborhood(dto.getCondominiumNeighborhood());
+        condominium.setCity(dto.getCondominiumCity());
+        condominium.setState(dto.getCondominiumState());
+
+        if (dto.getPlan() != null && !dto.getPlan().isBlank()) {
+            try {
+                com.jonathanspereira.condoflow.condominium.entity.PlanType selectedPlan = com.jonathanspereira.condoflow.condominium.entity.PlanType.valueOf(dto.getPlan().toUpperCase());
+                condominium.setPlan(selectedPlan);
+                if (selectedPlan != com.jonathanspereira.condoflow.condominium.entity.PlanType.FREE) {
+                    condominium.setSubscriptionEndDate(java.time.LocalDate.now().plusMonths(1));
+                }
+            } catch (Exception e) {
+                condominium.setPlan(com.jonathanspereira.condoflow.condominium.entity.PlanType.FREE);
+            }
+        }
+
         condominium.setTrialEndDate(java.time.LocalDate.now().plusDays(30));
         Condominium savedCondo = condominiumRepository.save(condominium);
 
