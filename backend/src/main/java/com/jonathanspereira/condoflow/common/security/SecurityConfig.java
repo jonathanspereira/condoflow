@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/saude").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/occurrences/anonymous").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()

@@ -35,6 +35,7 @@ com/jonathanspereira/condoflow/dashboard/service/DashboardService.class
 com/jonathanspereira/condoflow/dashboard/dto/SyndicDashboardDTO.class
 com/jonathanspereira/condoflow/condominium/dto/TransferSindicoRequestDTO.class
 com/jonathanspereira/condoflow/auth/service/TokenService.class
+com/jonathanspereira/condoflow/health/HealthController.class
 com/jonathanspereira/condoflow/occurrence/dto/MessageRequestDTO.class
 com/jonathanspereira/condoflow/unit/dto/UnitRequestDTO.class
 com/jonathanspereira/condoflow/notification/service/NotificationService.class
