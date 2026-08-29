@@ -225,9 +225,9 @@ export default function RegisterSindicoPage() {
                   
                   <div className="grid gap-4 pt-2">
                     {[
-                      { id: "FREE", name: "Free", desc: "Gestão básica e ocorrências", price: "Grátis" },
-                      { id: "PRO", name: "Pro", desc: "Moradores e painel avançado", price: "R$ 1,99/unid" },
-                      { id: "PREMIUM", name: "Premium", desc: "Tudo liberado + suporte", price: "R$ 3,99/unid" }
+                      { id: "FREE", name: "Free", desc: "Sem limite de unidades", price: "Grátis" },
+                      { id: "MENSAL", name: "Mensal", desc: "Sem limite de unidades e moradores", price: "R$ 1,99/unid" },
+                      { id: "ANUAL", name: "Anual", desc: "Plano anual com desconto", price: "R$ 1,87/unid" }
                     ].map(plan => (
                       <div 
                         key={plan.id} 

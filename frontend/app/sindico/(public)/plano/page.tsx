@@ -106,61 +106,61 @@ export default function PlanosPage() {
                 Selecionado
               </span>
             )}
-            <h3 className="text-xl font-bold text-slate-900">Teste Grátis</h3>
-            <p className="mt-2 text-slate-500 text-sm">Perfeito para conhecer todas as funcionalidades sem limites.</p>
+            <h3 className="text-xl font-bold text-slate-900">Plano Free</h3>
+            <p className="mt-2 text-slate-500 text-sm">Perfeito para pequenos condomínios conhecerem o sistema.</p>
             <p className="mt-6 flex items-baseline gap-x-1">
               <span className="text-4xl font-bold tracking-tight text-slate-900">R$0</span>
-              <span className="text-sm font-semibold leading-6 text-slate-500">/ 30 dias</span>
+              <span className="text-sm font-semibold leading-6 text-slate-500">/ grátis</span>
             </p>
             <ul className="mt-8 space-y-3 text-sm leading-6 text-slate-600 flex-1">
-              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-600" /> Moradores ilimitados (no teste)</li>
-              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-600" /> Suporte comunitário</li>
+              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-600" /> Sem limite de unidades</li>
+              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-600" /> Gestão básica</li>
             </ul>
           </div>
 
-          {/* Basic Plan */}
+          {/* Mensal Plan */}
           <div 
-            onClick={() => handleSelectPlan("UP_TO_150")}
+            onClick={() => handleSelectPlan("MENSAL")}
             className={`cursor-pointer relative rounded-2xl border p-8 shadow-sm flex flex-col transition-all duration-200 ${
-            selectedPlan === "UP_TO_150" ? "border-emerald-600 ring-2 ring-emerald-600" : "border-slate-200 hover:border-emerald-300 bg-white"
+            selectedPlan === "MENSAL" ? "border-emerald-600 ring-2 ring-emerald-600" : "border-slate-200 hover:border-emerald-300 bg-white"
           }`}>
-            {selectedPlan === "UP_TO_150" && (
+            {selectedPlan === "MENSAL" && (
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-3 py-1 text-xs font-bold uppercase rounded-full tracking-wider">
                 Selecionado
               </span>
             )}
-            <h3 className="text-xl font-bold text-slate-900">Até 150 unidades</h3>
-            <p className="mt-2 text-slate-500 text-sm">Para condomínios de pequeno e médio porte.</p>
+            <h3 className="text-xl font-bold text-slate-900">Plano Mensal</h3>
+            <p className="mt-2 text-slate-500 text-sm">Gestão completa e sem limite de unidades.</p>
             <p className="mt-6 flex items-baseline gap-x-1">
               <span className="text-4xl font-bold tracking-tight text-slate-900">R$1,99</span>
               <span className="text-sm font-semibold leading-6 text-slate-500">/ unidade</span>
             </p>
             <ul className="mt-8 space-y-3 text-sm leading-6 text-slate-600 flex-1">
-              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-600" /> Gestão de ocorrências</li>
-              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-600" /> Suporte por email</li>
+              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-600" /> Unidades ilimitadas</li>
+              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-600" /> Suporte 24/7</li>
             </ul>
           </div>
 
-          {/* Pro Plan */}
+          {/* Anual Plan */}
           <div 
-            onClick={() => handleSelectPlan("OVER_150")}
+            onClick={() => handleSelectPlan("ANUAL")}
             className={`cursor-pointer relative rounded-2xl border p-8 shadow-sm flex flex-col transition-all duration-200 bg-slate-900 text-white ${
-            selectedPlan === "OVER_150" ? "ring-2 ring-emerald-500 border-emerald-500" : "border-slate-800"
+            selectedPlan === "ANUAL" ? "ring-2 ring-emerald-500 border-emerald-500" : "border-slate-800"
           }`}>
-            {selectedPlan === "OVER_150" && (
+            {selectedPlan === "ANUAL" && (
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-3 py-1 text-xs font-bold uppercase rounded-full tracking-wider">
                 Selecionado
               </span>
             )}
-            <h3 className="text-xl font-bold">Mais de 150 unidades</h3>
-            <p className="mt-2 text-slate-400 text-sm">A solução completa para condomínios maiores.</p>
+            <h3 className="text-xl font-bold">Plano Anual</h3>
+            <p className="mt-2 text-slate-400 text-sm">Maior desconto e tranquilidade para o ano todo.</p>
             <p className="mt-6 flex items-baseline gap-x-1">
               <span className="text-4xl font-bold tracking-tight">R$1,87</span>
               <span className="text-sm font-semibold leading-6 text-slate-400">/ unidade</span>
             </p>
             <ul className="mt-8 space-y-3 text-sm leading-6 text-slate-300 flex-1">
               <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-400" /> Unidades ilimitadas</li>
-              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-400" /> Suporte prioritário 24/7</li>
+              <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-emerald-400" /> 10% de desconto</li>
             </ul>
           </div>
         </div>

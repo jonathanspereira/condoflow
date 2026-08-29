@@ -106,13 +106,7 @@ public class UnitService {
         Condominium condo = condominiumRepository.findById(condominiumId)
                 .orElseThrow(() -> new IllegalArgumentException("Condomínio não encontrado"));
 
-        if (condo.getPlan() == com.jonathanspereira.condoflow.condominium.entity.PlanType.UP_TO_150) {
-            long currentCount = unitRepository.findByCondominiumId(condominiumId).size();
-            if (currentCount + requestedAmount > 150) {
-                throw new BusinessException("O limite do seu plano (até 150 unidades) foi excedido. Faça upgrade para continuar.");
-            }
-        }
-        // FREE and OVER_150 are unlimited for now (FREE is temporary trial, OVER_150 is paid unlimited).
+        // FREE, MENSAL and ANUAL are unlimited for now.
     }
 
     public Unit atualizar(Long id, UnitRequestDTO dto) {
