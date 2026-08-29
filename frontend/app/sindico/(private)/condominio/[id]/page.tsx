@@ -233,7 +233,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
               {condominioInfo?.name || "Gestão do Condomínio"}
             </h1>
             <p className="text-muted-foreground text-xs">
-              CNPJ: <span className="font-mono">{condominioInfo?.cnpj || "N/D"}</span> • Endereço: {condominioInfo?.address || "N/D"}
+              CNPJ: <span className="font-mono">{condominioInfo?.cnpj || "N/D"}</span> • Endereço: {condominioInfo ? `${condominioInfo.street || ""}, ${condominioInfo.number || ""} - ${condominioInfo.neighborhood || ""}, ${condominioInfo.city || ""} - ${condominioInfo.state || ""}, CEP: ${condominioInfo.zipCode || ""}` : "N/D"}
             </p>
           </div>
         </div>

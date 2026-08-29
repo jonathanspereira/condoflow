@@ -17,11 +17,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.condoflow.com.br'),
   title: {
     template: '%s | CondoFlow',
-    default: 'CondoFlow | Sistema de Gestão de Condomínios',
+    default: 'CondoFlow | Sistema Inteligente de Gestão de Condomínios',
   },
-  description: "Plataforma completa para gestão inteligente de condomínios, moradores e ocorrências.",
+  description: "O CondoFlow é uma plataforma moderna para gestão de condomínios. Permite que síndicos organizem chamados e que moradores registrem ocorrências de forma fácil, segura e anônima.",
+  keywords: ["gestão de condomínio", "software para síndico", "app morador", "abrir ocorrência condomínio", "sistema de administração de condomínio", "condoflow"],
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://www.condoflow.com.br",
+    title: "CondoFlow - Gestão Inteligente",
+    description: "Revolucione a gestão do seu condomínio com o CondoFlow. Grátis para testar por 30 dias.",
+    siteName: "CondoFlow",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CondoFlow - Gestão de Condomínios",
+    description: "A melhor ferramenta para síndicos e moradores.",
+  },
+  alternates: {
+    canonical: '/',
+  }
 };
 
 export default function RootLayout({

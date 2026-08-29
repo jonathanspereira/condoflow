@@ -82,7 +82,7 @@ export default function RegisterSindicoPage() {
         localStorage.setItem("condoflow_token", loginData.token)
         localStorage.setItem("condoflow_user", JSON.stringify(loginData.user))
         
-        router.push("/sindico")
+        router.push("/sindico/condominio")
       } else {
         const errorData = await response.json().catch(() => null)
         const msg = errorData?.message || "Não foi possível realizar o cadastro."
@@ -223,26 +223,26 @@ export default function RegisterSindicoPage() {
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">Escolha o Plano</h3>
                   
-                  <div className="grid gap-4 pt-2">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                     {[
-                      { id: "FREE", name: "Free", desc: "Sem limite de unidades", price: "Grátis" },
+                      { id: "FREE", name: "Free durante 30 dias", desc: "Sem limite de unidades", price: "Grátis" },
                       { id: "MENSAL", name: "Mensal", desc: "Sem limite de unidades e moradores", price: "R$ 1,99/unid" },
                       { id: "ANUAL", name: "Anual", desc: "Plano anual com desconto", price: "R$ 1,87/unid" }
                     ].map(plan => (
                       <div 
                         key={plan.id} 
                         onClick={() => setValue("plan", plan.id)}
-                        className={`flex items-center justify-between p-4 rounded-xl cursor-pointer border-2 transition-all ${selectedPlan === plan.id ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200'}`}
+                        className={`flex flex-col justify-between p-4 rounded-xl cursor-pointer border-2 transition-all h-full ${selectedPlan === plan.id ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200'}`}
                       >
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-900">{plan.name}</span>
-                          <span className="text-xs text-slate-500">{plan.desc}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-semibold text-emerald-600 text-sm">{plan.price}</span>
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${selectedPlan === plan.id ? 'bg-emerald-500 text-white' : 'border border-slate-300'}`}>
+                        <div className="flex justify-between items-start mb-3 gap-2">
+                          <span className="font-bold text-slate-900 text-sm leading-tight">{plan.name}</span>
+                          <div className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center ${selectedPlan === plan.id ? 'bg-emerald-500 text-white' : 'border border-slate-300'}`}>
                             {selectedPlan === plan.id && <Check className="w-3 h-3" />}
                           </div>
+                        </div>
+                        <div className="mt-auto">
+                          <span className="text-[11px] text-slate-500 block mb-2 leading-tight">{plan.desc}</span>
+                          <span className="font-bold text-emerald-600 text-sm block">{plan.price}</span>
                         </div>
                       </div>
                     ))}

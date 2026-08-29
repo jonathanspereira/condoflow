@@ -1,0 +1,24 @@
+# CondoFlow - The Modern Condominium Management System
+
+CondoFlow is an intelligent SaaS platform for property managers (Síndicos) and residents (Moradores) to manage condominiums efficiently.
+
+## Core Features
+1. **Multi-tenant Architecture:** A single property manager can manage multiple condominiums using an intuitive dashboard.
+2. **Occurrence Management:** Residents can open tickets (occurrences) with categories (e.g., Maintenance, Noise) and attachments. Anonymous reporting is also supported via a public link, which protects whistleblower identities.
+3. **Automated Ticketing:** Occurrences get a unique protocol ID for easy tracking.
+4. **Resident Base:** Managers can import residents in bulk (CSV) or add them manually.
+5. **Subscription Plans:** Freemium model including a Free 30-day trial plan and paid tiers based on the number of units.
+
+## Key Technical Details
+- Frontend: Next.js App Router (React), TailwindCSS, Shadcn UI, Lucide Icons.
+- Backend: Java 21, Spring Boot 3.4, PostgreSQL.
+- Auth: JWT-based stateless authentication with roles (SUPER_ADMIN, SINDICO, PROPRIETARY/RESIDENT).
+
+## How it works (User Flow)
+1. Property manager registers at `/sindico/cadastro`.
+2. Creates the first Condominium entity.
+3. Chooses a subscription plan at `/sindico/plano`.
+4. Accesses the Dashboard at `/sindico/condominio/:id`.
+5. Residents can access `/morador/login` to see their occurrences or use `/ocorrencia/anonima` without an account.
+
+For more information or integrations, contact the administrator.

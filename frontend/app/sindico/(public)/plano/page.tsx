@@ -106,7 +106,7 @@ export default function PlanosPage() {
                 Selecionado
               </span>
             )}
-            <h3 className="text-xl font-bold text-slate-900">Plano Free</h3>
+            <h3 className="text-xl font-bold text-slate-900">Plano Free durante 30 dias</h3>
             <p className="mt-2 text-slate-500 text-sm">Perfeito para pequenos condomínios conhecerem o sistema.</p>
             <p className="mt-6 flex items-baseline gap-x-1">
               <span className="text-4xl font-bold tracking-tight text-slate-900">R$0</span>

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /sindico/login
+Allow: /sindico/cadastro
+Allow: /morador/login
+Allow: /ocorrencia/anonima
+Disallow: /sindico/painel/
+Disallow: /morador/painel/
+Disallow: /api/
+
+Sitemap: https://www.condoflow.com.br/sitemap.xml
