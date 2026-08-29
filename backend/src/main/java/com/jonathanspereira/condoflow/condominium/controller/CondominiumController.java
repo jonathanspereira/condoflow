@@ -57,6 +57,14 @@ public class CondominiumController {
         return ResponseEntity.status(HttpStatus.CREATED).body(novoCondominio);
     }
 
+    @PostMapping("/me")
+    public ResponseEntity<Condominium> criarMeuCondominio(
+            @RequestBody @Valid com.jonathanspereira.condoflow.condominium.dto.CondominiumRequestDTO dto,
+            Principal principal) {
+        Condominium novoCondominio = condominiumManagementService.createAndLinkCondominium(principal.getName(), dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoCondominio);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Condominium> atualizarCondominio(
             @PathVariable Long id,

@@ -7,7 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Building2, AlertCircle, Clock, CheckCircle2, Bell, BellOff, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Building2, AlertCircle, Clock, CheckCircle2, Bell, BellOff, Loader2, Plus } from "lucide-react"
 import { toast } from "sonner"
 
 interface CondominioSindico {
@@ -24,6 +27,13 @@ export default function SindicoDashboard() {
   const [condominios, setCondominios] = useState<CondominioSindico[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isTogglingGlobal, setIsTogglingGlobal] = useState(false)
+
+  // New Condominium State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
+  const [newCondo, setNewCondo] = useState({
+    name: "", cnpj: "", zipCode: "", street: "", number: "", neighborhood: "", city: "", state: ""
+  })
 
   const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : ""
 
@@ -76,11 +86,45 @@ export default function SindicoDashboard() {
     }
   }
 
+  const handleAddCondominium = async () => {
+    if (!newCondo.name || !newCondo.cnpj || !newCondo.street || !newCondo.city || !newCondo.state) {
+      toast.error("Preencha os campos obrigatórios.")
+      return
+    }
+
+    setIsAdding(true)
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/condominiums/me", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(newCondo)
+      })
+
+      if (response.ok) {
+        toast.success("Condomínio criado com sucesso! Lembre-se de escolher um plano.")
+        setIsAddModalOpen(false)
+        setNewCondo({ name: "", cnpj: "", zipCode: "", street: "", number: "", neighborhood: "", city: "", state: "" })
+        fetchCondominios()
+      } else {
+        const err = await response.json().catch(() => null)
+        toast.error(err?.message || "Não foi possível criar o condomínio.")
+      }
+    } catch (error) {
+      console.error("Erro ao criar condomínio:", error)
+      toast.error("Erro de conexão com o servidor.")
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
   const urgentesCondominios = condominios.filter((c) => c.urgentOccurrences > 0)
 
   return (
     <div className="p-8 space-y-8 bg-slate-50 min-h-screen">
-      {/* Header com Modo Foco Global */}
+      {/* Header com Modo Foco Global e Adicionar Condomínio */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Meus Condomínios</h1>
@@ -91,26 +135,92 @@ export default function SindicoDashboard() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-4 bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex flex-col items-end">
-            <Label htmlFor="modo-foco" className="font-bold flex items-center gap-2">
-              {modoFocoGlobal ? <BellOff className="h-4 w-4 text-orange-500" /> : <Bell className="h-4 w-4 text-blue-500" />}
-              Modo Foco Global
-            </Label>
-            <span className="text-xs text-muted-foreground text-right">
-              {modoFocoGlobal ? "Apenas emergências" : "Todas as notificações"}
-            </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-4 bg-white p-4 rounded-lg border shadow-sm">
+            <div className="flex flex-col items-end">
+              <Label htmlFor="modo-foco" className="font-bold flex items-center gap-2">
+                {modoFocoGlobal ? <BellOff className="h-4 w-4 text-orange-500" /> : <Bell className="h-4 w-4 text-blue-500" />}
+                Modo Foco Global
+              </Label>
+              <span className="text-xs text-muted-foreground text-right">
+                {modoFocoGlobal ? "Apenas emergências" : "Todas as notificações"}
+              </span>
+            </div>
+            {isTogglingGlobal ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Switch
+                id="modo-foco"
+                checked={modoFocoGlobal}
+                onCheckedChange={handleToggleGlobal}
+                disabled={condominios.length === 0}
+              />
+            )}
           </div>
-          {isTogglingGlobal ? (
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          ) : (
-            <Switch
-              id="modo-foco"
-              checked={modoFocoGlobal}
-              onCheckedChange={handleToggleGlobal}
-              disabled={condominios.length === 0}
-            />
-          )}
+
+          <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 px-6">
+                <Plus className="h-5 w-5" /> Adicionar Condomínio
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Novo Condomínio</DialogTitle>
+                <DialogDescription>
+                  Preencha as informações para registrar e começar a gerenciar um novo condomínio.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome do Condomínio</Label>
+                    <Input id="name" value={newCondo.name} onChange={(e) => setNewCondo({ ...newCondo, name: e.target.value })} placeholder="Condomínio Flores" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cnpj">CNPJ</Label>
+                    <Input id="cnpj" value={newCondo.cnpj} onChange={(e) => setNewCondo({ ...newCondo, cnpj: e.target.value })} placeholder="00.000.000/0000-00" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="zipCode">CEP</Label>
+                    <Input id="zipCode" value={newCondo.zipCode} onChange={(e) => setNewCondo({ ...newCondo, zipCode: e.target.value })} placeholder="00000-000" />
+                  </div>
+                  <div className="space-y-2 col-span-2">
+                    <Label htmlFor="street">Rua/Avenida</Label>
+                    <Input id="street" value={newCondo.street} onChange={(e) => setNewCondo({ ...newCondo, street: e.target.value })} placeholder="Av. Principal" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="number">Número</Label>
+                    <Input id="number" value={newCondo.number} onChange={(e) => setNewCondo({ ...newCondo, number: e.target.value })} placeholder="123" />
+                  </div>
+                  <div className="space-y-2 col-span-3">
+                    <Label htmlFor="neighborhood">Bairro</Label>
+                    <Input id="neighborhood" value={newCondo.neighborhood} onChange={(e) => setNewCondo({ ...newCondo, neighborhood: e.target.value })} placeholder="Centro" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2 col-span-2">
+                    <Label htmlFor="city">Cidade</Label>
+                    <Input id="city" value={newCondo.city} onChange={(e) => setNewCondo({ ...newCondo, city: e.target.value })} placeholder="São Paulo" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">UF</Label>
+                    <Input id="state" value={newCondo.state} onChange={(e) => setNewCondo({ ...newCondo, state: e.target.value })} placeholder="SP" maxLength={2} />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancelar</Button>
+                <Button onClick={handleAddCondominium} disabled={isAdding} className="bg-emerald-600 hover:bg-emerald-700">
+                  {isAdding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Cadastrar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -124,7 +234,14 @@ export default function SindicoDashboard() {
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Carregando condomínios...</p>
           ) : condominios.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Você ainda não administra nenhum condomínio.</p>
+            <div className="text-center py-12 bg-white rounded-lg border border-slate-200">
+               <Building2 className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+               <h3 className="text-lg font-medium text-slate-900 mb-2">Nenhum condomínio cadastrado</h3>
+               <p className="text-slate-500 mb-6">Você ainda não administra nenhum condomínio. Adicione o seu primeiro condomínio agora mesmo.</p>
+               <Button onClick={() => setIsAddModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
+                  <Plus className="mr-2 h-4 w-4" /> Cadastrar Meu Condomínio
+               </Button>
+            </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {condominios.map((predio) => (

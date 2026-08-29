@@ -70,6 +70,35 @@ public class CondominiumManagementService {
                 .collect(Collectors.toList());
     }
 
+    @org.springframework.transaction.annotation.Transactional
+    public com.jonathanspereira.condoflow.condominium.entity.Condominium createAndLinkCondominium(String sindicoEmail, com.jonathanspereira.condoflow.condominium.dto.CondominiumRequestDTO dto) {
+        User sindico = getUserByEmail(sindicoEmail);
+
+        com.jonathanspereira.condoflow.condominium.entity.Condominium condo = new com.jonathanspereira.condoflow.condominium.entity.Condominium();
+        condo.setName(dto.getName());
+        condo.setCnpj(dto.getCnpj());
+        condo.setStreet(dto.getStreet());
+        condo.setNumber(dto.getNumber());
+        condo.setZipCode(dto.getZipCode());
+        condo.setNeighborhood(dto.getNeighborhood());
+        condo.setCity(dto.getCity());
+        condo.setState(dto.getState());
+        condo.setPlan(com.jonathanspereira.condoflow.condominium.entity.PlanType.FREE);
+        
+        com.jonathanspereira.condoflow.condominium.entity.Condominium savedCondo = condominiumRepository.save(condo);
+
+        CondominiumRole management = new CondominiumRole();
+        management.setUser(sindico);
+        management.setCondominium(savedCondo);
+        management.setRole(com.jonathanspereira.condoflow.user.entity.Role.SINDICO);
+        management.setActive(true);
+        management.setFocusModeEnabled(false);
+        
+        condominiumRoleRepository.save(management);
+
+        return savedCondo;
+    }
+
     public void setFocusMode(String sindicoEmail, Long condominiumId, boolean enabled) {
         User sindico = getUserByEmail(sindicoEmail);
 
