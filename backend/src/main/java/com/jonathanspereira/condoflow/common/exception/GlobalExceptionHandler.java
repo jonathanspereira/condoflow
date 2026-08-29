@@ -7,10 +7,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
@@ -42,11 +48,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
+        log.error("Erro no sistema | Rota: {} {} | O que o usuário tentava fazer: Acessar a URL acima | Detalhes: {}", 
+                  request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
+                  
         // Fallback para outros erros, evitando vazar stack trace
-        ErrorResponse errorResponse = new ErrorResponse("Erro interno no servidor.", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        // Aqui seria ideal logar a exceção original
-        ex.printStackTrace();
+        ErrorResponse errorResponse = new ErrorResponse("Ops! Ocorreu um erro interno. Nossa equipe já foi notificada e estamos trabalhando nisso.", HttpStatus.INTERNAL_SERVER_ERROR.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
