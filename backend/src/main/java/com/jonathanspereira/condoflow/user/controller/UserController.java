@@ -16,7 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class UserController {
     @PostMapping("/mass")
     public ResponseEntity<List<UserResponseDTO>> createUsersMass(@RequestBody List<UserRequestDTO> dtos) {

@@ -17,7 +17,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/occurrences")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class OccurrenceController {
 
     private final OccurrenceService service;

@@ -21,7 +21,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/condominiums")
-@CrossOrigin(origins = "*")
 public class CondominiumController {
 
     @Autowired

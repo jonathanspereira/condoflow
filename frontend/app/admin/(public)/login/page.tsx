@@ -9,16 +9,23 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { toast } from "sonner"
+import { Turnstile } from '@marsidev/react-turnstile'
 
 export default function AdminLogin() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [turnstileToken, setTurnstileToken] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
+    if (!turnstileToken) {
+      toast.error("Por favor, valide o captcha antes de prosseguir.")
+      return
+    }
+    
     setIsLoading(true)
     setErrorMessage("")
 
@@ -31,7 +38,7 @@ export default function AdminLogin() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, turnstileToken }),
       })
 
       if (!response.ok) {
@@ -131,9 +138,16 @@ export default function AdminLogin() {
                 </div>
               </div>
 
+              <div className="flex justify-center mt-4">
+                <Turnstile 
+                  siteKey="1x00000000000000000000AA" 
+                  onSuccess={(token) => setTurnstileToken(token)}
+                />
+              </div>
+
               <Button 
                 type="submit" 
-                disabled={isLoading}
+                disabled={isLoading || !turnstileToken}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 {isLoading ? (

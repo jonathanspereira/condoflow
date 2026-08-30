@@ -57,6 +57,26 @@ export default function RegisterSindicoPage() {
 
   const selectedPlan = watch("plan")
 
+  const fetchAddress = async (zipCode: string) => {
+    const cleanZip = zipCode.replace(/\D/g, "");
+    if (cleanZip.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cleanZip}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setValue("condominiumStreet", data.logradouro, { shouldValidate: true });
+          setValue("condominiumNeighborhood", data.bairro, { shouldValidate: true });
+          setValue("condominiumCity", data.localidade, { shouldValidate: true });
+          setValue("condominiumState", data.uf, { shouldValidate: true });
+        } else {
+          toast.error("CEP não encontrado.");
+        }
+      } catch (error) {
+        toast.error("Erro ao buscar o CEP.");
+      }
+    }
+  };
+
   const nextStep = async (fieldsToValidate: (keyof RegisterFormValues)[]) => {
     const isValid = await trigger(fieldsToValidate)
     if (isValid) {
@@ -153,7 +173,14 @@ export default function RegisterSindicoPage() {
                     {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>}
                   </div>
 
-                  <Button type="button" onClick={() => nextStep(["name", "email", "password"])} className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11">
+                  <div className="flex justify-center mt-6">
+                    <Turnstile 
+                      siteKey="1x00000000000000000000AA" 
+                      onSuccess={(token) => setTurnstileToken(token)}
+                    />
+                  </div>
+
+                  <Button type="button" onClick={() => nextStep(["name", "email", "password"])} disabled={!turnstileToken} className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11">
                     Próximo <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -179,7 +206,18 @@ export default function RegisterSindicoPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="condominiumZipCode">CEP</Label>
-                      <Input id="condominiumZipCode" placeholder="00000-000" disabled={isLoading} {...register("condominiumZipCode")} className={errors.condominiumZipCode ? "border-red-500" : "bg-slate-50"} />
+                      <Input 
+                        id="condominiumZipCode" 
+                        placeholder="00000-000" 
+                        disabled={isLoading} 
+                        {...register("condominiumZipCode", {
+                          onChange: (e) => {
+                            const val = e.target.value.replace(/\D/g, "");
+                            if (val.length === 8) fetchAddress(val);
+                          }
+                        })} 
+                        className={errors.condominiumZipCode ? "border-red-500" : "bg-slate-50"} 
+                      />
                       {errors.condominiumZipCode && <p className="text-xs text-red-500 font-medium">{errors.condominiumZipCode.message}</p>}
                     </div>
                     <div className="grid gap-2">
@@ -256,18 +294,11 @@ export default function RegisterSindicoPage() {
                     ))}
                   </div>
 
-                  <div className="flex justify-center mt-6">
-                    <Turnstile 
-                      siteKey="1x00000000000000000000AA" 
-                      onSuccess={(token) => setTurnstileToken(token)}
-                    />
-                  </div>
-
                   <div className="flex gap-2 mt-6 pt-4 border-t border-slate-100">
                     <Button type="button" variant="outline" onClick={prevStep} className="h-11 flex-1" disabled={isLoading}>
                       Voltar
                     </Button>
-                    <Button type="submit" disabled={isLoading || !turnstileToken} className="h-11 flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                    <Button type="submit" disabled={isLoading} className="h-11 flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
                       {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                       {isLoading ? "Criando ambiente..." : "Cadastrar e Acessar"}
                     </Button>

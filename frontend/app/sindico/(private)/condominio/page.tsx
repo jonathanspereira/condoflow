@@ -35,6 +35,29 @@ export default function SindicoDashboard() {
     name: "", cnpj: "", zipCode: "", street: "", number: "", neighborhood: "", city: "", state: ""
   })
 
+  const fetchAddress = async (zipCode: string) => {
+    const cleanZip = zipCode.replace(/\D/g, "");
+    if (cleanZip.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cleanZip}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setNewCondo(prev => ({
+            ...prev,
+            street: data.logradouro,
+            neighborhood: data.bairro,
+            city: data.localidade,
+            state: data.uf
+          }))
+        } else {
+          toast.error("CEP não encontrado.");
+        }
+      } catch (error) {
+        toast.error("Erro ao buscar o CEP.");
+      }
+    }
+  };
+
   const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : ""
 
   const fetchCondominios = async () => {
@@ -185,7 +208,11 @@ export default function SindicoDashboard() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="zipCode">CEP</Label>
-                    <Input id="zipCode" value={newCondo.zipCode} onChange={(e) => setNewCondo({ ...newCondo, zipCode: e.target.value })} placeholder="00000-000" />
+                    <Input id="zipCode" value={newCondo.zipCode} onChange={(e) => {
+                        setNewCondo({ ...newCondo, zipCode: e.target.value });
+                        const cleanZip = e.target.value.replace(/\D/g, "");
+                        if(cleanZip.length === 8) fetchAddress(cleanZip);
+                    }} placeholder="00000-000" />
                   </div>
                   <div className="space-y-2 col-span-2">
                     <Label htmlFor="street">Rua/Avenida</Label>

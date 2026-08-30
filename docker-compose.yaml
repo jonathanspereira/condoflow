@@ -28,6 +28,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=condoflow_user
       - SPRING_DATASOURCE_PASSWORD=condoflow_password
       - TZ=America/Sao_Paulo
+    env_file:
+      - ./backend/.env
     depends_on:
       - db
 

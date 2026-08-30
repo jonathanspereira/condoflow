@@ -46,8 +46,11 @@ public class TurnstileService {
             
             if (body != null && Boolean.TRUE.equals(body.get("success"))) {
                 return true;
+            } else {
+                System.err.println("Turnstile verification failed. Response: " + body);
             }
         } catch (Exception e) {
+            System.err.println("Turnstile API request failed: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
