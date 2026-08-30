@@ -1,0 +1,49 @@
+# Ambiente e Segredos
+.env
+.env.*
+*.local
+.secrets/
+
+# IDEs e Editores
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs e Temporários
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Node.js / Next.js (Frontend)
+frontend/node_modules/
+node_modules/
+frontend/.next/
+.next/
+frontend/out/
+out/
+frontend/build/
+build/
+frontend/.vercel
+.vercel/
+
+# Java / Maven / Spring Boot (Backend)
+backend/target/
+target/
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Outros
+coverage/
+.nyc_output/
+*.pem
