@@ -13,4 +13,6 @@ public class AuthRequestDTO {
 
     @NotBlank(message = "A senha é obrigatória")
     private String password;
+
+    private String turnstileToken;
 }

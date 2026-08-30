@@ -14,6 +14,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Upload, X, FileVideo, FileImage, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
+import { Turnstile } from '@marsidev/react-turnstile'
 
 const formSchema = z.object({
   condominiumId: z.string().min(1, "O ID do condomínio é obrigatório"),
@@ -32,6 +33,8 @@ type FormValuesOutput = z.output<typeof formSchema>
 export default function RegistrarOcorrencia({ isAnonimo = false }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string>("")
+
   const form = useForm<FormValuesInput, unknown, FormValuesOutput>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,6 +50,11 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
   })
 
   async function onSubmit(values: FormValuesOutput) {
+    if (isAnonimo && !turnstileToken) {
+      toast.error("Por favor, valide o captcha antes de prosseguir.")
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -63,6 +71,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
           title: values.titulo,
           description: values.descricao,
           category: values.categoria,
+          turnstileToken: turnstileToken,
         })], { type: "application/json" }))
 
         if (values.midias && values.midias.length > 0) {
@@ -368,7 +377,16 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                 />
               )}
 
-              <Button type="submit" className="w-full h-12 font-bold text-lg" disabled={isSubmitting}>
+              {isAnonimo && (
+                <div className="flex justify-center my-4">
+                  <Turnstile 
+                    siteKey="1x00000000000000000000AA" 
+                    onSuccess={(token) => setTurnstileToken(token)}
+                  />
+                </div>
+              )}
+
+              <Button type="submit" className="w-full h-12 font-bold text-lg" disabled={isSubmitting || (isAnonimo && !turnstileToken)}>
                 {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                 {isAnonimo ? "Gerar Protocolo e Enviar" : "Registrar Ocorrência"}
               </Button>

@@ -19,5 +19,7 @@ public record AnonymousOccurrenceRequestDTO(
         @NotNull(message = "A categoria é obrigatória")
         OccurrenceCategory category,
 
-        String relatedUnits
+        String relatedUnits,
+
+        String turnstileToken
 ) {}

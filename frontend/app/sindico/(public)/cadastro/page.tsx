@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Turnstile } from '@marsidev/react-turnstile'
 
 const registerSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
@@ -33,6 +34,7 @@ export default function RegisterSindicoPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState(1)
+  const [turnstileToken, setTurnstileToken] = useState<string>("")
 
   const {
     register,
@@ -67,12 +69,18 @@ export default function RegisterSindicoPage() {
   }
 
   async function onSubmit(data: RegisterFormValues) {
+    if (!turnstileToken) {
+      toast.error("Por favor, valide o captcha antes de prosseguir.")
+      return
+    }
+
     setIsLoading(true)
     try {
+      const payload = { ...data, turnstileToken }
       const response = await fetch("http://localhost:8080/api/v1/auth/register-sindico", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       })
 
       if (response.ok) {
@@ -248,11 +256,18 @@ export default function RegisterSindicoPage() {
                     ))}
                   </div>
 
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+                  <div className="flex justify-center mt-6">
+                    <Turnstile 
+                      siteKey="1x00000000000000000000AA" 
+                      onSuccess={(token) => setTurnstileToken(token)}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 mt-6 pt-4 border-t border-slate-100">
                     <Button type="button" variant="outline" onClick={prevStep} className="h-11 flex-1" disabled={isLoading}>
                       Voltar
                     </Button>
-                    <Button type="submit" disabled={isLoading} className="h-11 flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                    <Button type="submit" disabled={isLoading || !turnstileToken} className="h-11 flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
                       {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                       {isLoading ? "Criando ambiente..." : "Cadastrar e Acessar"}
                     </Button>

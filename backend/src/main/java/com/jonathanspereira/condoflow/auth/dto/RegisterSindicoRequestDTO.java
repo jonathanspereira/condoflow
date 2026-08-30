@@ -42,4 +42,6 @@ public class RegisterSindicoRequestDTO {
     private String condominiumState;
 
     private String plan; // optional, since default is FREE, but we can accept it for the wizard
+
+    private String turnstileToken;
 }

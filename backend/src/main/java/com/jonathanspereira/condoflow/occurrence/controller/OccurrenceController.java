@@ -21,9 +21,13 @@ import java.util.List;
 public class OccurrenceController {
 
     private final OccurrenceService service;
+    private final com.jonathanspereira.condoflow.common.security.TurnstileService turnstileService;
 
     @PostMapping
     public ResponseEntity<OccurrenceResponseDTO> create(@RequestBody @Valid OccurrenceRequestDTO dto, Principal principal) {
+        if (!turnstileService.verify(dto.turnstileToken())) {
+            throw new com.jonathanspereira.condoflow.common.exception.BusinessException("Falha na verificação de segurança antibot.");
+        }
         OccurrenceResponseDTO response = service.create(principal.getName(), dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -32,6 +36,9 @@ public class OccurrenceController {
     public ResponseEntity<OccurrenceResponseDTO> createAnonymous(
             @RequestPart("data") @Valid AnonymousOccurrenceRequestDTO dto,
             @RequestPart(value = "file", required = false) org.springframework.web.multipart.MultipartFile file) {
+        if (!turnstileService.verify(dto.turnstileToken())) {
+            throw new com.jonathanspereira.condoflow.common.exception.BusinessException("Falha na verificação de segurança antibot.");
+        }
         OccurrenceResponseDTO response = service.createAnonymous(dto, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

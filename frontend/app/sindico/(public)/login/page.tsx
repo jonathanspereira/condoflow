@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Turnstile } from '@marsidev/react-turnstile'
 
 const ALLOWED_ROLES = ["SINDICO", "SUPER_ADMIN"]
 
@@ -25,6 +26,7 @@ export default function LoginSindicoPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [turnstileToken, setTurnstileToken] = useState<string>("")
 
   const {
     register,
@@ -36,6 +38,11 @@ export default function LoginSindicoPage() {
   })
 
   async function onSubmit(data: LoginFormValues) {
+    if (!turnstileToken) {
+      toast.error("Por favor, valide o captcha antes de prosseguir.")
+      return
+    }
+
     setError("")
     setIsLoading(true)
 
@@ -43,7 +50,7 @@ export default function LoginSindicoPage() {
       const response = await fetch("http://localhost:8080/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email, password: data.password })
+        body: JSON.stringify({ email: data.email, password: data.password, turnstileToken })
       })
 
       if (response.ok) {
@@ -134,7 +141,15 @@ export default function LoginSindicoPage() {
                     <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>
                   )}
                 </div>
-                <Button className="w-full" type="submit" disabled={isLoading}>
+                
+                <div className="flex justify-center mt-2">
+                  <Turnstile 
+                    siteKey="1x00000000000000000000AA" 
+                    onSuccess={(token) => setTurnstileToken(token)}
+                  />
+                </div>
+
+                <Button className="w-full mt-2" type="submit" disabled={isLoading || !turnstileToken}>
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}

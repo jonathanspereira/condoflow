@@ -18,15 +18,22 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.jonathanspereira.condoflow.common.security.TurnstileService turnstileService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody @Valid AuthRequestDTO requestDTO) {
+        if (!turnstileService.verify(requestDTO.getTurnstileToken())) {
+            throw new com.jonathanspereira.condoflow.common.exception.BusinessException("Falha na verificação de segurança antibot.");
+        }
         AuthResponseDTO response = authService.login(requestDTO);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register-sindico")
     public ResponseEntity<AuthResponseDTO> registerSindico(@RequestBody @Valid com.jonathanspereira.condoflow.auth.dto.RegisterSindicoRequestDTO requestDTO) {
+        if (!turnstileService.verify(requestDTO.getTurnstileToken())) {
+            throw new com.jonathanspereira.condoflow.common.exception.BusinessException("Falha na verificação de segurança antibot.");
+        }
         AuthResponseDTO response = authService.registerSindico(requestDTO);
         return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(response);
     }

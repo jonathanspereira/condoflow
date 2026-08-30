@@ -19,6 +19,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Turnstile } from '@marsidev/react-turnstile'
 
 const loginSchema = z.object({
   email: z.string().min(1, "O e-mail é obrigatório.").email("Digite um formato de e-mail válido."),
@@ -37,6 +38,7 @@ export default function LoginMoradorPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
+  const [turnstileToken, setTurnstileToken] = useState<string>("")
 
   // Estado para fluxo multi-condominio
   const [units, setUnits] = useState<UnitData[]>([])
@@ -54,6 +56,11 @@ export default function LoginMoradorPage() {
 
   // 1. Passo: Autenticação
   async function onSubmit(data: LoginFormValues) {
+    if (!turnstileToken) {
+      toast.error("Por favor, valide o captcha antes de prosseguir.")
+      return
+    }
+
     setIsLoading(true)
     setErrorMsg("")
 
@@ -61,7 +68,7 @@ export default function LoginMoradorPage() {
       const response = await fetch("http://localhost:8080/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email.trim(), password: data.password }),
+        body: JSON.stringify({ email: data.email.trim(), password: data.password, turnstileToken }),
       })
 
       if (response.ok) {
@@ -203,7 +210,15 @@ export default function LoginMoradorPage() {
                       <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>
                     )}
                   </div>
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" type="submit" disabled={isLoading}>
+                  
+                  <div className="flex justify-center mt-2">
+                    <Turnstile 
+                      siteKey="1x00000000000000000000AA" 
+                      onSuccess={(token) => setTurnstileToken(token)}
+                    />
+                  </div>
+
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold mt-2" type="submit" disabled={isLoading || !turnstileToken}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Entrar como Morador
                   </Button>
