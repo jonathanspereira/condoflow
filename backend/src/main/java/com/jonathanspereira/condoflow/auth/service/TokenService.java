@@ -15,7 +15,7 @@ import java.time.ZoneOffset;
 @Service
 public class TokenService {
 
-    @Value("${api.security.token.secret}")
+    @Value("${api.security.token.secret:default-secret-for-tests-only}")
     private String secret;
 
     public String generateToken(User user) {

@@ -39,6 +39,8 @@ public class OccurrenceServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private UnitRepository unitRepository;
     @Mock private com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
+    @Mock private com.jonathanspereira.condoflow.notification.service.NotificationService notificationService;
+    @Mock private com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepository condominiumRoleRepository;
 
     @InjectMocks
     private OccurrenceService occurrenceService;
