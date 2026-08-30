@@ -43,6 +43,7 @@ services:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
       - TZ=America/Sao_Paulo
     depends_on:
       - backend

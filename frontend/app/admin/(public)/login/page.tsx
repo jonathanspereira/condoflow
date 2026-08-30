@@ -140,7 +140,7 @@ export default function AdminLogin() {
 
               <div className="flex justify-center mt-4">
                 <Turnstile 
-                  siteKey="1x00000000000000000000AA" 
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
                   onSuccess={(token) => setTurnstileToken(token)}
                 />
               </div>
