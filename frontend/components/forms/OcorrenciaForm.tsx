@@ -78,13 +78,13 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
           formData.append("file", values.midias[0])
         }
 
-        response = await fetch("http://localhost:8080/api/v1/occurrences/anonymous", {
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/anonymous`, {
           method: "POST",
           body: formData,
         })
       } else {
         // Envio autenticado
-        response = await fetch("http://localhost:8080/api/v1/occurrences", {
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -115,7 +115,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
           const formData = new FormData()
           formData.append("file", file)
 
-          await fetch(`http://localhost:8080/api/v1/occurrences/${data.id}/attachments`, {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${data.id}/attachments`, {
             method: "POST",
             headers: {
               ...(token && !isAnonimo ? { Authorization: `Bearer ${token}` } : {}),

@@ -121,7 +121,7 @@ function ImportadorUnidades({ condoId, condoNome, onImport }: { condoId: number,
     setIsUploading(true)
     try {
       for (const item of preview) {
-        await fetch(`http://localhost:8080/api/v1/units?condominiumId=${condoId}`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/units?condominiumId=${condoId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -258,7 +258,7 @@ export default function GestaoCondominios() {
 
   const fetchCondominiums = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/v1/condominiums", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums`, {
         headers: {
           Authorization: `Bearer ${getToken()}`
         }
@@ -274,7 +274,7 @@ export default function GestaoCondominios() {
 
   const fetchUnitsForCondo = async (condoId: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/units/condominium/${condoId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/units/condominium/${condoId}`, {
         headers: {
           Authorization: `Bearer ${getToken()}`
         }
@@ -295,7 +295,7 @@ export default function GestaoCondominios() {
   const handleCreateCondominium = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch("http://localhost:8080/api/v1/condominiums", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -327,7 +327,7 @@ export default function GestaoCondominios() {
   const fetchSindicosVinculados = async (condoId: number) => {
     setIsLoadingSindicos(true)
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${condoId}/sindicos`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${condoId}/sindicos`, {
         headers: {
           Authorization: `Bearer ${getToken()}`
         }
@@ -364,7 +364,7 @@ export default function GestaoCondominios() {
     setSindicoSuccess(null)
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/sindico`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${selectedCondo.id}/sindico`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -400,7 +400,7 @@ export default function GestaoCondominios() {
     setIsLoadingSindicos(true)
     setSindicoError("")
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/sindicos/${sindicoId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${selectedCondo.id}/sindicos/${sindicoId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${getToken()}`
@@ -425,7 +425,7 @@ export default function GestaoCondominios() {
     setIsSavingEditSindico(true)
     setSindicoError("")
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}/sindicos/${sindicoId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${selectedCondo.id}/sindicos/${sindicoId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -454,7 +454,7 @@ export default function GestaoCondominios() {
     if (!selectedCondo) return
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondo.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${selectedCondo.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -479,7 +479,7 @@ export default function GestaoCondominios() {
   const handleDelete = async (id: number) => {
     if (!confirm("Tem certeza que deseja excluir este condomínio permanentemente?")) return
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${getToken()}`
@@ -526,8 +526,8 @@ export default function GestaoCondominios() {
       }
 
       const url = editIdUnidade !== null 
-        ? `http://localhost:8080/api/v1/units/${editIdUnidade}`
-        : `http://localhost:8080/api/v1/units?condominiumId=${selectedCondo.id}`
+        ? `${process.env.NEXT_PUBLIC_API_URL}/units/${editIdUnidade}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/units?condominiumId=${selectedCondo.id}`
 
       const method = editIdUnidade !== null ? "PUT" : "POST"
 
@@ -568,7 +568,7 @@ export default function GestaoCondominios() {
     if (!confirm("Tem certeza que deseja excluir esta unidade?")) return
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/units/${item.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/units/${item.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${getToken()}`

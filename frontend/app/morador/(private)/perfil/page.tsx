@@ -73,7 +73,7 @@ export default function PerfilPage() {
     async function fetchProfileData() {
       setIsLoading(true)
       try {
-        const response = await fetch("http://localhost:8080/api/v1/users/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
           headers: {
             Authorization: `Bearer ${getToken()}`
           }
@@ -102,7 +102,7 @@ export default function PerfilPage() {
     setIsSavingEmail(true)
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/users/me", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +153,7 @@ export default function PerfilPage() {
         unitId: profile.unitId // Envia o ID para o Backend saber quem atualizar!
       }
 
-      const response = await fetch("http://localhost:8080/api/v1/users/tenant", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/tenant`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -192,7 +192,7 @@ export default function PerfilPage() {
     setIsSavingPassword(true)
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/users/me/password", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

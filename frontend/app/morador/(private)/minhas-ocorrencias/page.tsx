@@ -117,7 +117,7 @@ export default function MinhasOcorrencias() {
   const fetchOccurrences = async () => {
     setIsLoadingList(true)
     try {
-      const response = await fetch("http://localhost:8080/api/v1/occurrences/me", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/me`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       })
       if (response.ok) {
@@ -133,7 +133,7 @@ export default function MinhasOcorrencias() {
 
   const fetchUnitLabel = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/v1/users/me", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       })
       if (response.ok) {
@@ -184,7 +184,7 @@ export default function MinhasOcorrencias() {
     debounceRef.current = setTimeout(async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/api/v1/units/check?name=${encodeURIComponent(valor)}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/units/check?name=${encodeURIComponent(valor)}`,
           { headers: { Authorization: `Bearer ${getToken()}` } }
         )
 
@@ -294,7 +294,7 @@ export default function MinhasOcorrencias() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/occurrences", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -319,7 +319,7 @@ export default function MinhasOcorrencias() {
             formData.append("file", arquivo);
             
             try {
-              await fetch(`http://localhost:8080/api/v1/occurrences/${occData.id}/attachments`, {
+              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${occData.id}/attachments`, {
                 method: "POST",
                 headers: {
                   Authorization: `Bearer ${getToken()}`

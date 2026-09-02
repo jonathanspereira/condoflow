@@ -115,7 +115,7 @@ export default function AdminDashboard() {
       if (selectedCondo !== "all") queryParams.append("condominiumId", selectedCondo)
       if (selectedPeriod !== "all") queryParams.append("days", selectedPeriod)
 
-      const url = `http://localhost:8080/api/v1/dashboard/stats?${queryParams.toString()}`
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats?${queryParams.toString()}`
 
       const response = await fetch(url, {
         headers: {

@@ -103,7 +103,7 @@ export default function MoradoresPage() {
 
     setIsSubmittingBulk(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/units/import`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/units/import`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -136,7 +136,7 @@ export default function MoradoresPage() {
   useEffect(() => {
     async function loadCondominios() {
       try {
-        const res = await fetch("http://localhost:8080/api/v1/condominiums/me", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/me`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         })
         if (res.ok) {
@@ -158,7 +158,7 @@ export default function MoradoresPage() {
     if (!selectedCondoId) return
     setIsLoading(true)
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/units/condominium/${selectedCondoId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/units/condominium/${selectedCondoId}`, {
         headers: { 
           Authorization: `Bearer ${getToken()}`,
           "X-Tenant-ID": selectedCondoId
@@ -230,8 +230,8 @@ export default function MoradoresPage() {
 
       const isEditing = editingUnitId !== null
       const url = isEditing
-        ? `http://localhost:8080/api/v1/units/${editingUnitId}`
-        : `http://localhost:8080/api/v1/units?condominiumId=${selectedCondoId}`
+        ? `${process.env.NEXT_PUBLIC_API_URL}/units/${editingUnitId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/units?condominiumId=${selectedCondoId}`
       
       const method = isEditing ? "PUT" : "POST"
 
@@ -266,7 +266,7 @@ export default function MoradoresPage() {
     if (!deletingUnit) return
     setIsDeleting(true)
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/units/${deletingUnit.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/units/${deletingUnit.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${getToken()}`,

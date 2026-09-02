@@ -81,7 +81,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
     const token = getToken()
     if (!token) return
     try {
-      const res = await fetch("http://localhost:8080/api/v1/notifications", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.ok) {
@@ -98,7 +98,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
     const token = getToken()
     if (!token) return
     try {
-      await fetch("http://localhost:8080/api/v1/notifications/read-all", {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/read-all`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -114,7 +114,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
     const token = getToken()
     if (token && !n.read) {
       try {
-        await fetch(`http://localhost:8080/api/v1/notifications/${n.id}/read`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${n.id}/read`, {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` }
         })
@@ -164,7 +164,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
       }
 
       try {
-        const response = await fetch("http://localhost:8080/api/v1/users/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

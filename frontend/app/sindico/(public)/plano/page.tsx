@@ -22,7 +22,7 @@ export default function PlanosPage() {
       return
     }
 
-    fetch("http://localhost:8080/api/v1/condominiums/me", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -49,7 +49,7 @@ export default function PlanosPage() {
     const token = localStorage.getItem("condoflow_token")
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${condoId}/plan`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${condoId}/plan`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

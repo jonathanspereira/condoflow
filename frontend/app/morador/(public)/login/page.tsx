@@ -65,7 +65,7 @@ export default function LoginMoradorPage() {
     setErrorMsg("")
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.email.trim(), password: data.password, turnstileToken }),
@@ -97,7 +97,7 @@ export default function LoginMoradorPage() {
   // 2. Passo: Buscar unidades do morador
   async function handleFetchUnits(token: string) {
     try {
-      const res = await fetch("http://localhost:8080/api/v1/units/me", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/units/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       

@@ -97,7 +97,7 @@ export default function RegisterSindicoPage() {
     setIsLoading(true)
     try {
       const payload = { ...data, turnstileToken }
-      const response = await fetch("http://localhost:8080/api/v1/auth/register-sindico", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register-sindico`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

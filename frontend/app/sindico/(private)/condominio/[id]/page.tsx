@@ -64,7 +64,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
       setIsLoading(true)
       try {
         // Busca detalhes do condomínio selecionado
-        const resCondo = await fetch(`http://localhost:8080/api/v1/condominiums/${id}`, {
+        const resCondo = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${id}`, {
           headers: { 
             Authorization: `Bearer ${getToken()}`,
             "X-Tenant-ID": id
@@ -76,7 +76,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
         }
 
         // Busca as ocorrências vinculadas a este condomínio
-        const resOco = await fetch(`http://localhost:8080/api/v1/occurrences/condominium/${id}`, {
+        const resOco = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/condominium/${id}`, {
           headers: { 
             Authorization: `Bearer ${getToken()}`,
             "X-Tenant-ID": id
@@ -112,7 +112,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
 
     try {
       // 1. Atualizar o status e a mensagem em uma única chamada
-      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${selectedOcorrencia.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -157,7 +157,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
     formData.append("file", file)
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/attachments`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${selectedOcorrencia.id}/attachments`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -476,7 +476,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
                     {selectedOcorrencia?.attachments && selectedOcorrencia.attachments.length > 0 ? (
                       <div className="space-y-2">
                         {selectedOcorrencia.attachments.map((att: any) => (
-                          <Button key={att.id} variant="outline" className="w-full justify-start gap-2 text-xs h-auto py-2 bg-slate-50 border-slate-200 text-slate-700" onClick={() => window.open(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/attachments/${att.id}`, "_blank")}>
+                          <Button key={att.id} variant="outline" className="w-full justify-start gap-2 text-xs h-auto py-2 bg-slate-50 border-slate-200 text-slate-700" onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${selectedOcorrencia.id}/attachments/${att.id}`, "_blank")}>
                             <Paperclip className="h-3 w-3 shrink-0" /> 
                             <span className="truncate">{att.fileName}</span>
                           </Button>

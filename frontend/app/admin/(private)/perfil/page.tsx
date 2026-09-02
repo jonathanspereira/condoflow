@@ -42,7 +42,7 @@ export default function AdminPerfilPage() {
     async function fetchProfileData() {
       setIsLoading(true)
       try {
-        const response = await fetch("http://localhost:8080/api/v1/users/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
           headers: {
             Authorization: `Bearer ${getToken()}`
           }
@@ -69,7 +69,7 @@ export default function AdminPerfilPage() {
     setIsSavingEmail(true)
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/users/me", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -111,7 +111,7 @@ export default function AdminPerfilPage() {
     setIsSavingPassword(true)
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/users/me/password", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

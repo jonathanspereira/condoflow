@@ -37,7 +37,7 @@ export default function PrimeiroAcessoPage() {
     setErrorMsg("")
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/auth/forgot-password", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

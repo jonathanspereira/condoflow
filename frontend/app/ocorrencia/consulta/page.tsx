@@ -90,7 +90,7 @@ export default function ConsultaProtocolo() {
     setResultado(null)
 
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/occurrences/protocol/${encodeURIComponent(protocolo.trim())}`)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/protocol/${encodeURIComponent(protocolo.trim())}`)
 
       if (!res.ok) {
         if (res.status === 404) {
@@ -283,7 +283,7 @@ export default function ConsultaProtocolo() {
                   <h4 className="text-xs font-semibold text-slate-500 uppercase mb-3">Anexos Disponíveis ({resultado.attachments.length})</h4>
                   <div className="flex flex-wrap gap-2">
                     {resultado.attachments.map((att) => (
-                      <Button key={att.id} variant="outline" size="sm" className="gap-2 bg-white" onClick={() => window.open(`http://localhost:8080/api/v1/occurrences/${resultado.id}/attachments/${att.id}`, "_blank")}>
+                      <Button key={att.id} variant="outline" size="sm" className="gap-2 bg-white" onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${resultado.id}/attachments/${att.id}`, "_blank")}>
                         <Paperclip className="h-3 w-3 shrink-0" /> 
                         <span className="truncate max-w-[150px]">{att.fileName}</span>
                       </Button>

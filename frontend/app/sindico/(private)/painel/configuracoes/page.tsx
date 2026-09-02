@@ -48,7 +48,7 @@ export default function ConfiguracoesPage() {
     const selectedCondoId = localStorage.getItem("condoflow_selected_condo_id") || "1"
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/condominiums/${selectedCondoId}/sindico`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${selectedCondoId}/sindico`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

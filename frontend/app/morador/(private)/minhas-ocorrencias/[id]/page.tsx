@@ -115,7 +115,7 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
       setIsLoading(true)
       setError("")
       try {
-        const response = await fetch(`http://localhost:8080/api/v1/occurrences/protocol/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/protocol/${id}`, {
           headers: { Authorization: `Bearer ${getToken()}` }
         })
 
@@ -142,7 +142,7 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
     if (!newMessage.trim() || !occurrence) return
     setIsSending(true)
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${occurrence.id}/messages`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${occurrence.id}/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -175,7 +175,7 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
     formData.append("file", file)
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${occurrence.id}/attachments`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${occurrence.id}/attachments`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${getToken()}`
@@ -391,7 +391,7 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
                 {occurrence.attachments && occurrence.attachments.length > 0 ? (
                   <div className="space-y-2">
                     {occurrence.attachments.map((att) => (
-                      <Button key={att.id} variant="ghost" className="w-full justify-start gap-2 text-xs h-auto py-2" onClick={() => window.open(`http://localhost:8080/api/v1/occurrences/${occurrence.id}/attachments/${att.id}`, "_blank")}>
+                      <Button key={att.id} variant="ghost" className="w-full justify-start gap-2 text-xs h-auto py-2" onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${occurrence.id}/attachments/${att.id}`, "_blank")}>
                         <Paperclip className="h-3 w-3 shrink-0" /> 
                         <span className="truncate">{att.fileName}</span>
                       </Button>

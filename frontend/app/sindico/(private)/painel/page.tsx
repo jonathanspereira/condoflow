@@ -60,7 +60,7 @@ export default function PainelSindico() {
     const fetchStats = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/dashboard/syndic${days !== 'all' ? `?days=${days}` : ''}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/syndic${days !== 'all' ? `?days=${days}` : ''}`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         })
 

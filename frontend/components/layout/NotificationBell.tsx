@@ -32,7 +32,7 @@ export function NotificationBell() {
     if (!token) return
 
     try {
-      const res = await fetch("http://localhost:8080/api/v1/notifications", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.ok) {
@@ -56,7 +56,7 @@ export function NotificationBell() {
     if (!token || unreadCount === 0) return
     setIsLoading(true)
     try {
-      const res = await fetch("http://localhost:8080/api/v1/notifications/read-all", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/read-all`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -75,7 +75,7 @@ export function NotificationBell() {
     const token = getToken()
     if (!token) return
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/notifications/${id}/read`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${id}/read`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` }
       })

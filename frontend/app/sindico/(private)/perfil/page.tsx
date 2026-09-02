@@ -39,7 +39,7 @@ export default function PerfilSindicoPage() {
     async function fetchProfileData() {
       setIsLoading(true)
       try {
-        const response = await fetch("http://localhost:8080/api/v1/users/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
           headers: {
             Authorization: `Bearer ${getToken()}`
           }
@@ -51,7 +51,7 @@ export default function PerfilSindicoPage() {
           setSavedData(profile)
 
           // Fetch condomínios to get plan
-          const condosRes = await fetch("http://localhost:8080/api/v1/condominiums/me", {
+          const condosRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/me`, {
             headers: { Authorization: `Bearer ${getToken()}` }
           })
           if (condosRes.ok) {
@@ -97,7 +97,7 @@ export default function PerfilSindicoPage() {
     setIsSavingEmail(true)
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/users/me", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -140,7 +140,7 @@ export default function PerfilSindicoPage() {
     setIsSavingPassword(true)
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/users/me/password", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

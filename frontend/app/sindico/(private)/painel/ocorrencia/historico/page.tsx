@@ -133,7 +133,7 @@ export default function HistoricoOcorrenciasPage() {
   useEffect(() => {
     async function loadCondominios() {
       try {
-        const res = await fetch("http://localhost:8080/api/v1/condominiums/me", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/me`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         })
         if (res.ok) {
@@ -167,7 +167,7 @@ export default function HistoricoOcorrenciasPage() {
 
       // Busca ocorrências de cada condomínio
       for (const cid of condoIdsToFetch) {
-        const res = await fetch(`http://localhost:8080/api/v1/occurrences/condominium/${cid}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/condominium/${cid}`, {
           headers: { 
             Authorization: `Bearer ${getToken()}`,
             "X-Tenant-ID": cid.toString()
@@ -222,7 +222,7 @@ export default function HistoricoOcorrenciasPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${selectedOcorrencia.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -244,7 +244,7 @@ export default function HistoricoOcorrenciasPage() {
       let updatedOcorrencia: Occurrence = await response.json()
 
       if (novaResposta.trim()) {
-        const msgRes = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/messages`, {
+        const msgRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${selectedOcorrencia.id}/messages`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -283,7 +283,7 @@ export default function HistoricoOcorrenciasPage() {
     formData.append("file", file)
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/attachments`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${selectedOcorrencia.id}/attachments`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -754,7 +754,7 @@ export default function HistoricoOcorrenciasPage() {
                             key={att.id}
                             variant="outline"
                             className="w-full justify-start gap-2 text-xs h-auto py-1.5 bg-slate-50 border-slate-200 text-slate-700"
-                            onClick={() => window.open(`http://localhost:8080/api/v1/occurrences/${selectedOcorrencia.id}/attachments/${att.id}`, "_blank")}
+                            onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${selectedOcorrencia.id}/attachments/${att.id}`, "_blank")}
                           >
                             <Paperclip className="h-3 w-3 shrink-0 text-slate-500" />
                             <span className="truncate">{att.fileName}</span>
