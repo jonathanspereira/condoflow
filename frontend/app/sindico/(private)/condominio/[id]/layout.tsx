@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Gerir Ocorrências",
+  title: "Dashboard",
 };
 
 export default function Layout({
