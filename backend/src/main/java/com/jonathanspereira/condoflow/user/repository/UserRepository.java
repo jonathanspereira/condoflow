@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     List<User> findByRole(Role role);
 
-    @Query("SELECT COUNT(u) FROM User u WHERE (:condominiumId = -1L OR u.id IN (SELECT cr.user.id FROM CondominiumRole cr WHERE cr.condominium.id = :condominiumId))")
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN AND (:condominiumId = -1L OR u.id IN (SELECT cr.user.id FROM CondominiumRole cr WHERE cr.condominium.id = :condominiumId))")
     long countFiltered(@Param("condominiumId") Long condominiumId);
 
     @Query("SELECT cr.condominium.id, cr.condominium.name, COUNT(DISTINCT cr.user) FROM CondominiumRole cr GROUP BY cr.condominium.id, cr.condominium.name")

@@ -15,6 +15,7 @@ public class CondominiumResponseDTO {
     private String neighborhood;
     private String city;
     private String state;
+    private String address;
 
     public CondominiumResponseDTO(Condominium condominium) {
         this.id = condominium.getId();
@@ -26,5 +27,6 @@ public class CondominiumResponseDTO {
         this.neighborhood = condominium.getNeighborhood();
         this.city = condominium.getCity();
         this.state = condominium.getState();
+        this.address = condominium.getStreet() != null ? condominium.getStreet() + (condominium.getNumber() != null ? ", " + condominium.getNumber() : "") : "";
     }
 }
