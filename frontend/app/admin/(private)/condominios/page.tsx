@@ -48,7 +48,9 @@ interface Condominium {
   id: number
   name: string
   cnpj: string
-  address: string
+  address?: string
+  street?: string
+  number?: string
 }
 
 // Bate com o UnitResponseDTO do backend
@@ -320,7 +322,7 @@ export default function GestaoCondominios() {
     setSelectedCondo(condo)
     setName(condo.name)
     setCnpj(condo.cnpj)
-    setAddress(condo.address)
+    setAddress(condo.street ? `${condo.street}, ${condo.number}` : (condo.address || ""))
     setIsEditOpen(true)
   }
 
@@ -585,7 +587,8 @@ export default function GestaoCondominios() {
   const filteredCondominiums = condominiums.filter(condo => 
     condo.name.toLowerCase().includes(busca.toLowerCase()) || 
     condo.cnpj.includes(busca) ||
-    condo.address.toLowerCase().includes(busca.toLowerCase())
+    (condo.street && condo.street.toLowerCase().includes(busca.toLowerCase())) ||
+    (condo.address && condo.address.toLowerCase().includes(busca.toLowerCase()))
   )
 
   const unidadesFiltradas = unidadesList.filter(item =>
@@ -900,7 +903,7 @@ export default function GestaoCondominios() {
                     </TableCell>
                     <TableCell className="text-sm text-slate-600 font-medium">
                       <div className="flex items-center gap-2">
-                         <MapPin size={14} className="text-slate-400" /> {condo.address}
+                         <MapPin size={14} className="text-slate-400" /> {condo.street ? `${condo.street}, ${condo.number}` : (condo.address || "Endereço não informado")}
                       </div>
                     </TableCell>
                     <TableCell>
