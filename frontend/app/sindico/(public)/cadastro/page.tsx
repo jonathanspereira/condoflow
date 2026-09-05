@@ -45,9 +45,9 @@ export default function RegisterSindicoPage() {
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { 
-      name: "", email: "", password: "", 
-      condominiumName: "", condominiumCnpj: "", 
+    defaultValues: {
+      name: "", email: "", password: "",
+      condominiumName: "", condominiumCnpj: "",
       condominiumZipCode: "", condominiumStreet: "", condominiumNumber: "",
       condominiumNeighborhood: "", condominiumCity: "", condominiumState: "",
       plan: "FREE"
@@ -106,10 +106,10 @@ export default function RegisterSindicoPage() {
       if (response.ok) {
         toast.success("Cadastro realizado com sucesso!")
         const loginData = await response.json()
-        
+
         localStorage.setItem("condoflow_token", loginData.token)
         localStorage.setItem("condoflow_user", JSON.stringify(loginData.user))
-        
+
         router.push("/sindico/condominio")
       } else {
         const errorData = await response.json().catch(() => null)
@@ -127,10 +127,10 @@ export default function RegisterSindicoPage() {
   return (
     <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0 bg-slate-50 py-12">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[500px]">
-        
+
         <div className="flex flex-col space-y-2 text-center items-center">
           <div className="bg-emerald-600 p-3 rounded-xl inline-flex mb-2 shadow-sm">
-             <Building2 className="h-6 w-6 text-white" />
+            <Building2 className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Crie a conta do seu Condomínio
@@ -138,7 +138,7 @@ export default function RegisterSindicoPage() {
           <p className="text-sm text-slate-500">
             Etapa {step} de 3
           </p>
-          
+
           <div className="flex justify-center gap-2 mt-4 w-full px-8">
             <div className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
             <div className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
@@ -149,18 +149,18 @@ export default function RegisterSindicoPage() {
         <Card className="shadow-lg border-slate-200">
           <CardContent className="grid gap-4 pt-6">
             <form onSubmit={handleSubmit(onSubmit)}>
-              
+
               {/* ETAPA 1 */}
               {step === 1 && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">Seus Dados (Síndico)</h3>
-                  
+
                   <div className="grid gap-2">
                     <Label htmlFor="name">Nome Completo</Label>
                     <Input id="name" placeholder="Seu nome" disabled={isLoading} {...register("name")} className={errors.name ? "border-red-500 focus-visible:ring-red-500" : "bg-slate-50"} />
                     {errors.name && <p className="text-xs text-red-500 font-medium">{errors.name.message}</p>}
                   </div>
-                  
+
                   <div className="grid gap-2">
                     <Label htmlFor="email">E-mail Corporativo</Label>
                     <Input id="email" type="email" placeholder="sindico@condominio.com" disabled={isLoading} {...register("email")} className={errors.email ? "border-red-500 focus-visible:ring-red-500" : "bg-slate-50"} />
@@ -174,7 +174,7 @@ export default function RegisterSindicoPage() {
                   </div>
 
                   <div className="flex justify-center mt-6">
-                    <Turnstile 
+                    <Turnstile
                       siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
                       onSuccess={(token) => setTurnstileToken(token)}
                     />
@@ -196,7 +196,7 @@ export default function RegisterSindicoPage() {
                     <Input id="condominiumName" placeholder="Ex: Condomínio Flores" disabled={isLoading} {...register("condominiumName")} className={errors.condominiumName ? "border-red-500 focus-visible:ring-red-500" : "bg-slate-50"} />
                     {errors.condominiumName && <p className="text-xs text-red-500 font-medium">{errors.condominiumName.message}</p>}
                   </div>
-                  
+
                   <div className="grid gap-2">
                     <Label htmlFor="condominiumCnpj">CNPJ do Condomínio</Label>
                     <Input id="condominiumCnpj" placeholder="00.000.000/0001-00" disabled={isLoading} {...register("condominiumCnpj")} className={errors.condominiumCnpj ? "border-red-500 focus-visible:ring-red-500" : "bg-slate-50"} />
@@ -206,17 +206,17 @@ export default function RegisterSindicoPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="condominiumZipCode">CEP</Label>
-                      <Input 
-                        id="condominiumZipCode" 
-                        placeholder="00000-000" 
-                        disabled={isLoading} 
+                      <Input
+                        id="condominiumZipCode"
+                        placeholder="00000-000"
+                        disabled={isLoading}
                         {...register("condominiumZipCode", {
                           onChange: (e) => {
                             const val = e.target.value.replace(/\D/g, "");
                             if (val.length === 8) fetchAddress(val);
                           }
-                        })} 
-                        className={errors.condominiumZipCode ? "border-red-500" : "bg-slate-50"} 
+                        })}
+                        className={errors.condominiumZipCode ? "border-red-500" : "bg-slate-50"}
                       />
                       {errors.condominiumZipCode && <p className="text-xs text-red-500 font-medium">{errors.condominiumZipCode.message}</p>}
                     </div>
@@ -268,15 +268,13 @@ export default function RegisterSindicoPage() {
               {step === 3 && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">Escolha o Plano</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                     {[
-                      { id: "FREE", name: "Free durante 30 dias", desc: "Sem limite de unidades", price: "Grátis" },
-                      { id: "MENSAL", name: "Mensal", desc: "Sem limite de unidades e moradores", price: "R$ 1,99/unid" },
-                      { id: "ANUAL", name: "Anual", desc: "Plano anual com desconto", price: "R$ 1,87/unid" }
+                      { id: "FREE", name: "Free Trial (30 dias)", desc: "Sem limite de unidades", price: "Grátis" },
                     ].map(plan => (
-                      <div 
-                        key={plan.id} 
+                      <div
+                        key={plan.id}
                         onClick={() => setValue("plan", plan.id)}
                         className={`flex flex-col justify-between p-4 rounded-xl cursor-pointer border-2 transition-all h-full ${selectedPlan === plan.id ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200'}`}
                       >
@@ -308,7 +306,7 @@ export default function RegisterSindicoPage() {
 
             </form>
           </CardContent>
-          
+
           <CardFooter className="flex flex-col border-t border-slate-100 p-6 bg-slate-50/50 rounded-b-xl mt-4">
             <p className="text-sm text-center text-slate-600">
               Já possui uma conta?{" "}

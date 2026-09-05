@@ -108,7 +108,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
       }
 
       const data = await response.json()
-      
+
       // Enviar os anexos se existirem
       if (values.midias && values.midias.length > 0) {
         for (const file of values.midias) {
@@ -138,15 +138,15 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
         <CardHeader>
           <CardTitle>{isAnonimo ? "Relato Anônimo" : "Nova Ocorrência"}</CardTitle>
           <CardDescription>
-            {isAnonimo 
-              ? "Sua identidade não será vinculada a este registro." 
+            {isAnonimo
+              ? "Sua identidade não será vinculada a este registro."
               : "Este registro ficará salvo no seu histórico."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
+
               {/* Seção Destaque: ID do Condomínio */}
               <div className="p-4 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50">
                 <FormField
@@ -189,11 +189,11 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="MANUTENCAO">Manutenção</SelectItem>
-                            <SelectItem value="CONVIVENCIA">Convivência</SelectItem>
-                            <SelectItem value="LIMPEZA">Limpeza</SelectItem>
-                            <SelectItem value="SEGURANCA">Segurança</SelectItem>
-                            <SelectItem value="SUGESTAO">Sugestão</SelectItem>
-                            <SelectItem value="OUTROS">Outros</SelectItem>
+                          <SelectItem value="CONVIVENCIA">Convivência</SelectItem>
+                          <SelectItem value="LIMPEZA">Limpeza</SelectItem>
+                          <SelectItem value="SEGURANCA">Segurança</SelectItem>
+                          <SelectItem value="SUGESTAO">Sugestão</SelectItem>
+                          <SelectItem value="OUTROS">Outros</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -245,7 +245,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                   <FormItem data-invalid={fieldState.invalid}>
                     <FormLabel>Descrição Detalhada</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <Textarea
                         placeholder="Conte-nos mais detalhes para ajudarmos a resolver..."
                         aria-invalid={fieldState.invalid}
                         className="resize-none h-32"
@@ -281,10 +281,10 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                       <FormLabel>Anexos (Imagens e Vídeos)</FormLabel>
                       <FormControl>
                         <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-lg p-6 hover:bg-slate-50/50 transition-colors cursor-pointer relative">
-                          <input 
-                            type="file" 
-                            id="file-upload" 
-                            className="absolute inset-0 opacity-0 cursor-pointer" 
+                          <input
+                            type="file"
+                            id="file-upload"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
                             accept="image/*,video/*"
                             multiple
                             onChange={handleFileChange}
@@ -294,7 +294,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                           <p className="text-xs text-muted-foreground">PNG, JPG, MP4, MOV</p>
                         </div>
                       </FormControl>
-                      
+
                       {arquivos.length > 0 && (
                         <div className="space-y-2 mt-3">
                           <span className="text-xs font-semibold text-slate-500">Arquivos anexados ({arquivos.length}):</span>
@@ -307,10 +307,10 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                                     {isVideo ? <FileVideo className="h-4 w-4 text-blue-500 shrink-0" /> : <FileImage className="h-4 w-4 text-green-500 shrink-0" />}
                                     <span className="truncate text-xs font-medium text-slate-800">{file.name}</span>
                                   </div>
-                                  <Button 
-                                    type="button" 
-                                    variant="ghost" 
-                                    size="icon" 
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
                                     className="h-6 w-6 text-slate-500 hover:text-red-600"
                                     onClick={() => removerArquivo(index)}
                                   >
@@ -379,8 +379,8 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
 
               {isAnonimo && (
                 <div className="flex justify-center my-4">
-                  <Turnstile 
-                    siteKey="1x00000000000000000000AA" 
+                  <Turnstile
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
                     onSuccess={(token) => setTurnstileToken(token)}
                   />
                 </div>

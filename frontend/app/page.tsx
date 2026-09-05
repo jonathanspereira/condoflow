@@ -5,7 +5,7 @@ import { Building2, Clock, PlusCircle, Search, User, UserCog, ShieldCheck } from
 
 
 export const metadata: Metadata = {
-  title: "Página",
+  title: "CondoFlow - Gestão de Ocorrências",
 }
 
 export default function LandingPage() {
@@ -42,13 +42,13 @@ export default function LandingPage() {
         {/* Seção Hero */}
         <section className="py-20 px-8 text-center bg-slate-50 border-b">
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-slate-900 mb-6">
-            Gestão de Ocorrências <br className="hidden md:block" /> 
+            Gestão de Ocorrências <br className="hidden md:block" />
             <span className="text-primary">Sem Complicação.</span>
           </h1>
           <p className="mx-auto max-w-[600px] text-slate-500 md:text-xl mb-10">
             A plataforma oficial para moradores e síndicos resolverem problemas do condomínio com transparência e agilidade.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button asChild size="lg" className="px-8 h-14 text-lg">
               <Link href="/ocorrencia">
@@ -75,7 +75,7 @@ export default function LandingPage() {
               <h3 className="font-bold text-lg mb-2">Privacidade Total</h3>
               <p className="text-sm text-muted-foreground">Escolha entre relatos anônimos ou identificados com segurança.</p>
             </div>
-            
+
             <div className="flex flex-col items-center text-center p-6">
               <div className="mb-4 p-3 bg-primary/10 rounded-full">
                 <Clock className="h-8 w-8 text-primary" />
