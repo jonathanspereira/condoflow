@@ -56,85 +56,9 @@ O CondoFlow adota uma arquitetura moderna, escalável e segura:
 
 ## 🏗️ Arquitetura de Dados (UML)
 
-Abaixo o modelo conceitual do banco de dados relacional:
+Abaixo o modelo conceitual do banco de dados relacional (Entity-Relationship Diagram):
 
-```mermaid
-classDiagram
-    class User {
-        +String id
-        +String name
-        +String email
-        +String password
-        +Role role
-    }
-    
-    class Condominium {
-        +Long id
-        +String name
-        +String address
-        +String document
-    }
-    
-    class CondominiumManager {
-        +Long id
-        +Boolean focusModeEnabled
-    }
-    
-    class Unit {
-        +Long id
-        +String name
-        +String block
-        +Boolean isRented
-    }
-    
-    class Occurrence {
-        +Long id
-        +String title
-        +String description
-        +String protocolNumber
-        +String response
-        +OccurrenceStatus status
-        +OccurrenceCategory category
-        +LocalDateTime createdAt
-    }
-    
-    class OccurrenceMessage {
-        +Long id
-        +String message
-        +LocalDateTime createdAt
-    }
-    
-    class OccurrenceAttachment {
-        +Long id
-        +String fileName
-        +String fileType
-        +String filePath
-    }
-    
-    class PasswordResetToken {
-        +Long id
-        +String token
-        +LocalDateTime expiryDate
-    }
-
-    User "1" -- "0..*" PasswordResetToken : has
-    User "1" -- "0..1" Condominium : belongs to
-    
-    Condominium "1" -- "0..*" CondominiumManager : managed by
-    User "1" -- "0..*" CondominiumManager : acts as sindico
-    
-    Condominium "1" -- "0..*" Unit : contains
-    User "1" -- "0..*" Unit : owns
-    User "0..1" -- "0..*" Unit : rents
-    
-    User "1" -- "0..*" Occurrence : reports
-    Condominium "1" -- "0..*" Occurrence : happens at
-    
-    Occurrence "1" -- "0..*" OccurrenceMessage : contains
-    User "1" -- "0..*" OccurrenceMessage : sends
-    
-    Occurrence "1" -- "0..*" OccurrenceAttachment : has attached
-```
+![Diagrama Entidade-Relacionamento](diagrama.png)
 
 ---
 
@@ -165,5 +89,5 @@ npm run dev
 ---
 
 <p align="center">
-  Desenvolvido com 💻 e ☕ por <a href="https://github.com/jonathanspereira">Jonathan Pereira</a>.
+  Desenvolvido com ❤️ e ☕ por <a href="https://github.com/jonathanspereira">Jonathan Pereira</a>.
 </p>
