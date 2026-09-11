@@ -49,4 +49,16 @@ public class Condominium {
 
     @Column(name = "subscription_end_date")
     private java.time.LocalDate subscriptionEndDate;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "condominium", cascade = CascadeType.REMOVE)
+    private java.util.List<CondominiumRole> roles = new java.util.ArrayList<>();
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "condominium", cascade = CascadeType.REMOVE)
+    private java.util.List<com.jonathanspereira.condoflow.unit.entity.Unit> units = new java.util.ArrayList<>();
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "condominium", cascade = CascadeType.REMOVE)
+    private java.util.List<com.jonathanspereira.condoflow.occurrence.entity.Occurrence> occurrences = new java.util.ArrayList<>();
 }
