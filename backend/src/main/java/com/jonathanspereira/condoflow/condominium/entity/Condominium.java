@@ -55,7 +55,8 @@ public class Condominium {
     private java.util.List<CondominiumRole> roles = new java.util.ArrayList<>();
 
     @com.fasterxml.jackson.annotation.JsonIgnore
-    @OneToMany(mappedBy = "condominium", cascade = CascadeType.REMOVE)
+    @OneToMany(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "condominium_id", updatable = false, insertable = false)
     private java.util.List<com.jonathanspereira.condoflow.unit.entity.Unit> units = new java.util.ArrayList<>();
 
     @com.fasterxml.jackson.annotation.JsonIgnore
