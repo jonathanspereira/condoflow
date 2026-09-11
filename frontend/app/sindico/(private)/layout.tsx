@@ -39,13 +39,7 @@ const MENU_MORADOR = [
   { name: "Minhas Ocorrências", href: "/morador/minhas-ocorrencias", icon: ClipboardList },
 ]
 
-// MENU PARA O SÍNDICO
-const MENU_SINDICO = [
-  { name: "Painel Geral", href: "/sindico/condominio/1", icon: LayoutDashboard },
-  { name: "Ocorrências", href: "/sindico/painel/ocorrencia/historico", icon: ClipboardList },
-  { name: "Moradores", href: "/sindico/moradores", icon: Users },
-  { name: "Configurações", href: "/sindico/painel/configuracoes", icon: UserCog },
-]
+
 
 
 interface NotificationItem {
@@ -69,8 +63,32 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
   const [isCollapsed, setIsCollapsed] = useState(true)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [userData, setUserData] = useState<HeaderUser | null>(null)
+  const [selectedCondoId, setSelectedCondoId] = useState<string>("1")
 
   // Lógica para determinar o contexto
+  useEffect(() => {
+    // Extrai o ID do condomínio da URL se estivermos em uma página específica de condomínio
+    const match = pathname.match(/\/sindico\/condominio\/(\d+)/)
+    if (match && match[1]) {
+      setSelectedCondoId(match[1])
+      if (typeof window !== "undefined") {
+        localStorage.setItem("condoflow_selected_condo_id", match[1])
+      }
+    } else {
+      // Se estivermos em outra aba (ex: Ocorrências), recupera o ID salvo
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("condoflow_selected_condo_id")
+        if (stored) setSelectedCondoId(stored)
+      }
+    }
+  }, [pathname])
+
+  const menuSindico = [
+    { name: "Painel Geral", href: `/sindico/condominio/${selectedCondoId}`, icon: LayoutDashboard },
+    { name: "Ocorrências", href: "/sindico/painel/ocorrencia/historico", icon: ClipboardList },
+    { name: "Moradores", href: "/sindico/moradores", icon: Users },
+    { name: "Configurações", href: "/sindico/painel/configuracoes", icon: UserCog },
+  ]
   
   // Notificações do Sininho
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
@@ -141,8 +159,13 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
 
   const isAreaSindico = pathname.startsWith("/sindico")
   const isSeletorCondominio = pathname === "/sindico/condominio"
-  const menuAtual = isAreaSindico ? MENU_SINDICO : MENU_MORADOR
-  const activeMenuIndex = menuAtual.findIndex((item) => pathname === item.href)
+  const menuAtual = isAreaSindico ? menuSindico : MENU_MORADOR
+  
+  // Usar uma lógica mais robusta para encontrar a aba ativa
+  let activeMenuIndex = menuAtual.findIndex((item) => pathname === item.href)
+  if (activeMenuIndex === -1 && pathname.startsWith("/sindico/condominio/") && pathname !== "/sindico/condominio") {
+    activeMenuIndex = menuSindico.findIndex(item => item.name === "Painel Geral");
+  }
 
   const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
 
