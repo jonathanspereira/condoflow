@@ -1,29 +1,35 @@
 package com.jonathanspereira.condoflow.common.email.service;
 
+import com.jonathanspereira.condoflow.common.email.dto.ResendEmailRequestDTO;
 import com.jonathanspereira.condoflow.log.entity.SystemLog;
 import com.jonathanspereira.condoflow.log.repository.SystemLogRepository;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
     private final SystemLogRepository systemLogRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
-    @Value("${spring.mail.username:noreply@condoflow.com}")
+    @Value("${app.resend.api-key:}")
+    private String resendApiKey;
+
+    @Value("${app.resend.from-email:CondoFlow <atendimento@condoflow.com.br>}")
     private String fromEmail;
 
     /**
@@ -268,7 +274,7 @@ public class EmailService {
     }
 
     /**
-     * Método central de envio via JavaMailSender com fallback para log de console.
+     * Método central de envio via API do Resend com fallback para log de console.
      */
     private void sendEmail(String toEmail, String subject, String htmlContent, String fallbackInfo, String action) {
         SystemLog sysLog = new SystemLog();
@@ -277,24 +283,31 @@ public class EmailService {
         sysLog.setTarget(toEmail);
         
         try {
-            if (fromEmail == null || fromEmail.isBlank()) {
-                fromEmail = "noreply@condoflow.com";
+            if (resendApiKey == null || resendApiKey.isBlank()) {
+                throw new IllegalStateException("Chave de API do Resend não configurada (app.resend.api-key).");
             }
 
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-            helper.setText(htmlContent, true);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(resendApiKey);
 
-            mailSender.send(mimeMessage);
-            log.info("E-mail enviado com sucesso para: {} com o assunto: {}", toEmail, subject);
+            ResendEmailRequestDTO requestDTO = ResendEmailRequestDTO.builder()
+                    .from(fromEmail)
+                    .to(List.of(toEmail))
+                    .subject(subject)
+                    .html(htmlContent)
+                    .build();
+
+            HttpEntity<ResendEmailRequestDTO> request = new HttpEntity<>(requestDTO, headers);
+            
+            restTemplate.postForEntity("https://api.resend.com/emails", request, String.class);
+
+            log.info("E-mail enviado via Resend com sucesso para: {} com o assunto: {}", toEmail, subject);
             
             sysLog.setStatus("SUCCESS");
-            sysLog.setMessage("E-mail '" + subject + "' enviado para " + toEmail);
+            sysLog.setMessage("E-mail '" + subject + "' enviado via Resend para " + toEmail);
         } catch (Exception e) {
-            log.warn("Servidor SMTP não configurado ou indisponível. Exibindo e-mail no LOG/Console: {}", e.getMessage());
+            log.warn("Falha ao enviar e-mail via Resend. Exibindo e-mail no LOG/Console: {}", e.getMessage());
             System.out.println("==================================================================");
             System.out.println(">>> [EMAIL CONDOFLOW] <<<");
             System.out.println("PARA: " + toEmail);
@@ -303,7 +316,7 @@ public class EmailService {
             System.out.println("==================================================================");
             
             sysLog.setStatus("ERROR");
-            sysLog.setMessage("Falha ao enviar e-mail: " + subject);
+            sysLog.setMessage("Falha ao enviar e-mail via Resend: " + subject);
             sysLog.setDetails(e.getMessage());
         } finally {
             systemLogRepository.save(sysLog);
