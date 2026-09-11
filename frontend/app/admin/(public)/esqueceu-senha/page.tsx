@@ -36,7 +36,7 @@ export default function AdminEsqueceuSenha() {
       }
 
       setIsSent(true)
-      toast.success("E-mail enviado! Verifique sua caixa de entrada.")
+      toast.success("Solicitação recebida com sucesso!")
     } catch (error: any) {
       toast.error(error.message || "Falha ao conectar com o servidor.")
     } finally {
@@ -75,8 +75,8 @@ export default function AdminEsqueceuSenha() {
                   <CheckCircle2 className="h-6 w-6 text-emerald-500" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-medium text-white">E-mail enviado!</h3>
-                  <p className="text-xs text-slate-400">Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.</p>
+                  <h3 className="font-medium text-white">Solicitação Recebida</h3>
+                  <p className="text-xs text-slate-400">Se o e-mail estiver correto e possuir uma conta, as instruções de recuperação serão enviadas para sua caixa de entrada.</p>
                 </div>
                 <Link href="/admin/login" className="w-full mt-4">
                   <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11">
