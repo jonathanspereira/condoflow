@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { toast } from "sonner"
 
 export default function AdminEsqueceuSenha() {
   const router = useRouter()
@@ -19,11 +20,28 @@ export default function AdminEsqueceuSenha() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulando uma requisição de recuperação de senha
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1"
+      const response = await fetch(`${apiUrl}/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || "Ocorreu um erro ao processar sua solicitação.")
+      }
+
       setIsSent(true)
-    }, 1500)
+      toast.success("E-mail enviado! Verifique sua caixa de entrada.")
+    } catch (error: any) {
+      toast.error(error.message || "Falha ao conectar com o servidor.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

@@ -1,5 +1,7 @@
 package com.jonathanspereira.condoflow.common.email.service;
 
+import com.jonathanspereira.condoflow.log.entity.SystemLog;
+import com.jonathanspereira.condoflow.log.repository.SystemLogRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final SystemLogRepository systemLogRepository;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -58,7 +61,7 @@ public class EmailService {
             </div>
             """.formatted(userName != null ? userName : "Morador", resetLink);
 
-        sendEmail(toEmail, subject, htmlContent, resetLink);
+        sendEmail(toEmail, subject, htmlContent, resetLink, "FORGOT_PASSWORD");
     }
 
     /**
@@ -95,7 +98,7 @@ public class EmailService {
             </div>
             """.formatted(userName != null ? userName : "Morador", resetLink);
 
-        sendEmail(toEmail, subject, htmlContent, "Link de Acesso: " + resetLink);
+        sendEmail(toEmail, subject, htmlContent, "Link de Acesso: " + resetLink, "FIRST_ACCESS");
     }
 
     /**
@@ -175,7 +178,7 @@ public class EmailService {
                 occurrenceLink
         );
 
-        sendEmail(toEmail, subject, htmlContent, "Protocolo: " + protocol + " | Status: " + statusLabel);
+        sendEmail(toEmail, subject, htmlContent, "Protocolo: " + protocol + " | Status: " + statusLabel, "OCCURRENCE_UPDATE");
     }
 
     private String translateStatus(String status) {
@@ -227,7 +230,7 @@ public class EmailService {
             </div>
             """.formatted(sindicoName, protocol, title, authorName, unitDisplay, occurrenceLink);
 
-        sendEmail(toEmail, subject, htmlContent, "Nova Ocorrência #" + protocol + " (" + title + ")");
+        sendEmail(toEmail, subject, htmlContent, "Nova Ocorrência #" + protocol + " (" + title + ")", "NEW_OCCURRENCE");
     }
 
     /**
@@ -261,13 +264,18 @@ public class EmailService {
             </div>
             """.formatted(newSindicoName, condominiumName, resetLink);
 
-        sendEmail(toEmail, subject, htmlContent, "Convite Síndico: " + resetLink);
+        sendEmail(toEmail, subject, htmlContent, "Convite Síndico: " + resetLink, "SINDICO_INVITE");
     }
 
     /**
      * Método central de envio via JavaMailSender com fallback para log de console.
      */
-    private void sendEmail(String toEmail, String subject, String htmlContent, String fallbackInfo) {
+    private void sendEmail(String toEmail, String subject, String htmlContent, String fallbackInfo, String action) {
+        SystemLog sysLog = new SystemLog();
+        sysLog.setType("EMAIL");
+        sysLog.setAction(action);
+        sysLog.setTarget(toEmail);
+        
         try {
             if (fromEmail == null || fromEmail.isBlank()) {
                 fromEmail = "noreply@condoflow.com";
@@ -282,6 +290,9 @@ public class EmailService {
 
             mailSender.send(mimeMessage);
             log.info("E-mail enviado com sucesso para: {} com o assunto: {}", toEmail, subject);
+            
+            sysLog.setStatus("SUCCESS");
+            sysLog.setMessage("E-mail '" + subject + "' enviado para " + toEmail);
         } catch (Exception e) {
             log.warn("Servidor SMTP não configurado ou indisponível. Exibindo e-mail no LOG/Console: {}", e.getMessage());
             System.out.println("==================================================================");
@@ -290,6 +301,12 @@ public class EmailService {
             System.out.println("ASSUNTO: " + subject);
             System.out.println("CONTEÚDO/INFO: " + fallbackInfo);
             System.out.println("==================================================================");
+            
+            sysLog.setStatus("ERROR");
+            sysLog.setMessage("Falha ao enviar e-mail: " + subject);
+            sysLog.setDetails(e.getMessage());
+        } finally {
+            systemLogRepository.save(sysLog);
         }
     }
 }

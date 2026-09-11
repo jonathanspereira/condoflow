@@ -11,7 +11,8 @@ import {
   ChevronRight, // Ícone para abrir
   ChevronLeft,  // Ícone para fechar
   Globe,
-  User
+  User,
+  Activity
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -21,6 +22,7 @@ import { toast } from "sonner"
 const MENU_ADMIN = [
   { name: "Visão Geral", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Condomínios", href: "/admin/condominios", icon: Building2 },
+  { name: "Logs do Sistema", href: "/admin/logs", icon: Activity },
   { name: "Meu Perfil", href: "/admin/perfil", icon: User },
 ]
 
