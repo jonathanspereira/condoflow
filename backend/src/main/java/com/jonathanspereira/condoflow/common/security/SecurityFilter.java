@@ -36,6 +36,11 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        // Requisições OPTIONS (preflight CORS) não precisam de autenticação
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         try {
             Long tenantId = null;
             String tenantIdStr = request.getHeader("X-Tenant-ID");
