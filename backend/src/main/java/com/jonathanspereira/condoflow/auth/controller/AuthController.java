@@ -52,8 +52,8 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequestDTO requestDTO) {
-        authService.resetPassword(requestDTO.getToken(), requestDTO.getNewPassword());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody @Valid ResetPasswordRequestDTO requestDTO) {
+        String role = authService.resetPassword(requestDTO.getToken(), requestDTO.getNewPassword());
+        return ResponseEntity.ok(Map.of("role", role));
     }
 }
