@@ -3,6 +3,7 @@ package com.jonathanspereira.condoflow.log.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "tb_system_logs")
@@ -36,6 +37,6 @@ public class SystemLog {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
     }
 }

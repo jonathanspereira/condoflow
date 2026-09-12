@@ -154,7 +154,7 @@ public class AuthService {
         emailService.sendFirstAccessEmail(user.getEmail(), user.getName(), token);
     }
 
-    public void resetPassword(String token, String newPassword) {
+    public String resetPassword(String token, String newPassword) {
 
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
                 .orElseThrow(() -> new BusinessException("Token inválido ou inexistente."));
@@ -184,5 +184,6 @@ public class AuthService {
         }
 
         passwordResetTokenRepository.delete(resetToken);
+        return user.getRole().name();
     }
 }

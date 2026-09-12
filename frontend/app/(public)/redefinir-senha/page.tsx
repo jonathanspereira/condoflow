@@ -59,8 +59,18 @@ function RedefinirSenhaForm() {
       })
 
       if (response.ok) {
+        const data = await response.json().catch(() => ({}))
+        const role = data?.role || "MORADOR"
+
+        const redirectMap: Record<string, string> = {
+          SUPER_ADMIN: "/admin/login",
+          SINDICO: "/sindico/login",
+          MORADOR: "/morador/login",
+        }
+        const loginPath = redirectMap[role] || "/morador/login"
+
         toast.success("Senha cadastrada com sucesso! Redirecionando para a página de login...")
-        router.push("/morador/login")
+        router.push(loginPath)
       } else {
         const errorData = await response.json().catch(() => null)
         const msg = errorData?.message || "Ocorreu um erro. O link pode estar expirado."
