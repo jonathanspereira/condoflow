@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+<<<<<<< HEAD
                 // CORS preflight — deve ser sempre a primeira regra
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
@@ -67,6 +68,41 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/units/**").hasAuthority("SUPER_ADMIN")
                 .anyRequest().authenticated()
         )
+=======
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/saude").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/occurrences/anonymous").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/*/attachments/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/occurrences/*/attachments").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/tenant")
+                        .hasAnyAuthority("SUPER_ADMIN", "SINDICO", "PROPRIETARY")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/units/check").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/units/me").authenticated()
+                        // NOVO — endpoints do síndico, precisam vir ANTES do matcher genérico de
+                        // /api/v1/condominiums/**
+                        .requestMatchers(HttpMethod.GET, "/api/v1/condominiums/me").hasAuthority("SINDICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/*/sindico")
+                        .hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/*/plan")
+                        .hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/condominiums/*")
+                        .hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/focus-mode").hasAuthority("SINDICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/*/focus-mode").hasAuthority("SINDICO")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/units/condominium/**")
+                        .hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/units/**").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/units/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/units/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                        .requestMatchers("/api/v1/condominiums/**").hasAuthority("SUPER_ADMIN")
+                        .requestMatchers("/api/v1/units/**").hasAuthority("SUPER_ADMIN")
+                        .anyRequest().authenticated())
+>>>>>>> dev
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -74,7 +110,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000", "https://condoflow-v1.vercel.app", "https://condoflow.fun"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "https://condoflow-v1.vercel.app",
+                "https://condoflow.fun",
+                "https://www.condoflow.fun"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -91,5 +133,6 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+            
     }
 }
