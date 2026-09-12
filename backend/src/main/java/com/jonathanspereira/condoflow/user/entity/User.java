@@ -34,7 +34,7 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean active = true;
 
     // --- MÉTODOS DO SPRING SECURITY (USER DETAILS) ---
