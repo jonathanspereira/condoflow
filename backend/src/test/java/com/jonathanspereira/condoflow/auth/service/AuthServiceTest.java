@@ -37,6 +37,8 @@ public class AuthServiceTest {
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @Mock
     private com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
+    @Mock
+    private com.jonathanspereira.condoflow.log.service.AuditLogService auditLogService;
 
     @InjectMocks
     private AuthService authService;
