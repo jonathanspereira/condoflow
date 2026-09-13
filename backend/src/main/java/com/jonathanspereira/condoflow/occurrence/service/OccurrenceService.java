@@ -115,6 +115,10 @@ public class OccurrenceService {
         occurrence.setCondominium(condominium);
         occurrence.setStatus(OccurrenceStatus.OPEN);
         occurrence.setRelatedUnits(dto.relatedUnits());
+        // Salva e-mail anonimo para notificacoes futuras
+        if (dto.anonymousEmail() != null && !dto.anonymousEmail().isBlank()) {
+            occurrence.setAnonymousEmail(dto.anonymousEmail().trim());
+        }
 
         Occurrence saved = occurrenceRepository.save(occurrence);
 
@@ -241,6 +245,19 @@ public class OccurrenceService {
                 emailService.sendOccurrenceUpdateNotification(
                         recipientUser.getEmail(),
                         recipientUser.getName(),
+                        saved.getProtocol(),
+                        saved.getTitle(),
+                        saved.getStatus() != null ? saved.getStatus().name() : "ATUALIZADO",
+                        hasMessage ? dto.response() : null
+                );
+            }
+        } else if (recipientUser == null && (statusChanged || hasMessage)) {
+            // Ocorrência anônima — notificar pelo e-mail opcional salvo no registro
+            String anonEmail = saved.getAnonymousEmail();
+            if (anonEmail != null && !anonEmail.isBlank()) {
+                emailService.sendOccurrenceUpdateNotification(
+                        anonEmail,
+                        "Anônimo",
                         saved.getProtocol(),
                         saved.getTitle(),
                         saved.getStatus() != null ? saved.getStatus().name() : "ATUALIZADO",

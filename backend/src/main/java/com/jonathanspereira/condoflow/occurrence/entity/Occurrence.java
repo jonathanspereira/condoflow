@@ -54,6 +54,10 @@ public class Occurrence {
     @Column(name = "related_units", length = 500)
     private String relatedUnits;
 
+    // E-mail opcional fornecido pelo anonimo para receber notificacoes
+    @Column(name = "anonymous_email")
+    private String anonymousEmail;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
