@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.security.SecureRandom;
 
 @Entity
 @Table(name = "tb_condominiums")
@@ -13,8 +14,15 @@ import lombok.NoArgsConstructor;
 public class Condominium {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // Gera ID de 4 digitos aleatorios (1000-9999) antes de persistir
+    @PrePersist
+    protected void generateId() {
+        if (this.id == null) {
+            this.id = 1000L + new SecureRandom().nextInt(9000);
+        }
+    }
 
     @Column(nullable = false)
     private String name;

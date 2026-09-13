@@ -1,6 +1,9 @@
 package com.jonathanspereira.condoflow.unit.service;
 
 import com.jonathanspereira.condoflow.common.exception.BusinessException;
+import com.jonathanspereira.condoflow.auth.entity.PasswordResetToken;
+import com.jonathanspereira.condoflow.auth.repository.PasswordResetTokenRepository;
+import com.jonathanspereira.condoflow.common.email.service.EmailService;
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
 import com.jonathanspereira.condoflow.unit.dto.UnitRequestDTO;
@@ -15,8 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +40,12 @@ public class UnitService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     public List<Unit> listarPorCondominio(Long condominiumId) {
         return unitRepository.findByCondominiumId(condominiumId);
@@ -138,11 +149,11 @@ public class UnitService {
             return existing;
         }
 
-        Condominium condominium = condominiumRepository.findById(condominiumId)
-                .orElseThrow(() -> new RuntimeException("Condomínio não encontrado: " + condominiumId));
+        condominiumRepository.findById(condominiumId)
+                .orElseThrow(() -> new RuntimeException("Condominio nao encontrado: " + condominiumId));
 
-        // Senha extremamente longa e aleatória, impedindo login sem antes passar pelo "Primeiro Acesso"
-        String randomPassword = java.util.UUID.randomUUID().toString() + java.util.UUID.randomUUID().toString();
+        // Senha aleatoria longa, impedindo login sem antes passar pelo Primeiro Acesso
+        String randomPassword = UUID.randomUUID() + UUID.randomUUID().toString();
 
         User user = new User();
         user.setName(name);
@@ -152,7 +163,16 @@ public class UnitService {
 
         User saved = userRepository.save(user);
 
-        log.info("Usuário {} criado via Sindico. Deve realizar Primeiro Acesso.", saved.getEmail());
+        // Gera token de primeiro acesso e envia e-mail
+        try {
+            String token = UUID.randomUUID().toString();
+            PasswordResetToken resetToken = new PasswordResetToken(token, saved, LocalDateTime.now().plusHours(72));
+            passwordResetTokenRepository.save(resetToken);
+            emailService.sendFirstAccessEmail(saved.getEmail(), saved.getName(), token);
+            log.info("E-mail de primeiro acesso enviado para: {}", saved.getEmail());
+        } catch (Exception e) {
+            log.warn("Falha ao enviar e-mail de primeiro acesso para {}: {}", saved.getEmail(), e.getMessage());
+        }
 
         return saved;
     }
