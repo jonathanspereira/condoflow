@@ -8,6 +8,7 @@ import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import com.jonathanspereira.condoflow.auth.entity.PasswordResetToken;
 import com.jonathanspereira.condoflow.auth.repository.PasswordResetTokenRepository;
 import com.jonathanspereira.condoflow.common.email.service.EmailService;
+import com.jonathanspereira.condoflow.log.service.AuditLogService;
 
 import com.jonathanspereira.condoflow.auth.dto.RegisterSindicoRequestDTO;
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
@@ -35,12 +36,14 @@ public class AuthService {
 
     private final CondominiumRepository condominiumRepository;
     private final CondominiumRoleRepository condominiumRoleRepository;
+    private final AuditLogService auditLogService;
 
 
     
     @Transactional
     public AuthResponseDTO registerSindico(RegisterSindicoRequestDTO dto) {
         if (userRepository.findByEmail(dto.getEmail()) != null) {
+            auditLogService.logError("AUTH", "REGISTER_SINDICO", dto.getEmail(), "Tentativa de registro com e-mail já cadastrado", null);
             throw new BusinessException("E-mail já cadastrado.");
         }
 
@@ -85,6 +88,7 @@ public class AuthService {
         condominiumRoleRepository.save(role);
 
         String token = tokenService.generateToken(savedUser);
+        auditLogService.log("AUTH", "REGISTER_SINDICO", savedUser.getEmail(), "Síndico registrado e condomínio criado: " + savedCondo.getName());
         return new AuthResponseDTO(token, savedUser.getName(), savedUser.getEmail(), savedUser.getRole().name());
     }
 
@@ -100,10 +104,12 @@ public class AuthService {
         }
 
         if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            auditLogService.logError("AUTH", "LOGIN", dto.getEmail(), "Falha no login: credenciais inválidas", null);
             throw new BusinessException("Credenciais inválidas");
         }
 
         String token = tokenService.generateToken(user);
+        auditLogService.log("AUTH", "LOGIN", user.getEmail(), "Login efetuado com sucesso (" + user.getRole().name() + ")");
         return new AuthResponseDTO(token, user.getName(), user.getEmail(), user.getRole().name());
     }
 
@@ -129,6 +135,7 @@ public class AuthService {
 
         // Envia o e-mail de recuperação de senha
         emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), token);
+        auditLogService.log("AUTH", "FORGOT_PASSWORD", user.getEmail(), "Token de recuperação de senha gerado e enviado");
     }
 
 
@@ -152,6 +159,7 @@ public class AuthService {
         passwordResetTokenRepository.save(resetToken);
 
         emailService.sendFirstAccessEmail(user.getEmail(), user.getName(), token);
+        auditLogService.log("AUTH", "FIRST_ACCESS", user.getEmail(), "Token de primeiro acesso gerado e enviado");
     }
 
     public String resetPassword(String token, String newPassword) {
@@ -161,6 +169,7 @@ public class AuthService {
 
         if (resetToken.isExpired()) {
             passwordResetTokenRepository.delete(resetToken);
+            auditLogService.logError("AUTH", "RESET_PASSWORD", null, "Tentativa de redefinição com token expirado", token);
             throw new BusinessException("O link de recuperação expirou. Solicite um novo.");
         }
 
@@ -184,6 +193,7 @@ public class AuthService {
         }
 
         passwordResetTokenRepository.delete(resetToken);
+        auditLogService.log("AUTH", "RESET_PASSWORD", user.getEmail(), "Senha redefinida com sucesso");
         return user.getRole().name();
     }
 }

@@ -22,6 +22,7 @@ import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
 import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
+import com.jonathanspereira.condoflow.log.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -49,6 +50,7 @@ public class OccurrenceService {
     private final com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
     private final NotificationService notificationService;
     private final CondominiumRoleRepository condominiumRoleRepository;
+    private final AuditLogService auditLogService;
 
     public OccurrenceResponseDTO create(String userEmail, OccurrenceRequestDTO dto) {
         User reporter = getUserByEmail(userEmail);
@@ -99,6 +101,8 @@ public class OccurrenceService {
                 );
             }
         }
+
+        auditLogService.log("OCORRENCIA", "CREATE", saved.getProtocol(), "Nova ocorrência registrada. Autor: " + reporter.getEmail());
 
         return new OccurrenceResponseDTO(saved);
     }
@@ -159,6 +163,8 @@ public class OccurrenceService {
                 );
             }
         }
+
+        auditLogService.log("OCORRENCIA", "CREATE_ANONYMOUS", saved.getProtocol(), "Nova ocorrência anônima registrada.");
 
         return new OccurrenceResponseDTO(saved);
     }
@@ -265,6 +271,8 @@ public class OccurrenceService {
                 );
             }
         }
+
+        auditLogService.log("OCORRENCIA", "UPDATE", saved.getProtocol(), "Ocorrência atualizada (Status: " + (dto.status() != null ? dto.status().name() : "Inalterado") + ")");
 
         return new OccurrenceResponseDTO(saved);
     }

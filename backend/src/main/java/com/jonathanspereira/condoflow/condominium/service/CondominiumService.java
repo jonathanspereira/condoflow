@@ -6,6 +6,7 @@ import com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepo
 import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
+import com.jonathanspereira.condoflow.log.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,9 @@ public class CondominiumService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     public List<Condominium> listarTodos() {
         return condominiumRepository.findAll();
     }
@@ -34,7 +38,9 @@ public class CondominiumService {
     }
 
     public Condominium salvar(Condominium condominium) {
-        return condominiumRepository.save(condominium);
+        Condominium saved = condominiumRepository.save(condominium);
+        auditLogService.log("CONDOMINIO", "CREATE", saved.getName(), "Condomínio criado pelo sistema/admin");
+        return saved;
     }
 
     public Condominium atualizar(Long id, Condominium condominiumData) {
@@ -47,7 +53,9 @@ public class CondominiumService {
             condo.setNeighborhood(condominiumData.getNeighborhood());
             condo.setCity(condominiumData.getCity());
             condo.setState(condominiumData.getState());
-            return condominiumRepository.save(condo);
+            Condominium saved = condominiumRepository.save(condo);
+            auditLogService.log("CONDOMINIO", "UPDATE", saved.getName(), "Condomínio atualizado");
+            return saved;
         }).orElseThrow(() -> new RuntimeException("Condomínio não encontrado com o ID: " + id));
     }
 
@@ -74,5 +82,7 @@ public class CondominiumService {
                 userRepository.save(sindico);
             }
         }
+        
+        auditLogService.log("CONDOMINIO", "DELETE", String.valueOf(id), "Condomínio deletado do sistema");
     }
 }

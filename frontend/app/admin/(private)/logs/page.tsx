@@ -12,8 +12,15 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, RefreshCw } from "lucide-react"
+import { Loader2, RefreshCw, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 interface SystemLog {
   id: number
@@ -30,6 +37,7 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<SystemLog[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("todos")
+  const [selectedLog, setSelectedLog] = useState<SystemLog | null>(null)
 
   const fetchLogs = async (type?: string) => {
     setIsLoading(true)
@@ -129,13 +137,24 @@ export default function LogsPage() {
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="max-w-[300px]">
-                    <p className="font-medium text-slate-900 truncate">{log.message}</p>
-                    {log.details && (
-                      <p className="text-xs text-red-500 truncate mt-1" title={log.details}>
-                        {log.details}
-                      </p>
-                    )}
+                  <div className="flex items-start gap-2 max-w-[300px]">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 truncate">{log.message}</p>
+                      {log.details && (
+                        <p className="text-xs text-red-500 truncate mt-1">
+                          {log.details}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0 text-slate-400 hover:text-slate-700"
+                      onClick={() => setSelectedLog(log)}
+                      title="Ver mensagem completa"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -187,6 +206,63 @@ export default function LogsPage() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Modal de detalhes completos do log */}
+      <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-slate-800">
+              Detalhes do Log
+              {selectedLog && (
+                <Badge
+                  className={`ml-1 text-[10px] font-bold border-none ${
+                    selectedLog.status === "SUCCESS"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {selectedLog.status === "SUCCESS" ? "SUCESSO" : "ERRO"}
+                </Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              {selectedLog && formatDate(selectedLog.createdAt)}
+              {selectedLog?.target && ` • ${selectedLog.target}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedLog && (
+            <div className="space-y-4 pt-2">
+              <div className="flex gap-2 flex-wrap">
+                <Badge variant="outline" className="text-[10px] uppercase font-bold text-slate-500">
+                  {selectedLog.type}
+                </Badge>
+                <span className="text-xs font-semibold text-slate-600">{selectedLog.action}</span>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Mensagem</p>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <p className="text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
+                    {selectedLog.message || "—"}
+                  </p>
+                </div>
+              </div>
+
+              {selectedLog.details && (
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-red-500 uppercase tracking-wide">Detalhes do Erro</p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 max-h-48 overflow-y-auto">
+                    <p className="text-xs text-red-700 font-mono whitespace-pre-wrap break-words leading-relaxed">
+                      {selectedLog.details}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
