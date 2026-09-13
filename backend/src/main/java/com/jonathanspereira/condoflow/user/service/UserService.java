@@ -14,6 +14,7 @@ import com.jonathanspereira.condoflow.user.dto.UserResponseDTO;
 import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
+import com.jonathanspereira.condoflow.log.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +34,7 @@ public class UserService {
     private final CondominiumRoleRepository condominiumRoleRepository;
     private final UnitRepository unitRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     
     @Transactional
@@ -57,6 +59,7 @@ public class UserService {
         }
 
         User savedUser = userRepository.save(user);
+        auditLogService.log("USER", "CREATE", savedUser.getEmail(), "Usuário criado: " + savedUser.getName() + " (" + savedUser.getRole() + ")");
         return new UserResponseDTO(savedUser);
     }
 
@@ -111,6 +114,8 @@ public class UserService {
                     .orElse(null);
         }
 
+        auditLogService.log("USER", "UPDATE_PROFILE", currentEmail, "Perfil atualizado para: " + updated.getEmail());
+
         return new UserResponseDTO(updated, unit, condoName);
     }
 
@@ -141,6 +146,7 @@ public class UserService {
         }
 
         User updatedUser = userRepository.save(user);
+        auditLogService.log("USER", "UPDATE", updatedUser.getEmail(), "Usuário atualizado pelo administrador");
         return new UserResponseDTO(updatedUser);
     }
 
@@ -149,6 +155,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
         userRepository.delete(user);
+        auditLogService.log("USER", "DELETE", user.getEmail(), "Usuário deletado");
     }
 
     public UserResponseDTO manageTenant(String ownerEmail, UserRequestDTO dto) {
@@ -201,6 +208,8 @@ public class UserService {
                     .orElse(null);
         }
 
+        auditLogService.log("UNIDADE", "MANAGE_TENANT", ownerEmail, "Inquilino configurado para unidade ID " + dto.getUnitId() + ": " + (dto.getIsRented() ? "Sim" : "Não"));
+
         return new UserResponseDTO(owner, savedUnit, condoName);
     }
 
@@ -248,6 +257,8 @@ public class UserService {
             condominiumRoleRepository.save(management);
         }
 
+        auditLogService.log("USER", "LINK_SINDICO", dto.email(), "Síndico vinculado ao condomínio ID " + condominiumId);
+
         return new LinkSindicoResponseDTO(new UserResponseDTO(user), temporaryPassword);
     }
 
@@ -268,5 +279,7 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        
+        auditLogService.log("AUTH", "CHANGE_PASSWORD", email, "Senha alterada com sucesso");
     }
 }

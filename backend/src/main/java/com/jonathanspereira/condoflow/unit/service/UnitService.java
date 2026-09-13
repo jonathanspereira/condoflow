@@ -11,7 +11,9 @@ import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
 import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.entity.User;
+import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
+import com.jonathanspereira.condoflow.log.service.AuditLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,9 @@ public class UnitService {
 
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
+    
+    @Autowired
+    private AuditLogService auditLogService;
 
     public List<Unit> listarPorCondominio(Long condominiumId) {
         return unitRepository.findByCondominiumId(condominiumId);
@@ -80,7 +85,9 @@ public class UnitService {
         unit.setRented(dto.isRented());
         unit.setTenant(tenant);
 
-        return unitRepository.save(unit);
+        Unit savedUnit = unitRepository.save(unit);
+        auditLogService.log("UNIDADE", "CREATE", dto.getUnit(), "Unidade " + dto.getUnit() + " criada no condomínio ID " + condominiumId);
+        return savedUnit;
     }
 
     public List<Unit> salvarEmMassa(Long condominiumId, List<UnitRequestDTO> dtos) {
@@ -110,7 +117,9 @@ public class UnitService {
         unit.setRented(dto.isRented());
         unit.setTenant(tenant);
 
-        return unitRepository.save(unit);
+        Unit savedUnit = unitRepository.save(unit);
+        auditLogService.log("UNIDADE", "CREATE_MASS", dto.getUnit(), "Unidade " + dto.getUnit() + " importada em lote no condomínio ID " + condominiumId);
+        return savedUnit;
     }
 
     private void checkPlanLimit(Long condominiumId, int requestedAmount) {
@@ -135,12 +144,15 @@ public class UnitService {
                 unit.setTenant(null);
             }
 
-            return unitRepository.save(unit);
+            Unit savedUnit = unitRepository.save(unit);
+            auditLogService.log("UNIDADE", "UPDATE", dto.getUnit(), "Unidade " + dto.getUnit() + " atualizada no condomínio ID " + unit.getCondominiumId());
+            return savedUnit;
         }).orElseThrow(() -> new RuntimeException("Unidade não encontrada com o ID: " + id));
     }
 
     public void deletar(Long id) {
         unitRepository.deleteById(id);
+        auditLogService.log("UNIDADE", "DELETE", String.valueOf(id), "Unidade deletada do sistema");
     }
 
     private User resolveOrCreateUser(String name, String email, Role role, Long condominiumId) {

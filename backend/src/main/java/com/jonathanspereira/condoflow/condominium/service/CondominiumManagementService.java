@@ -10,6 +10,7 @@ import com.jonathanspereira.condoflow.occurrence.repository.OccurrenceRepository
 import com.jonathanspereira.condoflow.user.dto.UserResponseDTO;
 import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
+import com.jonathanspereira.condoflow.log.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class CondominiumManagementService {
     private final com.jonathanspereira.condoflow.auth.repository.PasswordResetTokenRepository passwordResetTokenRepository;
     private final com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     public List<SindicoCondominiumDTO> listMyCondominiums(String sindicoEmail) {
         User sindico = getUserByEmail(sindicoEmail);
@@ -96,6 +98,8 @@ public class CondominiumManagementService {
         
         condominiumRoleRepository.save(management);
 
+        auditLogService.log("CONDOMINIO", "CREATE_CONDOMINIUM", sindicoEmail, "Condomínio criado: " + savedCondo.getName());
+
         return savedCondo;
     }
 
@@ -108,6 +112,8 @@ public class CondominiumManagementService {
 
         management.setFocusModeEnabled(enabled);
         condominiumRoleRepository.save(management);
+        
+        auditLogService.log("CONDOMINIO", "FOCUS_MODE", sindicoEmail, "Modo foco " + (enabled ? "ativado" : "desativado") + " para condomínio ID: " + condominiumId);
     }
 
     public void setPlan(String sindicoEmail, Long condominiumId, com.jonathanspereira.condoflow.condominium.dto.PlanSelectionRequestDTO dto) {
@@ -123,6 +129,8 @@ public class CondominiumManagementService {
             condo.setSubscriptionEndDate(java.time.LocalDate.now().plusMonths(1)); // example 1 month
         }
         condominiumRepository.save(condo);
+        
+        auditLogService.log("CONDOMINIO", "CHANGE_PLAN", sindicoEmail, "Plano do condomínio '" + condo.getName() + "' alterado para: " + dto.plan());
     }
 
     public void setFocusModeForAll(String sindicoEmail, boolean enabled) {
@@ -200,6 +208,8 @@ public class CondominiumManagementService {
         passwordResetTokenRepository.save(resetToken);
 
         emailService.sendSindicoInviteEmail(newSindico.getEmail(), newSindico.getName(), token, condominium.getName());
+        
+        auditLogService.log("CONDOMINIO", "TRANSFER_SINDICO", dto.email(), "Transferência de síndico iniciada para condomínio: " + condominium.getName());
     }
 
     public UserResponseDTO updateSindico(Long condominiumId, String sindicoId, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
