@@ -21,5 +21,8 @@ public record AnonymousOccurrenceRequestDTO(
 
         String relatedUnits,
 
+        // E-mail opcional para notificações (ocorrência anônima)
+        String anonymousEmail,
+
         String turnstileToken
 ) {}

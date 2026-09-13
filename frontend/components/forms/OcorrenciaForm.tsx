@@ -102,6 +102,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
           title: values.titulo,
           description: values.descricao,
           category: values.categoria,
+          anonymousEmail: values.emailNotificacao || null,
           turnstileToken: turnstileToken,
         })], { type: "application/json" }))
 
@@ -189,10 +190,9 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                         <FormControl>
                           <Input
                             placeholder="Ex: 3847"
-                            className={`font-mono bg-white pr-10 ${
-                              condoValidation === "valid" ? "border-green-500 focus-visible:ring-green-400" :
-                              condoValidation === "invalid" ? "border-red-500 focus-visible:ring-red-400" : ""
-                            }`}
+                            className={`font-mono bg-white pr-10 ${condoValidation === "valid" ? "border-green-500 focus-visible:ring-green-400" :
+                                condoValidation === "invalid" ? "border-red-500 focus-visible:ring-red-400" : ""
+                              }`}
                             aria-invalid={fieldState.invalid || condoValidation === "invalid"}
                             maxLength={4}
                             {...field}
@@ -221,7 +221,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                         </div>
                       </div>
                       <FormDescription>
-                        Código de 4 dígitos do condomínio (disponível no painel do síndico).
+                        Código de 4 dígitos do condomínio (Informado pelo síndico).
                       </FormDescription>
                       {condoValidation === "invalid" && (
                         <p className="text-sm font-medium text-red-500">Condomínio não encontrado. Verifique o código.</p>
