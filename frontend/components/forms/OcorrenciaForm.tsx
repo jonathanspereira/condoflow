@@ -13,7 +13,8 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Upload, X, FileVideo, FileImage, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { useState } from "react"
+import { useState, useCallback } from "react"
+import { CheckCircle2, XCircle } from "lucide-react"
 import { Turnstile } from '@marsidev/react-turnstile'
 
 const formSchema = z.object({
@@ -34,6 +35,31 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string>("")
+  const [condoValidation, setCondoValidation] = useState<"idle" | "checking" | "valid" | "invalid">("idle")
+
+  const validateCondominiumId = useCallback(async (id: string) => {
+    if (!id || id.length < 4) {
+      setCondoValidation("idle")
+      return
+    }
+    setCondoValidation("checking")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/anonymous`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ condominiumId: Number(id), title: "_check", description: "_check", category: "OUTROS", turnstileToken: "_skip" }),
+      })
+      // 4xx com mensagem de condominio nao encontrado = invalido
+      // outros erros (400 por dados inválidos mas cond existe) = valido
+      if (res.status === 404) {
+        setCondoValidation("invalid")
+      } else {
+        setCondoValidation("valid")
+      }
+    } catch {
+      setCondoValidation("idle")
+    }
+  }, [])
 
   const form = useForm<FormValuesInput, unknown, FormValuesOutput>({
     resolver: zodResolver(formSchema),
@@ -50,6 +76,10 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
   })
 
   async function onSubmit(values: FormValuesOutput) {
+    if (isAnonimo && condoValidation === "invalid") {
+      toast.error("ID do condomínio inválido. Verifique e tente novamente.")
+      return
+    }
     if (isAnonimo && !turnstileToken) {
       toast.error("Por favor, valide o captcha antes de prosseguir.")
       return
@@ -147,26 +177,56 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-              {/* Seção Destaque: ID do Condomínio */}
               <div className="p-4 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50">
                 <FormField
                   control={form.control}
                   name="condominiumId"
                   render={({ field, fieldState }) => (
-                    <FormItem data-invalid={fieldState.invalid}>
+                    <FormItem data-invalid={fieldState.invalid || condoValidation === "invalid"}>
                       <FormLabel className="font-bold">ID do Condomínio</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: 1"
-                          className="font-mono bg-white"
-                          aria-invalid={fieldState.invalid}
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ""))}
-                        />
-                      </FormControl>
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            placeholder="Ex: 3847"
+                            className={`font-mono bg-white pr-10 ${
+                              condoValidation === "valid" ? "border-green-500 focus-visible:ring-green-400" :
+                              condoValidation === "invalid" ? "border-red-500 focus-visible:ring-red-400" : ""
+                            }`}
+                            aria-invalid={fieldState.invalid || condoValidation === "invalid"}
+                            maxLength={4}
+                            {...field}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "")
+                              field.onChange(val)
+                              setCondoValidation("idle")
+                            }}
+                            onBlur={() => {
+                              field.onBlur()
+                              if (isAnonimo) validateCondominiumId(field.value)
+                            }}
+                          />
+                        </FormControl>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          {condoValidation === "checking" && (
+                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                          )}
+                          {condoValidation === "valid" && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          )}
+                          {condoValidation === "invalid" && (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                      </div>
                       <FormDescription>
-                        Código numérico de identificação do condomínio.
+                        Código de 4 dígitos do condomínio (disponível no painel do síndico).
                       </FormDescription>
+                      {condoValidation === "invalid" && (
+                        <p className="text-sm font-medium text-red-500">Condomínio não encontrado. Verifique o código.</p>
+                      )}
+                      {condoValidation === "valid" && (
+                        <p className="text-sm font-medium text-green-600">Condomínio encontrado! ✓</p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
