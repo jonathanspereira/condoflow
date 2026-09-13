@@ -232,8 +232,16 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               {condominioInfo?.name || "Gestão do Condomínio"}
             </h1>
-            <p className="text-muted-foreground text-xs">
-              CNPJ: <span className="font-mono">{condominioInfo?.cnpj || "N/D"}</span> • Endereço: {condominioInfo ? `${condominioInfo.street || ""}, ${condominioInfo.number || ""} - ${condominioInfo.neighborhood || ""}, ${condominioInfo.city || ""} - ${condominioInfo.state || ""}, CEP: ${condominioInfo.zipCode || ""}` : "N/D"}
+            <p className="text-muted-foreground text-xs flex flex-wrap items-center gap-x-1 gap-y-0.5">
+              <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold font-mono px-2 py-0.5 rounded text-[11px]">
+                ID: {condominioInfo?.id ?? id}
+              </span>
+              <span className="text-slate-300">•</span>
+              CNPJ: <span className="font-mono">{condominioInfo?.cnpj || "N/D"}</span>
+              <span className="text-slate-300">•</span>
+              {condominioInfo
+                ? `${condominioInfo.street || ""}, ${condominioInfo.number || ""} - ${condominioInfo.neighborhood || ""}, ${condominioInfo.city || ""} - ${condominioInfo.state || ""}, CEP: ${condominioInfo.zipCode || ""}`
+                : "N/D"}
             </p>
           </div>
         </div>
