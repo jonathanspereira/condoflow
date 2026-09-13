@@ -29,7 +29,7 @@ public class EmailService {
     @Value("${app.resend.api-key:}")
     private String resendApiKey;
 
-    @Value("${app.resend.from-email:CondoFlow <atendimento@condoflow.com.br>}")
+    @Value("${app.resend.from-email:CondoFlow <noreply@condoflow.fun>}")
     private String fromEmail;
 
     /**

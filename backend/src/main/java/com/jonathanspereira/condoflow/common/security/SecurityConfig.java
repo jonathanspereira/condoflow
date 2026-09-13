@@ -40,6 +40,7 @@ public class SecurityConfig {
                         // CORS preflight - deve ser sempre a primeira regra
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/condominiums/*/public").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/saude").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()

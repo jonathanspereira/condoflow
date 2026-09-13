@@ -36,28 +36,29 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string>("")
   const [condoValidation, setCondoValidation] = useState<"idle" | "checking" | "valid" | "invalid">("idle")
+  const [condoName, setCondoName] = useState<string | null>(null)
 
   const validateCondominiumId = useCallback(async (id: string) => {
     if (!id || id.length < 4) {
       setCondoValidation("idle")
+      setCondoName(null)
       return
     }
     setCondoValidation("checking")
+    setCondoName(null)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/anonymous`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ condominiumId: Number(id), title: "_check", description: "_check", category: "OUTROS", turnstileToken: "_skip" }),
-      })
-      // 4xx com mensagem de condominio nao encontrado = invalido
-      // outros erros (400 por dados inválidos mas cond existe) = valido
-      if (res.status === 404) {
-        setCondoValidation("invalid")
-      } else {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${id}/public`)
+      if (res.ok) {
+        const data = await res.json()
+        setCondoName(data.name + (data.city ? ` — ${data.city}/${data.state}` : ""))
         setCondoValidation("valid")
+      } else {
+        setCondoValidation("invalid")
+        setCondoName(null)
       }
     } catch {
       setCondoValidation("idle")
+      setCondoName(null)
     }
   }, [])
 
@@ -199,6 +200,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                               const val = e.target.value.replace(/\D/g, "")
                               field.onChange(val)
                               setCondoValidation("idle")
+                              setCondoName(null)
                             }}
                             onBlur={() => {
                               field.onBlur()
@@ -224,8 +226,11 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                       {condoValidation === "invalid" && (
                         <p className="text-sm font-medium text-red-500">Condomínio não encontrado. Verifique o código.</p>
                       )}
-                      {condoValidation === "valid" && (
-                        <p className="text-sm font-medium text-green-600">Condomínio encontrado! ✓</p>
+                      {condoValidation === "valid" && condoName && (
+                        <p className="text-sm font-medium text-green-600 flex items-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          {condoName}
+                        </p>
                       )}
                       <FormMessage />
                     </FormItem>
