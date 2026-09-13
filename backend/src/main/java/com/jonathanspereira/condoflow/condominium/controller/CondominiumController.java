@@ -50,6 +50,19 @@ public class CondominiumController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+
+    // Endpoint publico - retorna apenas nome do condominio para validacao no formulario anonimo
+    @GetMapping("/{id}/public")
+    public ResponseEntity<java.util.Map<String, Object>> buscarPublico(@PathVariable Long id) {
+        return condominiumService.buscarPorId(id)
+                .map(c -> ResponseEntity.ok(java.util.Map.<String, Object>of(
+                        "id", c.getId(),
+                        "name", c.getName(),
+                        "city", c.getCity() != null ? c.getCity() : "",
+                        "state", c.getState() != null ? c.getState() : ""
+                )))
+                .orElse(ResponseEntity.notFound().build());
+    }
     @PostMapping
     public ResponseEntity<Condominium> criarCondominio(@RequestBody Condominium condominium) {
         Condominium novoCondominio = condominiumService.salvar(condominium);
