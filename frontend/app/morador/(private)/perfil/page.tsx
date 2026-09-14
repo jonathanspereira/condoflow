@@ -226,10 +226,12 @@ export default function PerfilPage() {
 
 
 
-      <Tabs defaultValue="unidade" className="space-y-6">
+      <Tabs defaultValue="dados" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 max-w-2xl">
           <TabsTrigger value="dados" className="gap-2"><User className="h-4 w-4" /> Pessoal</TabsTrigger>
-          <TabsTrigger value="unidade" className="gap-2"><Building className="h-4 w-4" /> Unidade</TabsTrigger>
+          {profile.role !== "TENANT" && (
+            <TabsTrigger value="unidade" className="gap-2"><Building className="h-4 w-4" /> Unidade</TabsTrigger>
+          )}
           <TabsTrigger value="notificacoes" className="gap-2"><Bell className="h-4 w-4" /> Avisos</TabsTrigger>
           <TabsTrigger value="seguranca" className="gap-2"><Key className="h-4 w-4" /> Segurança</TabsTrigger>
         </TabsList>
@@ -267,106 +269,108 @@ export default function PerfilPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="unidade">
-          <Card className="border-blue-100 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <div>
-                <CardTitle>Gestão da Unidade</CardTitle>
-                <CardDescription>Controle quem reside no seu imóvel atualmente.</CardDescription>
-              </div>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1 font-semibold uppercase tracking-wider text-[11px]">
-                {traduzirRole(profile.role)}
-              </Badge>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg bg-slate-100/50 border border-slate-200">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">Condomínio</span>
-                  <span className="text-sm font-semibold mt-0.5">{profile.condominiumName || "Não vinculado"}</span>
+        {profile.role !== "TENANT" && (
+          <TabsContent value="unidade">
+            <Card className="border-blue-100 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle>Gestão da Unidade</CardTitle>
+                  <CardDescription>Controle quem reside no seu imóvel atualmente.</CardDescription>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">Unidade</span>
-                  <span className="text-sm font-semibold mt-0.5">{profile.unitName || "N/A"}</span>
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1 font-semibold uppercase tracking-wider text-[11px]">
+                  {traduzirRole(profile.role)}
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg bg-slate-100/50 border border-slate-200">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Condomínio</span>
+                    <span className="text-sm font-semibold mt-0.5">{profile.condominiumName || "Não vinculado"}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Unidade</span>
+                    <span className="text-sm font-semibold mt-0.5">{profile.unitName || "N/A"}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Status de Ocupação</span>
+                    <Badge className={profile.isRented ? "bg-amber-100 text-amber-700 hover:bg-amber-100 w-fit mt-1" : "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 w-fit mt-1"} variant="secondary">
+                      {profile.isRented ? "Alugado a Terceiros" : "Residência Própria"}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">Status de Ocupação</span>
-                  <Badge className={profile.isRented ? "bg-amber-100 text-amber-700 hover:bg-amber-100 w-fit mt-1" : "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 w-fit mt-1"} variant="secondary">
-                    {profile.isRented ? "Alugado a Terceiros" : "Residência Própria"}
-                  </Badge>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between pb-2 border-b">
-                <h4 className="font-bold text-slate-900 flex items-center gap-2">
-                  <Key className="h-4 w-4 text-blue-600" /> Ocupação do Imóvel
-                </h4>
-                <Button 
-                  variant={profile.isRented ? "destructive" : "outline"} 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={() => {
-                    setProfile(prev => ({ ...prev, isRented: !prev.isRented }))
-                    if (profile.isRented) {
-                      setNomeInq("")
-                      setEmailInq("")
-                    }
-                  }}
-                >
-                  {profile.isRented ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                  {profile.isRented ? "Remover Inquilino" : "Registrar Inquilino"}
+                <div className="flex items-center justify-between pb-2 border-b">
+                  <h4 className="font-bold text-slate-900 flex items-center gap-2">
+                    <Key className="h-4 w-4 text-blue-600" /> Ocupação do Imóvel
+                  </h4>
+                  <Button 
+                    variant={profile.isRented ? "destructive" : "outline"} 
+                    size="sm" 
+                    className="gap-2"
+                    onClick={() => {
+                      setProfile(prev => ({ ...prev, isRented: !prev.isRented }))
+                      if (profile.isRented) {
+                        setNomeInq("")
+                        setEmailInq("")
+                      }
+                    }}
+                  >
+                    {profile.isRented ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                    {profile.isRented ? "Remover Inquilino" : "Registrar Inquilino"}
+                  </Button>
+                </div>
+
+                {profile.isRented ? (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="nomeInq">Nome do Inquilino</Label>
+                        <Input 
+                          id="nomeInq" 
+                          placeholder="Nome completo do morador" 
+                          value={nomeInq}
+                          onChange={(e) => setNomeInq(e.target.value)}
+                          className="bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="emailInq">E-mail do Inquilino</Label>
+                        <Input 
+                          id="emailInq" 
+                          type="email" 
+                          placeholder="inquilino@email.com" 
+                          value={emailInq}
+                          onChange={(e) => setEmailInq(e.target.value)}
+                          className="bg-white"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                      <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                      <div className="text-xs text-blue-800 space-y-1">
+                        <p className="font-bold">Como funciona o acesso do inquilino?</p>
+                        <p>1. O inquilino receberá um e-mail para ativar a conta com perfil de <strong>Inquilino</strong>.</p>
+                        <p>2. Ele poderá abrir ocorrências e consultar o histórico enquanto o contrato estiver ativo.</p>
+                        <p>3. <strong>Você continuará a receber cópias de todas as notificações do sistema.</strong></p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-10 text-center border-2 border-dashed rounded-xl bg-slate-50/50">
+                    <p className="text-slate-500 text-sm font-medium">Você está registrado como morador e responsável atual desta unidade.</p>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="border-t bg-slate-50/30 p-4">
+                <Button onClick={handleUpdateTenant} disabled={isSavingTenant} className="w-full md:w-auto ml-auto gap-2">
+                  {isSavingTenant && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Confirmar Alteração de Ocupante
                 </Button>
-              </div>
-
-              {profile.isRented ? (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nomeInq">Nome do Inquilino</Label>
-                      <Input 
-                        id="nomeInq" 
-                        placeholder="Nome completo do morador" 
-                        value={nomeInq}
-                        onChange={(e) => setNomeInq(e.target.value)}
-                        className="bg-white"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="emailInq">E-mail do Inquilino</Label>
-                      <Input 
-                        id="emailInq" 
-                        type="email" 
-                        placeholder="inquilino@email.com" 
-                        value={emailInq}
-                        onChange={(e) => setEmailInq(e.target.value)}
-                        className="bg-white"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-                    <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-                    <div className="text-xs text-blue-800 space-y-1">
-                      <p className="font-bold">Como funciona o acesso do inquilino?</p>
-                      <p>1. O inquilino receberá um e-mail para ativar a conta com perfil de <strong>Inquilino</strong>.</p>
-                      <p>2. Ele poderá abrir ocorrências e consultar o histórico enquanto o contrato estiver ativo.</p>
-                      <p>3. <strong>Você continuará a receber cópias de todas as notificações do sistema.</strong></p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-10 text-center border-2 border-dashed rounded-xl bg-slate-50/50">
-                  <p className="text-slate-500 text-sm font-medium">Você está registrado como morador e responsável atual desta unidade.</p>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="border-t bg-slate-50/30 p-4">
-              <Button onClick={handleUpdateTenant} disabled={isSavingTenant} className="w-full md:w-auto ml-auto gap-2">
-                {isSavingTenant && <Loader2 className="h-4 w-4 animate-spin" />}
-                Confirmar Alteração de Ocupante
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="notificacoes">
           <Card>
