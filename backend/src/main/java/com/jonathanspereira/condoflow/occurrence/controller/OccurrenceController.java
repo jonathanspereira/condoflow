@@ -24,9 +24,6 @@ public class OccurrenceController {
 
     @PostMapping
     public ResponseEntity<OccurrenceResponseDTO> create(@RequestBody @Valid OccurrenceRequestDTO dto, Principal principal) {
-        if (!turnstileService.verify(dto.turnstileToken())) {
-            throw new com.jonathanspereira.condoflow.common.exception.BusinessException("Falha na verificação de segurança antibot.");
-        }
         OccurrenceResponseDTO response = service.create(principal.getName(), dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
