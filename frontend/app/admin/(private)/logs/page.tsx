@@ -68,8 +68,8 @@ export default function LogsPage() {
   useEffect(() => {
     if (activeTab === "todos") {
       fetchLogs()
-    } else if (activeTab === "email") {
-      fetchLogs("EMAIL")
+    } else {
+      fetchLogs(activeTab.toUpperCase())
     }
   }, [activeTab])
 
@@ -174,7 +174,7 @@ export default function LogsPage() {
         </div>
         <Button 
           variant="outline" 
-          onClick={() => activeTab === "todos" ? fetchLogs() : fetchLogs("EMAIL")}
+          onClick={() => activeTab === "todos" ? fetchLogs() : fetchLogs(activeTab.toUpperCase())}
           className="gap-2"
           disabled={isLoading}
         >
@@ -191,18 +191,21 @@ export default function LogsPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="todos" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="todos">Todos os Logs</TabsTrigger>
-              <TabsTrigger value="email">Apenas E-mail</TabsTrigger>
+            <TabsList className="mb-6 flex flex-wrap h-auto w-full justify-start gap-1 p-1 bg-slate-100 rounded-lg">
+              <TabsTrigger value="todos" className="flex-1 min-w-[100px]">Todos</TabsTrigger>
+              <TabsTrigger value="auth" className="flex-1 min-w-[100px]">Auth</TabsTrigger>
+              <TabsTrigger value="user" className="flex-1 min-w-[100px]">Usuários</TabsTrigger>
+              <TabsTrigger value="condominio" className="flex-1 min-w-[100px]">Condomínios</TabsTrigger>
+              <TabsTrigger value="unidade" className="flex-1 min-w-[100px]">Unidades</TabsTrigger>
+              <TabsTrigger value="ocorrencia" className="flex-1 min-w-[100px]">Ocorrências</TabsTrigger>
+              <TabsTrigger value="email" className="flex-1 min-w-[100px]">E-mails</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="todos" className="mt-0">
-              {renderTable()}
-            </TabsContent>
-            
-            <TabsContent value="email" className="mt-0">
-              {renderTable()}
-            </TabsContent>
+            {["todos", "auth", "user", "condominio", "unidade", "ocorrencia", "email"].map((tab) => (
+              <TabsContent key={tab} value={tab} className="mt-0">
+                {renderTable()}
+              </TabsContent>
+            ))}
           </Tabs>
         </CardContent>
       </Card>
