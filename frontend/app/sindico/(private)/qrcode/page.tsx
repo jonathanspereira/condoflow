@@ -30,7 +30,7 @@ export default function QrCodePage() {
 
           // Build URL
           const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://condoflow.fun"
-          setUrl(`${baseUrl}/ocorrencia/anonima`)
+          setUrl(`${baseUrl}/ocorrencia`)
         }
       } catch (error) {
         console.error("Erro ao carregar dados do condomínio:", error)
