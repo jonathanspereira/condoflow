@@ -168,6 +168,10 @@ export default function QrCodePage() {
             size: A5 portrait;
             margin: 0;
           }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           body * {
             visibility: hidden;
           }
@@ -176,9 +180,12 @@ export default function QrCodePage() {
           }
           .print\\:w-\\[148mm\\] {
             position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
+            left: 0;
+            top: 0;
+            margin: 0;
+            width: 148mm !important;
+            height: 210mm !important;
+            page-break-inside: avoid;
           }
         }
       `}} />
