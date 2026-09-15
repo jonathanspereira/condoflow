@@ -52,8 +52,8 @@ public class GlobalExceptionHandler {
         log.error("Erro no sistema | Rota: {} {} | O que o usuário tentava fazer: Acessar a URL acima | Detalhes: {}", 
                   request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
                   
-        // Fallback para outros erros, evitando vazar stack trace
-        ErrorResponse errorResponse = new ErrorResponse("Ops! Ocorreu um erro interno. Nossa equipe já foi notificada e estamos trabalhando nisso.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        // Temporarily exposing stack trace/error message for debugging
+        ErrorResponse errorResponse = new ErrorResponse("Erro 500: " + ex.getClass().getSimpleName() + " - " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
