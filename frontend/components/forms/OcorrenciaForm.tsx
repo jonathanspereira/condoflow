@@ -191,7 +191,7 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                           <Input
                             placeholder="Ex: 3847"
                             className={`font-mono bg-white pr-10 ${condoValidation === "valid" ? "border-green-500 focus-visible:ring-green-400" :
-                                condoValidation === "invalid" ? "border-red-500 focus-visible:ring-red-400" : ""
+                              condoValidation === "invalid" ? "border-red-500 focus-visible:ring-red-400" : ""
                               }`}
                             aria-invalid={fieldState.invalid || condoValidation === "invalid"}
                             maxLength={4}
@@ -257,7 +257,6 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                           <SelectItem value="CONVIVENCIA">Convivência</SelectItem>
                           <SelectItem value="LIMPEZA">Limpeza</SelectItem>
                           <SelectItem value="SEGURANCA">Segurança</SelectItem>
-                          <SelectItem value="SUGESTAO">Sugestão</SelectItem>
                           <SelectItem value="OUTROS">Outros</SelectItem>
                         </SelectContent>
                       </Select>
