@@ -93,45 +93,43 @@ export default function QrCodePage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <header className="mb-8 print:hidden">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">QR Code do Condomínio</h1>
-        <p className="text-muted-foreground text-lg">
-          Gere e imprima o QR Code para que moradores, visitantes e prestadores relatem ocorrências facilmente.
-        </p>
-      </header>
-
       <div className="flex flex-col md:flex-row gap-6">
         {/* Cartaz para Impressão */}
         <Card className="flex-1 border-2 shadow-lg print:shadow-none print:border-none print:w-full print:h-screen flex flex-col justify-center bg-slate-50 relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-32 bg-primary/10 rounded-t-lg print:hidden" />
+          <div className="absolute top-0 inset-x-0 h-32 bg-emerald-500 rounded-t-lg print:hidden" />
           <CardContent className="pt-16 pb-16 flex flex-col items-center justify-center text-center space-y-8 relative z-10">
             <div className="space-y-4">
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight uppercase print:text-6xl">
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight uppercase print:text-6xl mt-8">
                 Ouvidoria
               </h2>
-              <h3 className="text-2xl font-bold text-primary max-w-md mx-auto print:text-4xl">
+              <h3 className="text-2xl font-bold text-emerald-600 max-w-md mx-auto print:text-4xl">
                 {condominiumName}
               </h3>
             </div>
             
-            <p className="text-lg text-slate-600 font-medium max-w-sm print:text-2xl print:max-w-xl">
-              Aponte a câmera do seu celular para registrar ocorrências, sugestões ou problemas.
-            </p>
+            <div className="space-y-1">
+              <p className="text-lg text-slate-600 font-medium max-w-sm print:text-2xl print:max-w-xl">
+                Aponte a câmera do seu celular para registrar ocorrências, sugestões ou problemas.
+              </p>
+              <p className="text-lg font-bold text-emerald-600 print:text-2xl">
+                ou acesse o site condoflow.fun
+              </p>
+            </div>
             
-            <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-100 print:shadow-none print:border-8 print:border-slate-900 inline-block">
+            <div className="bg-white p-6 rounded-2xl shadow-xl border border-emerald-100 print:shadow-none print:border-8 print:border-emerald-600 inline-block">
               <QRCodeSVG
                 id="qr-code-svg"
                 value={url}
-                size={250}
+                size={180}
                 level="H"
                 includeMargin={true}
-                className="print:w-[400px] print:h-[400px]"
+                className="print:w-[250px] print:h-[250px]"
               />
             </div>
             
             <div className="space-y-2">
-              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest print:text-xl">ID do Condomínio</p>
-              <div className="bg-slate-900 text-white font-mono text-4xl md:text-5xl font-bold py-3 px-8 rounded-lg tracking-widest print:text-7xl shadow-inner inline-block">
+              <p className="text-sm font-bold text-emerald-700 uppercase tracking-widest print:text-xl">ID do Condomínio</p>
+              <div className="bg-emerald-600 text-white font-mono text-4xl md:text-5xl font-bold py-3 px-8 rounded-lg tracking-widest print:text-7xl shadow-inner inline-block">
                 {condominiumId}
               </div>
             </div>
