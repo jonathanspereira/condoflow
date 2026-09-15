@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/units/me").authenticated()
                         // endpoints do sindico, precisam vir ANTES do matcher generico de /api/v1/condominiums/**
                         .requestMatchers(HttpMethod.GET, "/api/v1/condominiums/me").hasAuthority("SINDICO")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/condominiums/me").hasAuthority("SINDICO")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/*/sindico").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/*/plan").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                         .requestMatchers(HttpMethod.GET, "/api/v1/condominiums/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
