@@ -71,11 +71,10 @@ const CATEGORIA_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "Aberto",
   IN_PROGRESS: "Em Andamento",
-  RESOLVED: "Resolvido",
-  CLOSED: "Concluído",
+  RESOLVED: "Resolvido"
 }
 
-const STATUS_CONCLUIDOS = ["RESOLVED", "CLOSED"]
+const STATUS_CONCLUIDOS = ["RESOLVED"]
 
 type RelatedUnitStatus = "idle" | "checking" | "valid" | "not_found" | "same_unit" | "error" | "forbidden"
 

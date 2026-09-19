@@ -103,8 +103,7 @@ const CATEGORIA_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "Aberto",
   IN_PROGRESS: "Em Andamento",
-  RESOLVED: "Resolvido",
-  CLOSED: "Concluído",
+  RESOLVED: "Resolvido"
 }
 
 export default function HistoricoOcorrenciasPage() {
@@ -348,7 +347,7 @@ export default function HistoricoOcorrenciasPage() {
 
     if (abaStatus === "abertas") return oc.status === "OPEN"
     if (abaStatus === "emandamento") return oc.status === "IN_PROGRESS"
-    if (abaStatus === "concluidas") return oc.status === "RESOLVED" || oc.status === "CLOSED"
+    if (abaStatus === "concluidas") return oc.status === "RESOLVED"
 
     return true
   })
@@ -357,7 +356,7 @@ export default function HistoricoOcorrenciasPage() {
   const qtdTotal = ocorrencias.length
   const qtdAbertas = ocorrencias.filter((o) => o.status === "OPEN").length
   const qtdEmAndamento = ocorrencias.filter((o) => o.status === "IN_PROGRESS").length
-  const qtdConcluidas = ocorrencias.filter((o) => o.status === "RESOLVED" || o.status === "CLOSED").length
+  const qtdConcluidas = ocorrencias.filter((o) => o.status === "RESOLVED").length
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
@@ -701,12 +700,6 @@ export default function HistoricoOcorrenciasPage() {
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-emerald-500" />
                           Resolvido
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="CLOSED">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-slate-500" />
-                          Concluído
                         </div>
                       </SelectItem>
                     </SelectContent>

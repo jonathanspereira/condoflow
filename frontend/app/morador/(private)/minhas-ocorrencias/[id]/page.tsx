@@ -63,16 +63,14 @@ const CATEGORIA_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "Aberto",
   IN_PROGRESS: "Em Andamento",
-  RESOLVED: "Resolvido",
-  CLOSED: "Concluído",
+  RESOLVED: "Resolvido"
 }
 
 // Ordem canônica do fluxo de status, usada para montar a timeline
-const STATUS_FLOW: { key: string; label: string; icon: typeof Clock }[] = [
+const STATUS_TIMELINE = [
   { key: "OPEN", label: "Aberto", icon: Clock },
   { key: "IN_PROGRESS", label: "Em Andamento", icon: MessageSquare },
-  { key: "RESOLVED", label: "Resolvido", icon: CheckCircle2 },
-  { key: "CLOSED", label: "Concluído", icon: CheckCircle2 },
+  { key: "RESOLVED", label: "Resolvido", icon: CheckCircle2 }
 ]
 
 export default function DetalheOcorrencia({ params }: { params: Promise<{ id: string }> }) {
@@ -202,9 +200,9 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
 
   // Monta a timeline com base no status atual, marcando os passos já concluídos
   const buildTimeline = (status: string) => {
-    const currentIndex = STATUS_FLOW.findIndex((s) => s.key === status)
+    const currentIndex = STATUS_TIMELINE.findIndex((s) => s.key === status)
     const idx = currentIndex === -1 ? 0 : currentIndex
-    return STATUS_FLOW.slice(0, idx + 1).map((step, i) => ({
+    return STATUS_TIMELINE.slice(0, idx + 1).map((step, i) => ({
       ...step,
       current: i === idx,
     }))
@@ -299,7 +297,7 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
               })}
 
               {/* Área de Resposta e Upload */}
-              {occurrence.status !== "CLOSED" && (
+              {occurrence.status !== "RESOLVED" && (
                 <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
                   <Textarea 
                     placeholder="Adicionar um novo comentário ou resposta..."

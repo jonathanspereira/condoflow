@@ -114,7 +114,7 @@ public class EmailService {
     public void sendOccurrenceUpdateNotification(String toEmail, String userName, String protocol, String title, String newStatus, String message) {
         String occurrenceLink = frontendUrl + "/morador/minhas-ocorrencias/" + protocol;
 
-        boolean isFinalized = "RESOLVED".equalsIgnoreCase(newStatus) || "CLOSED".equalsIgnoreCase(newStatus);
+        boolean isFinalized = "RESOLVED".equalsIgnoreCase(newStatus);
         
         String subject;
         String headerTitle;
@@ -193,7 +193,6 @@ public class EmailService {
             case "OPEN" -> "ABERTO";
             case "IN_PROGRESS" -> "EM ATENDIMENTO";
             case "RESOLVED" -> "RESOLVIDO";
-            case "CLOSED" -> "CONCLUÍDO";
             default -> status;
         };
     }

@@ -211,7 +211,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
 
   const qtdAbertas = ocorrencias.filter(o => o.status === "OPEN").length
   const qtdEmAndamento = ocorrencias.filter(o => o.status === "IN_PROGRESS").length
-  const qtdConcluidas = ocorrencias.filter(o => o.status === "RESOLVED" || o.status === "CLOSED").length
+  const qtdConcluidas = ocorrencias.filter(o => o.status === "RESOLVED").length
 
   if (isLoading) {
     return (
@@ -328,7 +328,7 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
 
                     <div className="flex items-center gap-4">
                        <Badge className={oc.status === 'OPEN' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}>
-                        {{"OPEN": "Aberto", "IN_PROGRESS": "Em Andamento", "RESOLVED": "Resolvido", "CLOSED": "Concluído"}[oc.status as string] || oc.status}
+                        {{"OPEN": "Aberto", "IN_PROGRESS": "Em Andamento", "RESOLVED": "Resolvido"}[oc.status as string] || oc.status}
                        </Badge>
                        <Button variant="ghost" size="icon" onClick={() => handleOpenResponder(oc)}>
                           <MessageCircle className="h-5 w-5 text-slate-400 hover:text-emerald-600" />
@@ -429,12 +429,6 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-emerald-500" />
                           Resolvido
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="CLOSED">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-slate-500" />
-                          Fechado
                         </div>
                       </SelectItem>
                     </SelectContent>

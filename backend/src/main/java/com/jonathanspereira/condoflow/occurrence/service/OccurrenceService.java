@@ -379,7 +379,6 @@ public class OccurrenceService {
             case OPEN -> "Aberto";
             case IN_PROGRESS -> "Em Andamento";
             case RESOLVED -> "Resolvido";
-            case CLOSED -> "Concluído";
         };
     }
 

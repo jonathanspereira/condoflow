@@ -28,7 +28,7 @@ public class CondominiumManagementService {
             List.of(OccurrenceCategory.SEGURANCA, OccurrenceCategory.MANUTENCAO);
 
     private static final List<OccurrenceStatus> CLOSED_STATUSES =
-            List.of(OccurrenceStatus.RESOLVED, OccurrenceStatus.CLOSED);
+            List.of(OccurrenceStatus.RESOLVED);
 
     private final CondominiumRoleRepository condominiumRoleRepository;
     private final OccurrenceRepository occurrenceRepository;

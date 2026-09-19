@@ -38,8 +38,7 @@ public class DashboardService {
     private static final Map<OccurrenceStatus, String> STATUS_LABELS = Map.of(
             OccurrenceStatus.OPEN, "Aberto",
             OccurrenceStatus.IN_PROGRESS, "Em Andamento",
-            OccurrenceStatus.RESOLVED, "Resolvido",
-            OccurrenceStatus.CLOSED, "Concluído"
+            OccurrenceStatus.RESOLVED, "Resolvido"
     );
 
     public DashboardStatsDTO getGlobalStats() {
@@ -74,7 +73,7 @@ public class DashboardService {
 
                     if (status == OccurrenceStatus.OPEN) openCount += count;
                     else if (status == OccurrenceStatus.IN_PROGRESS) inProgressCount += count;
-                    else if (status == OccurrenceStatus.RESOLVED || status == OccurrenceStatus.CLOSED) resolvedCount += count;
+                    else if (status == OccurrenceStatus.RESOLVED) resolvedCount += count;
 
                     statusStats.add(new DashboardStatsDTO.StatusStatDTO(
                             status.name(),
@@ -171,7 +170,7 @@ public class DashboardService {
                             long count = ((Number) row[3]).longValue();
                             monthTotal += count;
                             OccurrenceStatus status = (OccurrenceStatus) row[2];
-                            if (status == OccurrenceStatus.RESOLVED || status == OccurrenceStatus.CLOSED) {
+                            if (status == OccurrenceStatus.RESOLVED) {
                                 monthResolved += count;
                             }
                         }
@@ -225,7 +224,7 @@ public class DashboardService {
                     total += count;
                     if (status == OccurrenceStatus.OPEN || status == OccurrenceStatus.IN_PROGRESS) {
                         open += count;
-                    } else if (status == OccurrenceStatus.RESOLVED || status == OccurrenceStatus.CLOSED) {
+                    } else if (status == OccurrenceStatus.RESOLVED) {
                         resolved += count;
                     }
 

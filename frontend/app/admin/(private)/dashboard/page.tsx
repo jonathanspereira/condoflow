@@ -93,8 +93,7 @@ const STATUS_COLORS: Record<string, string> = {
   OPEN: "#f59e0b",       // Amber
   IN_PROGRESS: "#3b82f6",// Blue
   RESOLVED: "#10b981",   // Emerald
-  CLOSED: "#64748b",     // Slate
-}
+};
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)

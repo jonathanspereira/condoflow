@@ -35,18 +35,16 @@ const CATEGORIA_LABELS: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "Aberto",
-  IN_PROGRESS: "Em Execução",
-  RESOLVED: "Resolvido",
-  CLOSED: "Concluído",
-}
+  IN_PROGRESS: "Em Andamento",
+  RESOLVED: "Resolvido"
+};
 
 const COLORS = ["#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
 const STATUS_COLORS: Record<string, string> = {
-  OPEN: "#f59e0b",
-  IN_PROGRESS: "#0ea5e9",
-  RESOLVED: "#10b981",
-  CLOSED: "#64748b"
-}
+  OPEN: "#f59e0b",       // Amber
+  IN_PROGRESS: "#3b82f6",// Blue
+  RESOLVED: "#10b981"    // Emerald
+};
 
 export default function PainelSindico() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
