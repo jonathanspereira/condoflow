@@ -84,7 +84,7 @@ export default function RegistrarEncomendaPage() {
       if (!res.ok) throw new Error("Erro ao registrar encomenda")
 
       toast.success("Encomenda registrada com sucesso! E-mail enviado ao morador.")
-      router.push("/sindico/painel/encomendas")
+      router.push("/portaria/encomendas")
     } catch (error) {
       toast.error("Erro ao registrar a encomenda. Tente novamente.")
     } finally {
@@ -95,7 +95,7 @@ export default function RegistrarEncomendaPage() {
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/sindico/painel/encomendas")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/portaria/encomendas")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>

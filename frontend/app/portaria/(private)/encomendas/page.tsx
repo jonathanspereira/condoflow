@@ -75,8 +75,18 @@ export default function EncomendasPage() {
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Histórico de Encomendas</h1>
-          <p className="text-sm text-slate-500 mt-1">Acompanhe as encomendas recebidas e entregues pela portaria.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Gestão de Encomendas</h1>
+          <p className="text-sm text-slate-500 mt-1">Controle de recebimento e entrega de pacotes.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push("/portaria/encomendas/novo")} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Receber Pacote
+          </Button>
+          <Button onClick={() => router.push("/portaria/encomendas/leitor")} variant="secondary" className="gap-2">
+            <QrCode className="h-4 w-4" />
+            Leitor de Liberação
+          </Button>
         </div>
       </div>
 

@@ -80,7 +80,7 @@ export default function LeitorEncomendasPage() {
       
       // Volta para a página de encomendas após o sucesso
       setTimeout(() => {
-        router.push("/sindico/painel/encomendas")
+        router.push("/portaria/encomendas")
       }, 2000)
 
     } catch (error: any) {
@@ -97,7 +97,7 @@ export default function LeitorEncomendasPage() {
   return (
     <div className="p-4 md:p-8 max-w-lg mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/sindico/painel/encomendas")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/portaria/encomendas")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>

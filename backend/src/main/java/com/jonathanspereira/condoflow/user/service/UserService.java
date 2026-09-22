@@ -278,6 +278,7 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
+        user.setForcePasswordChange(false);
         userRepository.save(user);
         
         auditLogService.log("AUTH", "CHANGE_PASSWORD", email, "Senha alterada com sucesso");

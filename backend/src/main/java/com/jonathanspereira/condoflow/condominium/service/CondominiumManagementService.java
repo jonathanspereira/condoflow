@@ -234,6 +234,122 @@ public class CondominiumManagementService {
         return new UserResponseDTO(updated);
     }
 
+    public List<UserResponseDTO> getConciergesForCondominium(Long condominiumId) {
+        return condominiumRoleRepository.findByCondominiumId(condominiumId)
+                .stream()
+                .filter(m -> m.getRole() == com.jonathanspereira.condoflow.user.entity.Role.CONCIERGE)
+                .map(m -> new UserResponseDTO(m.getUser()))
+                .collect(Collectors.toList());
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public UserResponseDTO addConcierge(Long condominiumId, String sindicoEmail, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
+        User sindico = getUserByEmail(sindicoEmail);
+
+        CondominiumRole currentManagement = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
+                .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
+
+        if (!currentManagement.isActive() || (currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO && currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN)) {
+            throw new BusinessException("Apenas o administrador pode cadastrar porteiros.");
+        }
+
+        com.jonathanspereira.condoflow.condominium.entity.Condominium condominium = currentManagement.getCondominium();
+
+        UserDetails existingDetails = userRepository.findByEmail(dto.getEmail());
+        User newConcierge;
+
+        if (existingDetails != null) {
+            newConcierge = (User) existingDetails;
+            if (newConcierge.getRole() != com.jonathanspereira.condoflow.user.entity.Role.CONCIERGE) {
+                newConcierge.setRole(com.jonathanspereira.condoflow.user.entity.Role.CONCIERGE);
+                userRepository.save(newConcierge);
+            }
+        } else {
+            newConcierge = new User();
+            newConcierge.setName(dto.getName());
+            newConcierge.setEmail(dto.getEmail());
+            // DEFAULT PASSWORD "123456" WITH FORCE_PASSWORD_CHANGE = TRUE
+            newConcierge.setPassword(passwordEncoder.encode("123456")); 
+            newConcierge.setRole(com.jonathanspereira.condoflow.user.entity.Role.CONCIERGE);
+            newConcierge.setForcePasswordChange(true);
+            newConcierge = userRepository.save(newConcierge);
+        }
+
+        final String newConciergeId = newConcierge.getId();
+        boolean alreadyLinked = condominiumRoleRepository.findByCondominiumId(condominiumId).stream()
+                .anyMatch(m -> m.getUser().getId().equals(newConciergeId) && m.getRole() == com.jonathanspereira.condoflow.user.entity.Role.CONCIERGE);
+
+        if (!alreadyLinked) {
+            CondominiumRole newRole = new CondominiumRole();
+            newRole.setUser(newConcierge);
+            newRole.setCondominium(condominium);
+            newRole.setRole(com.jonathanspereira.condoflow.user.entity.Role.CONCIERGE);
+            newRole.setActive(true);
+            newRole.setFocusModeEnabled(false);
+            condominiumRoleRepository.save(newRole);
+        }
+
+        auditLogService.log("CONCIERGE", "ADD_CONCIERGE", sindicoEmail, "Porteiro " + newConcierge.getEmail() + " adicionado ao condomínio: " + condominium.getName());
+        return new UserResponseDTO(newConcierge);
+    }
+
+    public void removeConcierge(Long condominiumId, String sindicoEmail, String conciergeId) {
+        User sindico = getUserByEmail(sindicoEmail);
+
+        CondominiumRole currentManagement = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
+                .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
+
+        if (!currentManagement.isActive() || (currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO && currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN)) {
+            throw new BusinessException("Apenas o administrador pode remover porteiros.");
+        }
+
+        CondominiumRole conciergeRole = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, conciergeId)
+                .orElseThrow(() -> new RuntimeException("Vínculo não encontrado."));
+
+        if (conciergeRole.getRole() != com.jonathanspereira.condoflow.user.entity.Role.CONCIERGE) {
+            throw new BusinessException("Este usuário não é um porteiro deste condomínio.");
+        }
+
+        condominiumRoleRepository.delete(conciergeRole);
+        auditLogService.log("CONCIERGE", "REMOVE_CONCIERGE", sindicoEmail, "Porteiro removido do condomínio ID: " + condominiumId);
+    }
+
+    public UserResponseDTO updateConcierge(Long condominiumId, String sindicoEmail, String conciergeId, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
+        User sindico = getUserByEmail(sindicoEmail);
+
+        CondominiumRole currentManagement = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
+                .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
+
+        if (!currentManagement.isActive() || (currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO && currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN)) {
+            throw new BusinessException("Apenas o administrador pode editar porteiros.");
+        }
+
+        CondominiumRole conciergeRole = condominiumRoleRepository
+                .findByCondominiumIdAndUserId(condominiumId, conciergeId)
+                .orElseThrow(() -> new RuntimeException("Vínculo não encontrado."));
+
+        User concierge = conciergeRole.getUser();
+
+        if (dto.getEmail() != null && !dto.getEmail().isBlank() && !concierge.getEmail().equalsIgnoreCase(dto.getEmail())) {
+            if (userRepository.findByEmail(dto.getEmail()) != null) {
+                throw new BusinessException("Email já cadastrado no sistema.");
+            }
+            concierge.setEmail(dto.getEmail());
+        }
+
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            concierge.setName(dto.getName());
+        }
+
+        User updated = userRepository.save(concierge);
+        auditLogService.log("CONCIERGE", "UPDATE_CONCIERGE", sindicoEmail, "Porteiro atualizado no condomínio ID: " + condominiumId);
+        return new UserResponseDTO(updated);
+    }
+
     private User getUserByEmail(String email) {
         UserDetails details = userRepository.findByEmail(email);
         if (details == null) {

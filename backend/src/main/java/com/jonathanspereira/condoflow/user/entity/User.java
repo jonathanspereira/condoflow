@@ -34,6 +34,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
+    @Column(name = "force_password_change", nullable = false)
+    private boolean forcePasswordChange = false;
+
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean active = true;
 

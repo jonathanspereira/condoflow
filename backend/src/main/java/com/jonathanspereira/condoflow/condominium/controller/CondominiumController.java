@@ -118,6 +118,34 @@ public class CondominiumController {
         return ResponseEntity.ok(condominiumManagementService.updateSindico(id, sindicoId, dto));
     }
 
+    @GetMapping("/{id}/concierges")
+    public ResponseEntity<List<UserResponseDTO>> getConcierges(@PathVariable Long id) {
+        return ResponseEntity.ok(condominiumManagementService.getConciergesForCondominium(id));
+    }
+
+    @PostMapping("/{id}/concierges")
+    public ResponseEntity<UserResponseDTO> addConcierge(
+            @PathVariable Long id,
+            @RequestBody @Valid UserRequestDTO dto,
+            Principal principal) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(condominiumManagementService.addConcierge(id, principal.getName(), dto));
+    }
+
+    @DeleteMapping("/{id}/concierges/{conciergeId}")
+    public ResponseEntity<Void> removeConcierge(@PathVariable Long id, @PathVariable String conciergeId, Principal principal) {
+        condominiumManagementService.removeConcierge(id, principal.getName(), conciergeId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/concierges/{conciergeId}")
+    public ResponseEntity<UserResponseDTO> updateConcierge(
+            @PathVariable Long id,
+            @PathVariable String conciergeId,
+            @RequestBody @Valid UserRequestDTO dto,
+            Principal principal) {
+        return ResponseEntity.ok(condominiumManagementService.updateConcierge(id, principal.getName(), conciergeId, dto));
+    }
+
     @PutMapping("/{id}/focus-mode")
     public ResponseEntity<Void> alternarModoFoco(
             @PathVariable Long id,

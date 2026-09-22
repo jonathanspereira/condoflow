@@ -89,7 +89,7 @@ public class AuthService {
 
         String token = tokenService.generateToken(savedUser);
         auditLogService.log("AUTH", "REGISTER_SINDICO", savedUser.getEmail(), "Síndico registrado e condomínio criado: " + savedCondo.getName());
-        return new AuthResponseDTO(token, savedUser.getName(), savedUser.getEmail(), savedUser.getRole().name());
+        return new AuthResponseDTO(token, savedUser.getName(), savedUser.getEmail(), savedUser.getRole().name(), savedUser.isForcePasswordChange());
     }
 
     public AuthResponseDTO login(AuthRequestDTO dto) {
@@ -110,7 +110,7 @@ public class AuthService {
 
         String token = tokenService.generateToken(user);
         auditLogService.log("AUTH", "LOGIN", user.getEmail(), "Login efetuado com sucesso (" + user.getRole().name() + ")");
-        return new AuthResponseDTO(token, user.getName(), user.getEmail(), user.getRole().name());
+        return new AuthResponseDTO(token, user.getName(), user.getEmail(), user.getRole().name(), user.isForcePasswordChange());
     }
 
     public void forgotPassword(String email) {

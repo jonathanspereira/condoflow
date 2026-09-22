@@ -40,28 +40,87 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Seção Hero */}
-        <section className="py-20 px-8 text-center bg-slate-50 border-b">
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-slate-900 mb-6">
-            Gestão de Ocorrências <br className="hidden md:block" />
-            <span className="text-primary">Sem Complicação.</span>
-          </h1>
-          <p className="mx-auto max-w-[600px] text-slate-500 md:text-xl mb-10">
-            A plataforma oficial para moradores e síndicos resolverem problemas do condomínio com transparência e agilidade.
-          </p>
+        <section className="relative overflow-hidden py-20 px-8 bg-slate-50 border-b">
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+          <div className="relative max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+            <div className="flex-1 text-center lg:text-left z-10">
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-slate-900 mb-6">
+                Gestão de Ocorrências <br className="hidden md:block" />
+                <span className="text-emerald-600 bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500">Sem Complicação.</span>
+              </h1>
+              <p className="mx-auto lg:mx-0 max-w-[600px] text-slate-500 md:text-xl mb-10">
+                A plataforma oficial para moradores e síndicos resolverem problemas do condomínio com transparência, agilidade e inteligência.
+              </p>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild size="lg" className="px-8 h-14 text-lg">
-              <Link href="/ocorrencia">
-                <PlusCircle className="mr-2 h-5 w-5" />
-                Nova Ocorrência
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="px-8 h-14 text-lg">
-              <Link href="/ocorrencia/consulta">
-                <Search className="mr-2 h-5 w-5" />
-                Consultar Protocolo
-              </Link>
-            </Button>
+              <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+                <Button asChild size="lg" className="px-8 h-14 text-lg bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105">
+                  <Link href="/ocorrencia">
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    Nova Ocorrência
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="px-8 h-14 text-lg border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-all">
+                  <Link href="/ocorrencia/consulta">
+                    <Search className="mr-2 h-5 w-5" />
+                    Consultar Protocolo
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 relative w-full max-w-lg lg:max-w-none h-[400px] hidden md:block z-10">
+              {/* Floating UI Elements */}
+              <div className="absolute top-10 right-10 w-72 bg-white/80 backdrop-blur-md border border-white/40 shadow-2xl rounded-2xl p-4 transform rotate-3 hover:rotate-0 transition-transform duration-500 animate-float">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-emerald-100 p-2 rounded-full">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Ocorrência #492 Resolvida</p>
+                    <p className="text-xs text-slate-500">Há 2 minutos</p>
+                  </div>
+                </div>
+                <div className="h-2 bg-emerald-100 rounded-full w-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 w-full rounded-full"></div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-10 left-0 w-64 bg-slate-900/90 backdrop-blur-md border border-slate-700 shadow-2xl rounded-2xl p-4 transform -rotate-3 hover:rotate-0 transition-transform duration-500 animate-float-delayed">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-blue-500/20 p-2 rounded-full">
+                    <UserCog className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">Novo Morador Ativo</p>
+                    <p className="text-xs text-slate-400">Apto 402 - Bloco B</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-6 w-16 bg-slate-700 rounded-md"></div>
+                  <div className="h-6 w-12 bg-slate-700 rounded-md"></div>
+                </div>
+              </div>
+
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 bg-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] rounded-3xl p-6 border border-slate-100 z-20">
+                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-emerald-600" /> Visão Geral
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
+                    <span className="text-sm font-medium text-slate-600">Ocorrências Abertas</span>
+                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">12</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
+                    <span className="text-sm font-medium text-slate-600">Encomendas Pendentes</span>
+                    <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-1 rounded-full">5</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
+                    <span className="text-sm font-medium text-slate-600">Reservas Hoje</span>
+                    <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-full">3</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

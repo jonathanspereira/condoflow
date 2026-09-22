@@ -14,6 +14,7 @@ public class UserResponseDTO {
     private String name;
     private String email;
     private Role role;
+    private boolean forcePasswordChange;
     private String condominiumName;
 
     private Long unitId;
@@ -27,6 +28,7 @@ public class UserResponseDTO {
         this.name = user.getName();
         this.email = user.getEmail();
         this.role = user.getRole();
+        this.forcePasswordChange = user.isForcePasswordChange();
     }
 
     public UserResponseDTO(User user, Unit unit, String condominiumName) {

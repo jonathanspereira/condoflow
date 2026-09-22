@@ -1,0 +1,176 @@
+"use client"
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, Loader2 } from "lucide-react"
+import { toast } from "sonner"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Turnstile } from '@marsidev/react-turnstile'
+
+const ALLOWED_ROLES = ["CONCIERGE", "SINDICO", "SUPER_ADMIN"]
+
+const loginSchema = z.object({
+  email: z.string().min(1, "O e-mail é obrigatório.").email("Digite um formato de e-mail válido."),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
+
+export default function LoginPortariaPage() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [turnstileToken, setTurnstileToken] = useState<string>("")
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  })
+
+  async function onSubmit(data: LoginFormValues) {
+    if (!turnstileToken) {
+      toast.error("Por favor, valide o captcha antes de prosseguir.")
+      return
+    }
+
+    setError("")
+    setIsLoading(true)
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email, password: data.password, turnstileToken })
+      })
+
+      if (response.ok) {
+        const responseData = await response.json()
+
+        if (!ALLOWED_ROLES.includes(responseData.role)) {
+          setError("Este acesso é exclusivo para portaria.")
+          toast.error("Acesso negado.", { description: "Este login é exclusivo para concierges e administração." })
+          setIsLoading(false)
+          return
+        }
+
+        localStorage.setItem("condoflow_token", responseData.token)
+        toast.success("Login realizado com sucesso!")
+        
+        if (responseData.forcePasswordChange) {
+          toast.warning("Por favor, altere sua senha padrão para continuar.")
+          router.push("/portaria/perfil")
+        } else {
+          router.push("/portaria/encomendas")
+        }
+      } else {
+        const errorData = await response.json().catch(() => null)
+        const msg = errorData?.message || "E-mail ou senha inválidos."
+        setError(msg)
+        toast.error(msg)
+        setIsLoading(false)
+      }
+    } catch (err) {
+      console.error("Erro ao autenticar:", err)
+      setError("Erro de conexão com o servidor.")
+      toast.error("Erro de conexão com o servidor.")
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0 bg-slate-50">
+      <Link
+        href="/"
+        className="absolute left-4 top-4 md:left-8 md:top-8 flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Link>
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+        <Card className="shadow-xl border-t-4 border-t-primary">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center font-bold">Login da Portaria</CardTitle>
+            <CardDescription className="text-center">
+              Acesse o sistema para registrar e entregar encomendas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-md font-medium">
+                {error}
+              </div>
+            )}
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="portaria@condominio.com"
+                    disabled={isLoading}
+                    {...register("email")}
+                    className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  />
+                  {errors.email && (
+                    <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>
+                  )}
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Senha</Label>
+                    <Link
+                      href="/recuperar-senha"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Esqueceu a senha?
+                    </Link>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    disabled={isLoading}
+                    {...register("password")}
+                    className={errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  />
+                  {errors.password && (
+                    <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>
+                  )}
+                </div>
+                
+                <div className="flex justify-center mt-2">
+                  <Turnstile 
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+                    onSuccess={(token) => setTurnstileToken(token)}
+                  />
+                </div>
+
+                <Button className="w-full mt-2" type="submit" disabled={isLoading || !turnstileToken}>
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Acessar Painel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+          <CardFooter className="flex flex-col">
+            <p className="mt-4 text-xs text-center text-muted-foreground">
+              Problemas com acesso? Contate o síndico.
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  )
+}

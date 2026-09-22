@@ -42,8 +42,11 @@ public class ParcelService {
         Unit unit = unitRepository.findById(requestDTO.getUnitId())
                 .orElseThrow(() -> new IllegalArgumentException("Unit not found"));
 
-        User receivedBy = userRepository.findByEmail(receivedByEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User (Concierge) not found"));
+        org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(receivedByEmail);
+        if (userDetails == null) {
+            throw new IllegalArgumentException("User (Concierge) not found");
+        }
+        User receivedBy = (User) userDetails;
 
         String deliveryCode = UUID.randomUUID().toString();
 
@@ -60,11 +63,11 @@ public class ParcelService {
 
         Parcel saved = parcelRepository.save(parcel);
 
-        if (unit.getProprietary() != null) {
-            String toEmail = unit.getProprietary().getEmail();
+        if (unit.getOwner() != null) {
+            String toEmail = unit.getOwner().getEmail();
             emailService.sendNewParcelNotification(
                     toEmail,
-                    unit.getProprietary().getName(),
+                    unit.getOwner().getName(),
                     saved.getDescription(),
                     String.valueOf(saved.getId()),
                     deliveryCode
@@ -93,8 +96,11 @@ public class ParcelService {
             throw new IllegalStateException("Esta encomenda já foi entregue ou devolvida.");
         }
 
-        User deliveredBy = userRepository.findByEmail(deliveredByEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User (Concierge) not found"));
+        org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(deliveredByEmail);
+        if (userDetails == null) {
+            throw new IllegalArgumentException("User (Concierge) not found");
+        }
+        User deliveredBy = (User) userDetails;
 
         parcel.setStatus(ParcelStatus.DELIVERED);
         parcel.setDeliveredAt(LocalDateTime.now());
@@ -115,7 +121,7 @@ public class ParcelService {
                 .receivedAt(parcel.getReceivedAt())
                 .deliveredAt(parcel.getDeliveredAt())
                 .unitId(parcel.getUnit() != null ? parcel.getUnit().getId() : null)
-                .unitName(parcel.getUnit() != null ? parcel.getUnit().getName() : null)
+                .unitName(parcel.getUnit() != null ? parcel.getUnit().getUnit() : null)
                 .receivedByName(parcel.getReceivedBy() != null ? parcel.getReceivedBy().getName() : null)
                 .deliveredByName(parcel.getDeliveredBy() != null ? parcel.getDeliveredBy().getName() : null)
                 .build();
