@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Upload, X, FileVideo, FileImage, Loader2 } from "lucide-react"
+import { Upload, X, FileVideo, FileImage, Loader2, Info } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
 
@@ -107,6 +107,10 @@ export default function RegistrarOcorrencia() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg flex gap-3 items-start text-sm mb-6">
+            <Info className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <p><strong>Prazo de Resposta:</strong> O síndico ou administração possui um prazo de até 48 horas para responder a sua ocorrência após o envio.</p>
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
