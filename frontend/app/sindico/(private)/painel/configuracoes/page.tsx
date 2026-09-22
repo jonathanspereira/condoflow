@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertTriangle, UserCog, Loader2 } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AlertTriangle, UserCog, Loader2, Building } from "lucide-react"
 
 const transferSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres."),
@@ -129,67 +130,90 @@ export default function ConfiguracoesPage() {
         <p className="text-slate-500 mt-1">Gerencie configurações avançadas e a titularidade do condomínio.</p>
       </div>
 
-      <Card className="border-red-100 shadow-sm overflow-hidden">
-        <CardHeader className="bg-red-50/50 border-b border-red-100">
-          <CardTitle className="text-red-700 flex items-center gap-2 text-lg">
-            <AlertTriangle className="h-5 w-5" />
-            Transferência de Titularidade (Síndico)
-          </CardTitle>
-          <CardDescription className="text-red-700/70">
-            Atenção: Ao transferir a titularidade, você perderá <strong>imediatamente</strong> o acesso a este condomínio. Esta ação não pode ser desfeita por você.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <form id="transfer-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome do Novo Síndico</Label>
-                <Input
-                  id="name"
-                  placeholder="Nome completo"
-                  {...register("name")}
-                  className={errors.name ? "border-red-500 focus-visible:ring-red-500" : "bg-slate-50"}
-                />
-                {errors.name && <p className="text-xs text-red-500 font-medium">{errors.name.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail do Novo Síndico</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="email@exemplo.com"
-                  {...register("email")}
-                  className={errors.email ? "border-red-500 focus-visible:ring-red-500" : "bg-slate-50"}
-                />
-                {errors.email && <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>}
-              </div>
-            </div>
+      <Tabs defaultValue="geral" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="geral" className="gap-2"><Building className="h-4 w-4" /> Geral</TabsTrigger>
+          <TabsTrigger value="titularidade" className="gap-2 text-red-600 data-[state=active]:text-red-700 data-[state=active]:bg-red-50"><AlertTriangle className="h-4 w-4" /> Titularidade</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="geral">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Configurações Gerais</CardTitle>
+              <CardDescription>
+                Gerencie as informações gerais e preferências do condomínio.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-500 italic">Mais configurações serão adicionadas em breve.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <Alert variant="destructive" className="bg-red-50/50 border-red-200">
-              <AlertTitle className="font-bold flex items-center gap-2">
-                Confirmação de Segurança
-              </AlertTitle>
-              <AlertDescription className="mt-3">
-                <div className="space-y-3">
-                  <p className="text-sm">Para continuar, digite a palavra <strong className="bg-red-100 px-1 rounded">TRANSFERIR</strong> no campo abaixo.</p>
-                  <Input
-                    placeholder="TRANSFERIR"
-                    {...register("confirmation")}
-                    className={errors.confirmation ? "border-red-500 bg-white" : "bg-white"}
-                  />
-                  {errors.confirmation && <p className="text-xs text-red-500 font-medium">{errors.confirmation.message}</p>}
+        <TabsContent value="titularidade">
+          <Card className="border-red-100 shadow-sm overflow-hidden">
+            <CardHeader className="bg-red-50/50 border-b border-red-100">
+              <CardTitle className="text-red-700 flex items-center gap-2 text-lg">
+                <AlertTriangle className="h-5 w-5" />
+                Transferência de Titularidade (Síndico)
+              </CardTitle>
+              <CardDescription className="text-red-700/70">
+                Atenção: Ao transferir a titularidade, você perderá <strong>imediatamente</strong> o acesso a este condomínio. Esta ação não pode ser desfeita por você.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form id="transfer-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome do Novo Síndico</Label>
+                    <Input
+                      id="name"
+                      placeholder="Nome completo"
+                      {...register("name")}
+                      className={errors.name ? "border-red-500 focus-visible:ring-red-500" : "bg-slate-50"}
+                    />
+                    {errors.name && <p className="text-xs text-red-500 font-medium">{errors.name.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">E-mail do Novo Síndico</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      {...register("email")}
+                      className={errors.email ? "border-red-500 focus-visible:ring-red-500" : "bg-slate-50"}
+                    />
+                    {errors.email && <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>}
+                  </div>
                 </div>
-              </AlertDescription>
-            </Alert>
-          </form>
-        </CardContent>
-        <CardFooter className="border-t bg-slate-50 py-4 flex justify-end">
-          <Button type="submit" form="transfer-form" variant="destructive" disabled={isLoading} className="font-bold">
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Transferir Acesso Administrativo
-          </Button>
-        </CardFooter>
-      </Card>
+
+                <Alert variant="destructive" className="bg-red-50/50 border-red-200">
+                  <AlertTitle className="font-bold flex items-center gap-2">
+                    Confirmação de Segurança
+                  </AlertTitle>
+                  <AlertDescription className="mt-3">
+                    <div className="space-y-3">
+                      <p className="text-sm">Para continuar, digite a palavra <strong className="bg-red-100 px-1 rounded">TRANSFERIR</strong> no campo abaixo.</p>
+                      <Input
+                        placeholder="TRANSFERIR"
+                        {...register("confirmation")}
+                        className={errors.confirmation ? "border-red-500 bg-white" : "bg-white"}
+                      />
+                      {errors.confirmation && <p className="text-xs text-red-500 font-medium">{errors.confirmation.message}</p>}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              </form>
+            </CardContent>
+            <CardFooter className="border-t bg-slate-50 py-4 flex justify-end">
+              <Button type="submit" form="transfer-form" variant="destructive" disabled={isLoading} className="font-bold">
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Transferir Acesso Administrativo
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
