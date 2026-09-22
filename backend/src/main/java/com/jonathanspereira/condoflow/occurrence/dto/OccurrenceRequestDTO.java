@@ -16,11 +16,9 @@ public record OccurrenceRequestDTO(
 
         Long unitId,
 
-        String relatedUnits,
-
-        String turnstileToken
+        String relatedUnits
 ) {
     public OccurrenceRequestDTO(String title, String description, OccurrenceCategory category) {
-        this(title, description, category, null, null, null);
+        this(title, description, category, null, null);
     }
 }

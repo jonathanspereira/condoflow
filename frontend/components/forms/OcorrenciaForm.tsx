@@ -13,17 +13,13 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Upload, X, FileVideo, FileImage, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { useState, useCallback } from "react"
-import { CheckCircle2, XCircle } from "lucide-react"
-import { Turnstile } from '@marsidev/react-turnstile'
+import { useState } from "react"
 
 const formSchema = z.object({
-  condominiumId: z.string().min(1, "O ID do condomínio é obrigatório"),
   unidadeEnvolvida: z.string().optional(),
   titulo: z.string().min(5, "Título deve ter pelo menos 5 caracteres"),
   categoria: z.string().min(1, "Selecione uma categoria"),
   descricao: z.string().min(10, "Descreva o problema com mais detalhes"),
-  emailNotificacao: z.string().email({ message: "E-mail inválido" }).optional().or(z.literal("")),
   ocultarIdentidade: z.boolean().default(false),
   midias: z.custom<File[]>().optional(),
 })
@@ -31,105 +27,41 @@ const formSchema = z.object({
 type FormValuesInput = z.input<typeof formSchema>
 type FormValuesOutput = z.output<typeof formSchema>
 
-export default function RegistrarOcorrencia({ isAnonimo = false }) {
+export default function RegistrarOcorrencia() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [turnstileToken, setTurnstileToken] = useState<string>("")
-  const [condoValidation, setCondoValidation] = useState<"idle" | "checking" | "valid" | "invalid">("idle")
-  const [condoName, setCondoName] = useState<string | null>(null)
-
-  const validateCondominiumId = useCallback(async (id: string) => {
-    if (!id || id.length < 4) {
-      setCondoValidation("idle")
-      setCondoName(null)
-      return
-    }
-    setCondoValidation("checking")
-    setCondoName(null)
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${id}/public`)
-      if (res.ok) {
-        const data = await res.json()
-        setCondoName(data.name + (data.city ? ` — ${data.city}/${data.state}` : ""))
-        setCondoValidation("valid")
-      } else {
-        setCondoValidation("invalid")
-        setCondoName(null)
-      }
-    } catch {
-      setCondoValidation("idle")
-      setCondoName(null)
-    }
-  }, [])
 
   const form = useForm<FormValuesInput, unknown, FormValuesOutput>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      condominiumId: "",
       unidadeEnvolvida: "",
       titulo: "",
       categoria: "",
       descricao: "",
-      emailNotificacao: "",
       ocultarIdentidade: false,
       midias: [],
     },
   })
 
   async function onSubmit(values: FormValuesOutput) {
-    if (isAnonimo && condoValidation === "invalid") {
-      toast.error("ID do condomínio inválido. Verifique e tente novamente.")
-      return
-    }
-    if (isAnonimo && !turnstileToken) {
-      toast.error("Por favor, valide o captcha antes de prosseguir.")
-      return
-    }
-
     setIsSubmitting(true)
 
     try {
       const token = localStorage.getItem("condoflow_token")
 
-      let response: Response;
-
-      if (isAnonimo) {
-        // Envio anônimo — não precisa de autenticação, usa multipart/form-data
-        const formData = new FormData()
-        formData.append("data", new Blob([JSON.stringify({
-          condominiumId: Number(values.condominiumId),
-          relatedUnits: values.unidadeEnvolvida || null,
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
           title: values.titulo,
           description: values.descricao,
           category: values.categoria,
-          anonymousEmail: values.emailNotificacao || null,
-          turnstileToken: turnstileToken,
-        })], { type: "application/json" }))
-
-        if (values.midias && values.midias.length > 0) {
-          formData.append("file", values.midias[0])
-        }
-
-        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/anonymous`, {
-          method: "POST",
-          body: formData,
-        })
-      } else {
-        // Envio autenticado
-        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({
-            title: values.titulo,
-            description: values.descricao,
-            category: values.categoria,
-            relatedUnits: values.unidadeEnvolvida || null,
-          }),
-        })
-      }
+          relatedUnits: values.unidadeEnvolvida || null,
+        }),
+      })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null)
@@ -150,14 +82,15 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
           await fetch(`${process.env.NEXT_PUBLIC_API_URL}/occurrences/${data.id}/attachments`, {
             method: "POST",
             headers: {
-              ...(token && !isAnonimo ? { Authorization: `Bearer ${token}` } : {}),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: formData,
           })
         }
       }
 
-      router.push(`/ocorrencia/sucesso?protocolo=${encodeURIComponent(data.protocol)}`)
+      toast.success("Ocorrência registrada com sucesso!")
+      router.push(`/morador/minhas-ocorrencias/${data.protocol}`)
     } catch {
       toast.error("Não foi possível conectar ao servidor. Tente novamente.")
       setIsSubmitting(false)
@@ -168,77 +101,15 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
     <div className="max-w-2xl mx-auto py-10 px-4">
       <Card>
         <CardHeader>
-          <CardTitle>{isAnonimo ? "Relato Anônimo" : "Nova Ocorrência"}</CardTitle>
+          <CardTitle>Nova Ocorrência</CardTitle>
           <CardDescription>
-            {isAnonimo
-              ? "Sua identidade não será vinculada a este registro."
-              : "Este registro ficará salvo no seu histórico."}
+            Este registro ficará salvo no seu histórico.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-              <div className="p-4 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50">
-                <FormField
-                  control={form.control}
-                  name="condominiumId"
-                  render={({ field, fieldState }) => (
-                    <FormItem data-invalid={fieldState.invalid || condoValidation === "invalid"}>
-                      <FormLabel className="font-bold">ID do Condomínio</FormLabel>
-                      <div className="relative">
-                        <FormControl>
-                          <Input
-                            placeholder="Ex: 3847"
-                            className={`font-mono bg-white pr-10 ${condoValidation === "valid" ? "border-green-500 focus-visible:ring-green-400" :
-                              condoValidation === "invalid" ? "border-red-500 focus-visible:ring-red-400" : ""
-                              }`}
-                            aria-invalid={fieldState.invalid || condoValidation === "invalid"}
-                            maxLength={4}
-                            {...field}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, "")
-                              field.onChange(val)
-                              setCondoValidation("idle")
-                              setCondoName(null)
-                            }}
-                            onBlur={() => {
-                              field.onBlur()
-                              if (isAnonimo) validateCondominiumId(field.value)
-                            }}
-                          />
-                        </FormControl>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                          {condoValidation === "checking" && (
-                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                          )}
-                          {condoValidation === "valid" && (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          )}
-                          {condoValidation === "invalid" && (
-                            <XCircle className="h-4 w-4 text-red-500" />
-                          )}
-                        </div>
-                      </div>
-                      <FormDescription>
-                        Código de 4 dígitos do condomínio (Informado pelo síndico).
-                      </FormDescription>
-                      {condoValidation === "invalid" && (
-                        <p className="text-sm font-medium text-red-500">Condomínio não encontrado. Verifique o código.</p>
-                      )}
-                      {condoValidation === "valid" && condoName && (
-                        <p className="text-sm font-medium text-green-600 flex items-center gap-1">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          {condoName}
-                        </p>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Grid com largura idêntica para Categoria e Unidade */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -321,7 +192,6 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                 )}
               />
 
-              {/* CAMPO DE ANEXOS (IMAGENS E VÍDEOS) */}
               <FormField
                 control={form.control}
                 name="midias"
@@ -392,67 +262,31 @@ export default function RegistrarOcorrencia({ isAnonimo = false }) {
                 }}
               />
 
-              {!isAnonimo && (
-                <FormField
-                  control={form.control}
-                  name="ocultarIdentidade"
-                  render={({ field, fieldState }) => (
-                    <FormItem data-invalid={fieldState.invalid} className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Privacidade de Vizinho</FormLabel>
-                        <FormDescription>
-                          O síndico saberá quem você é, mas o vizinho reclamado não.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          aria-invalid={fieldState.invalid}
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {isAnonimo && (
-                <FormField
-                  control={form.control}
-                  name="emailNotificacao"
-                  render={({ field, fieldState }) => (
-                    <FormItem data-invalid={fieldState.invalid}>
-                      <FormLabel>E-mail para Notificação (Opcional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="seu@email.com"
-                          type="email"
-                          autoComplete="email"
-                          aria-invalid={fieldState.invalid}
-                          {...field}
-                        />
-                      </FormControl>
+              <FormField
+                control={form.control}
+                name="ocultarIdentidade"
+                render={({ field, fieldState }) => (
+                  <FormItem data-invalid={fieldState.invalid} className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Privacidade de Vizinho</FormLabel>
                       <FormDescription>
-                        Apenas para avisar quando o síndico responder.
+                        O síndico saberá quem você é, mas o vizinho reclamado não.
                       </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+                    </div>
+                    <FormControl>
+                      <Switch
+                        aria-invalid={fieldState.invalid}
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              {isAnonimo && (
-                <div className="flex justify-center my-4">
-                  <Turnstile
-                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                    onSuccess={(token) => setTurnstileToken(token)}
-                  />
-                </div>
-              )}
-
-              <Button type="submit" className="w-full h-12 font-bold text-lg" disabled={isSubmitting || (isAnonimo && !turnstileToken)}>
+              <Button type="submit" className="w-full h-12 font-bold text-lg" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                {isAnonimo ? "Gerar Protocolo e Enviar" : "Registrar Ocorrência"}
+                Registrar Ocorrência
               </Button>
             </form>
           </Form>

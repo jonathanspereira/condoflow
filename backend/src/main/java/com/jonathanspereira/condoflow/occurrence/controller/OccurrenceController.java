@@ -1,6 +1,5 @@
 package com.jonathanspereira.condoflow.occurrence.controller;
 
-import com.jonathanspereira.condoflow.occurrence.dto.AnonymousOccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO;
@@ -20,7 +19,6 @@ import java.util.List;
 public class OccurrenceController {
 
     private final OccurrenceService service;
-    private final com.jonathanspereira.condoflow.common.security.TurnstileService turnstileService;
 
     @PostMapping
     public ResponseEntity<OccurrenceResponseDTO> create(@RequestBody @Valid OccurrenceRequestDTO dto, Principal principal) {
@@ -28,16 +26,6 @@ public class OccurrenceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping(value = "/anonymous", consumes = "multipart/form-data")
-    public ResponseEntity<OccurrenceResponseDTO> createAnonymous(
-            @RequestPart("data") @Valid AnonymousOccurrenceRequestDTO dto,
-            @RequestPart(value = "file", required = false) org.springframework.web.multipart.MultipartFile file) {
-        if (!turnstileService.verify(dto.turnstileToken())) {
-            throw new com.jonathanspereira.condoflow.common.exception.BusinessException("Falha na verificação de segurança antibot.");
-        }
-        OccurrenceResponseDTO response = service.createAnonymous(dto, file);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
 
     @GetMapping("/me")
     public ResponseEntity<List<OccurrenceResponseDTO>> getMine(Principal principal) {

@@ -5,7 +5,7 @@ import com.jonathanspereira.condoflow.condominium.repository.CondominiumReposito
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepository;
 import com.jonathanspereira.condoflow.condominium.entity.CondominiumRole;
 import com.jonathanspereira.condoflow.notification.service.NotificationService;
-import com.jonathanspereira.condoflow.occurrence.dto.AnonymousOccurrenceRequestDTO;
+
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceResponseDTO;
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceUpdateDTO;
@@ -107,67 +107,6 @@ public class OccurrenceService {
         return new OccurrenceResponseDTO(saved);
     }
 
-    public OccurrenceResponseDTO createAnonymous(AnonymousOccurrenceRequestDTO dto, MultipartFile file) {
-        Condominium condominium = condominiumRepository.findById(dto.condominiumId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Condomínio não encontrado com o ID informado."));
-
-        Occurrence occurrence = new Occurrence();
-        occurrence.setTitle(dto.title());
-        occurrence.setDescription(dto.description());
-        occurrence.setCategory(dto.category());
-        occurrence.setCondominium(condominium);
-        occurrence.setStatus(OccurrenceStatus.OPEN);
-        occurrence.setRelatedUnits(dto.relatedUnits());
-        // Salva e-mail anonimo para notificacoes futuras
-        if (dto.anonymousEmail() != null && !dto.anonymousEmail().isBlank()) {
-            occurrence.setAnonymousEmail(dto.anonymousEmail().trim());
-        }
-
-        Occurrence saved = occurrenceRepository.save(occurrence);
-
-        if (file != null && !file.isEmpty()) {
-            try {
-                OccurrenceAttachment attachment = new OccurrenceAttachment();
-                attachment.setOccurrence(saved);
-                attachment.setFileName(file.getOriginalFilename());
-                attachment.setFileType(file.getContentType());
-                attachment.setFileData(file.getBytes());
-                OccurrenceAttachment savedAttachment = occurrenceAttachmentRepository.save(attachment);
-                if (saved.getAttachments() == null) {
-                    saved.setAttachments(new java.util.ArrayList<>());
-                }
-                saved.getAttachments().add(savedAttachment);
-            } catch (IOException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao processar o arquivo.");
-            }
-        }
-
-        // Notificar Síndico(s) do Condomínio via Sininho e E-mail
-        List<User> sindicos = condominiumRoleRepository.findByCondominiumId(condominium.getId()).stream().map(CondominiumRole::getUser).collect(Collectors.toList());
-        for (User sindico : sindicos) {
-            notificationService.createNotification(
-                    sindico,
-                    "Nova Ocorrência Anônima",
-                    "Nova ocorrência anônima #" + saved.getProtocol() + " (" + saved.getTitle() + ") foi recebida.",
-                    saved.getProtocol()
-            );
-            if (sindico.getEmail() != null) {
-                emailService.sendNewOccurrenceToSindicoEmail(
-                        sindico.getEmail(),
-                        sindico.getName(),
-                        saved.getProtocol(),
-                        saved.getTitle(),
-                        "Anônimo",
-                        null
-                );
-            }
-        }
-
-        auditLogService.log("OCORRENCIA", "CREATE_ANONYMOUS", saved.getProtocol(), "Nova ocorrência anônima registrada.");
-
-        return new OccurrenceResponseDTO(saved);
-    }
 
     public List<OccurrenceResponseDTO> findMine(String userEmail) {
         User reporter = getUserByEmail(userEmail);
@@ -251,19 +190,6 @@ public class OccurrenceService {
                 emailService.sendOccurrenceUpdateNotification(
                         recipientUser.getEmail(),
                         recipientUser.getName(),
-                        saved.getProtocol(),
-                        saved.getTitle(),
-                        saved.getStatus() != null ? saved.getStatus().name() : "ATUALIZADO",
-                        hasMessage ? dto.response() : null
-                );
-            }
-        } else if (recipientUser == null && (statusChanged || hasMessage)) {
-            // Ocorrência anônima — notificar pelo e-mail opcional salvo no registro
-            String anonEmail = saved.getAnonymousEmail();
-            if (anonEmail != null && !anonEmail.isBlank()) {
-                emailService.sendOccurrenceUpdateNotification(
-                        anonEmail,
-                        "Anônimo",
                         saved.getProtocol(),
                         saved.getTitle(),
                         saved.getStatus() != null ? saved.getStatus().name() : "ATUALIZADO",

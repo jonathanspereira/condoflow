@@ -52,7 +52,6 @@
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/notification/repository/NotificationRepository.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/notification/service/NotificationService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/controller/OccurrenceController.java
-/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/AnonymousOccurrenceRequestDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/MessageRequestDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/OccurrenceAttachmentDTO.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/occurrence/dto/OccurrenceMessageDTO.java

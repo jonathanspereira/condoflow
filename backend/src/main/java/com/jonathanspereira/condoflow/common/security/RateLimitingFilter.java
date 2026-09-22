@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    // Limiting auth and anonymous occurrences specifically
+    // Limiting auth specifically
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     private Bucket createNewBucket() {
@@ -48,7 +48,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         
         // We apply rate limiting only to sensitive endpoints
-        if (path.startsWith("/api/v1/auth/") || path.equals("/api/v1/occurrences/anonymous")) {
+        if (path.startsWith("/api/v1/auth/")) {
             String ip = getClientIP(request);
             Bucket bucket = buckets.computeIfAbsent(ip, k -> createNewBucket());
 
