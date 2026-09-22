@@ -17,6 +17,7 @@ import {
   Bell,
   Users,
   UserCog,
+  Package
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -86,6 +87,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
   const menuSindico = [
     { name: "Painel Geral", href: `/sindico/condominio/${selectedCondoId}`, icon: LayoutDashboard },
     { name: "Ocorrências", href: "/sindico/painel/ocorrencia/historico", icon: ClipboardList },
+    { name: "Encomendas", href: "/sindico/painel/encomendas", icon: Package },
     { name: "Moradores", href: "/sindico/moradores", icon: Users },
     { name: "Unidades", href: "/sindico/unidades", icon: Building2 },
     { name: "Configurações", href: "/sindico/painel/configuracoes", icon: UserCog },
@@ -196,8 +198,8 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
         if (response.ok) {
           const data = await response.json()
           
-          if (data.role !== "SINDICO" && data.role !== "SUPER_ADMIN") {
-            toast.error("Acesso negado. Esta área é exclusiva para síndicos.")
+          if (data.role !== "SINDICO" && data.role !== "SUPER_ADMIN" && data.role !== "CONCIERGE") {
+            toast.error("Acesso negado. Esta área é exclusiva para administração e portaria.")
             router.push("/morador/minhas-ocorrencias")
             return
           }

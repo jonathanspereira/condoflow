@@ -273,6 +273,40 @@ public class EmailService {
     }
 
     /**
+     * Envia e-mail de notificação de chegada de encomenda.
+     */
+    @Async
+    public void sendNewParcelNotification(String toEmail, String residentName, String parcelDescription, String parcelId, String deliveryCode) {
+        String parcelLink = frontendUrl + "/morador/minhas-encomendas/" + parcelId;
+        String subject = "CondoFlow - Nova Encomenda Recebida";
+
+        String htmlContent = """
+            <div style='background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px;'>
+                <div style='max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;'>
+                    <div style='background: linear-gradient(135deg, #059669, #10b981); padding: 28px 32px; text-align: left;'>
+                        <h1 style='color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;'>CondoFlow</h1>
+                        <p style='color: #d1fae5; margin: 4px 0 0 0; font-size: 13px; font-weight: 500;'>Controle de Encomendas</p>
+                    </div>
+                    <div style='padding: 32px; color: #334155;'>
+                        <h2 style='color: #0f172a; font-size: 18px; margin-top: 0; margin-bottom: 16px;'>Sua Encomenda Chegou!</h2>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 16px;'>Olá, <strong>%s</strong>!</p>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 20px;'>Uma nova encomenda (<strong>%s</strong>) foi recebida e registrada na portaria do seu condomínio.</p>
+                        <p style='font-size: 14px; color: #475569; line-height: 1.5;'>Para retirar sua encomenda na portaria, acesse o link abaixo para visualizar seu <strong>QR Code de Liberação</strong>:</p>
+                        <div style='margin: 28px 0; text-align: center;'>
+                            <a href='%s' style='background-color: #059669; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);'>Acessar QR Code</a>
+                        </div>
+                    </div>
+                    <div style='background-color: #f8fafc; padding: 20px 32px; border-top: 1px solid #f1f5f9; text-align: center;'>
+                        <p style='margin: 0; font-size: 12px; color: #94a3b8;'>CondoFlow • Plataforma de Comunicação Condominial</p>
+                    </div>
+                </div>
+            </div>
+            """.formatted(residentName, parcelDescription, parcelLink);
+
+        sendEmail(toEmail, subject, htmlContent, "Nova Encomenda: " + parcelDescription + " (Acesse o App para o QR Code)", "NEW_PARCEL");
+    }
+
+    /**
      * Método central de envio via API do Resend com fallback para log de console.
      */
     private void sendEmail(String toEmail, String subject, String htmlContent, String fallbackInfo, String action) {

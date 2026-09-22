@@ -15,7 +15,8 @@ import {
   Bell,
   Users,
   CheckCheck,
-  Clock
+  Clock,
+  Package
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -35,12 +36,14 @@ import { toast } from "sonner"
 // MENU PARA O MORADOR
 const MENU_MORADOR = [
   { name: "Minhas Ocorrências", href: "/morador/minhas-ocorrencias", icon: ClipboardList },
+  { name: "Minhas Encomendas", href: "/morador/minhas-encomendas", icon: Package },
 ]
 
 // MENU PARA O SÍNDICO
 const MENU_SINDICO = [
   { name: "Painel Geral", href: "/sindico/condominio/1", icon: LayoutDashboard },
   { name: "Ocorrências", href: "/sindico/painel/ocorrencia/historico", icon: ClipboardList },
+  { name: "Encomendas", href: "/sindico/painel/encomendas", icon: Package },
   { name: "Moradores", href: "/sindico/moradores", icon: Users },
 ]
 

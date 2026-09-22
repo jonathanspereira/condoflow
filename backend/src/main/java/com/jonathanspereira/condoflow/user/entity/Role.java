@@ -4,5 +4,6 @@ public enum Role {
     SUPER_ADMIN,
     SINDICO,
     PROPRIETARY,
-    TENANT
+    TENANT,
+    CONCIERGE
 }
