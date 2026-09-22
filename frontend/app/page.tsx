@@ -25,6 +25,12 @@ export default function LandingPage() {
             </Link>
           </Button>
           <Button asChild variant="ghost">
+            <Link href="/portaria/login">
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Área da Portaria
+            </Link>
+          </Button>
+          <Button asChild variant="ghost">
             <Link href="/sindico/login">
               <UserCog className="mr-2 h-4 w-4" />
               Área do Síndico
@@ -51,21 +57,6 @@ export default function LandingPage() {
               <p className="mx-auto lg:mx-0 max-w-[600px] text-slate-500 md:text-xl mb-10">
                 A plataforma oficial para moradores e síndicos resolverem problemas do condomínio com transparência, agilidade e inteligência.
               </p>
-
-              <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-                <Button asChild size="lg" className="px-8 h-14 text-lg bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105">
-                  <Link href="/ocorrencia">
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    Nova Ocorrência
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="px-8 h-14 text-lg border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-all">
-                  <Link href="/ocorrencia/consulta">
-                    <Search className="mr-2 h-5 w-5" />
-                    Consultar Protocolo
-                  </Link>
-                </Button>
-              </div>
             </div>
 
             <div className="flex-1 relative w-full max-w-lg lg:max-w-none h-[400px] hidden md:block z-10">
