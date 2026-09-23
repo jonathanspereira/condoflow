@@ -21,6 +21,7 @@ O **CondoFlow** nasceu para revolucionar a forma como moradores e síndicos (esp
 ### 👨‍💼 Para o Síndico (Gestor)
 - **Modo Foco (Multi-Condomínios):** Síndicos profissionais podem alternar a visão entre diferentes condomínios com um clique, sem perder o contexto.
 - **Dashboard Analítico:** Visão global de ocorrências abertas, resolvidas e tempo médio de resposta.
+- **SLA e Monitoramento de Prazos:** Alertas automáticos por e-mail quando as ocorrências ultrapassam o prazo limite de resposta (48h) ou resolução (72h).
 - **Gestão de Unidades e Moradores:** Importação de unidades em massa e controle total de acessos.
 - **Gestão de Portarias:** Cadastro e controle de concierges (porteiros) para gerenciamento de entregas.
 - **Planos e Assinaturas:** Sistema SaaS integrado com diferentes tiers de planos (Trial Free, Mensal, Anual).
@@ -34,8 +35,8 @@ O **CondoFlow** nasceu para revolucionar a forma como moradores e síndicos (esp
 - **Chat Integrado:** Comunicação direta com a administração dentro da própria plataforma.
 
 ### 🛡️ Para a Portaria (Concierge)
-- **Registro Ágil de Encomendas:** Lançamento rápido de novos pacotes com pesquisa automática de unidades e envio de notificação por e-mail ao morador.
-- **Leitor de QR Code Integrado:** Validação de entregas através da câmera do dispositivo ou celular para liberação de encomendas sem erros.
+- **Registro Inteligente de Encomendas:** Leitura automática de códigos de rastreio de caixas via câmera (código de barras), evitando digitação, e disparo automático de notificação ao morador.
+- **Leitor de QR Code Integrado:** Validação de entregas através da câmera do celular/tablet para liberação de pacotes ao morador de forma infalível.
 - **Dashboard de Pendências:** Visão completa de quais pacotes ainda estão aguardando retirada no condomínio.
 
 ---

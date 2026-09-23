@@ -285,6 +285,11 @@ export default function MinhasOcorrencias() {
     e.preventDefault()
     setFormError("")
 
+    if (!categoria) {
+      setFormError("Por favor, selecione uma categoria para o relato.")
+      return
+    }
+
     if (hasRelatedUnit && relatedUnitsList.length === 0 && relatedUnitStatus !== "valid") {
       setFormError("Informe uma unidade relacionada válida (diferente da sua) antes de enviar.")
       return
