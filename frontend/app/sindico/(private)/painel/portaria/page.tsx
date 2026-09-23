@@ -147,6 +147,7 @@ export default function PortariaPage() {
       const payload = {
         name: formName.trim(),
         email: formEmail.trim(),
+        password: "123456",
       }
 
       const isEditing = editingConciergeId !== null
