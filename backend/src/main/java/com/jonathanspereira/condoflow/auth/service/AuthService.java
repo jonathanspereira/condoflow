@@ -110,7 +110,17 @@ public class AuthService {
 
         String token = tokenService.generateToken(user);
         auditLogService.log("AUTH", "LOGIN", user.getEmail(), "Login efetuado com sucesso (" + user.getRole().name() + ")");
-        return new AuthResponseDTO(token, user.getName(), user.getEmail(), user.getRole().name(), user.isForcePasswordChange());
+
+        Long condoId = null;
+        if (user.getRole() == Role.CONCIERGE || user.getRole() == Role.SINDICO) {
+            java.util.List<CondominiumRole> roles = condominiumRoleRepository.findByUserId(user.getId());
+            if (!roles.isEmpty()) {
+                CondominiumRole activeRole = roles.stream().filter(CondominiumRole::isActive).findFirst().orElse(roles.get(0));
+                condoId = activeRole.getCondominium().getId();
+            }
+        }
+
+        return new AuthResponseDTO(token, user.getName(), user.getEmail(), user.getRole().name(), user.isForcePasswordChange(), condoId);
     }
 
     public void forgotPassword(String email) {

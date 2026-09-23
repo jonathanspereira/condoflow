@@ -77,13 +77,23 @@ public class UserService {
                 .orElse(null);
 
         String condoName = null;
-        if (unit != null) {
+        Long condoId = null;
+
+        if (user.getRole() == Role.CONCIERGE || user.getRole() == Role.SINDICO) {
+            List<CondominiumRole> roles = condominiumRoleRepository.findByUserId(user.getId());
+            if (!roles.isEmpty()) {
+                CondominiumRole activeRole = roles.stream().filter(CondominiumRole::isActive).findFirst().orElse(roles.get(0));
+                condoId = activeRole.getCondominium().getId();
+                condoName = activeRole.getCondominium().getName();
+            }
+        } else if (unit != null) {
             condoName = condominiumRepository.findById(unit.getCondominiumId())
                     .map(Condominium::getName)
                     .orElse(null);
+            condoId = unit.getCondominiumId();
         }
 
-        return new UserResponseDTO(user, unit, condoName);
+        return new UserResponseDTO(user, unit, condoName, condoId);
     }
 
     public UserResponseDTO updateMyProfile(String currentEmail, UserRequestDTO dto) {

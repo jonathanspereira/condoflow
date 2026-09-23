@@ -65,7 +65,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/condominiums/*/concierges").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/condominiums/*/concierges/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/condominiums/*/concierges/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/units/condominium/**").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/units/condominium/**").hasAnyAuthority("SUPER_ADMIN", "SINDICO", "CONCIERGE")
                         .requestMatchers(HttpMethod.POST, "/api/v1/units/**").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/units/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/units/*").hasAnyAuthority("SUPER_ADMIN", "SINDICO")

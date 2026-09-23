@@ -16,6 +16,7 @@ public class UserResponseDTO {
     private Role role;
     private boolean forcePasswordChange;
     private String condominiumName;
+    private Long condominiumId;
 
     private Long unitId;
     private String unitName;
@@ -34,6 +35,12 @@ public class UserResponseDTO {
     public UserResponseDTO(User user, Unit unit, String condominiumName) {
         this(user, unit);
         this.condominiumName = condominiumName;
+    }
+
+    public UserResponseDTO(User user, Unit unit, String condominiumName, Long condominiumId) {
+        this(user, unit);
+        this.condominiumName = condominiumName;
+        this.condominiumId = condominiumId;
     }
 
     public UserResponseDTO(User user, Unit unit) {
