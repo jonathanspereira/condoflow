@@ -19,16 +19,25 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     // Construtor manual para a injeção de dependências do Spring
-    public DatabaseSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public DatabaseSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder, org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void run(String... args) throws Exception {
         
+        try {
+            jdbcTemplate.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check");
+            jdbcTemplate.execute("ALTER TABLE condominium_roles DROP CONSTRAINT IF EXISTS condominium_roles_role_check");
+            System.out.println("✅ Constraint users_role_check removida para atualizar o Enum no Postgres.");
+        } catch (Exception e) {
+            System.out.println("Aviso: Falha ao remover constraint users_role_check: " + e.getMessage());
+        }
 
         if (userRepository.findByEmail(adminEmail) == null) {
             User superAdmin = new User();
