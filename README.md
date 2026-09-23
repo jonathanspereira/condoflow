@@ -1,2 +1,90 @@
-# condoflow
-O CondoFlow é uma plataforma voltada para a gestão de ocorrências em condomínios, desenhada para atender tanto moradores quanto síndicos profissionais que gerenciam múltiplas unidades. O foco central é a transparência, a rastreabilidade e a privacidade.
+<p align="center">
+  <h1 align="center">🏢 CondoFlow</h1>
+  <p align="center">
+    <strong>Plataforma SaaS moderna para gestão inteligente de ocorrências em condomínios.</strong>
+  </p>
+</p>
+
+---
+
+## 📌 Sobre o Projeto
+
+O **CondoFlow** nasceu para revolucionar a forma como moradores e síndicos (especialmente síndicos profissionais que gerenciam múltiplas unidades) se comunicam. O foco central da plataforma é a **transparência, rastreabilidade e privacidade**, acabando com grupos de WhatsApp desorganizados e livros de ocorrência de papel.
+
+## 🚀 Principais Funcionalidades
+
+### 👨‍💼 Para o Síndico (Gestor)
+- **Modo Foco (Multi-Condomínios):** Síndicos profissionais podem alternar a visão entre diferentes condomínios com um clique, sem perder o contexto.
+- **Dashboard Analítico:** Visão global de ocorrências abertas, resolvidas e tempo médio de resposta.
+- **SLA e Monitoramento de Prazos:** Alertas automáticos por e-mail quando as ocorrências ultrapassam o prazo limite de resposta (48h) ou resolução (72h).
+- **Gestão de Unidades e Moradores:** Importação de unidades em massa e controle total de acessos.
+- **Gestão de Portarias:** Cadastro e controle de concierges (porteiros) para gerenciamento de entregas.
+- **Planos e Assinaturas:** Sistema SaaS integrado com diferentes tiers de planos (Trial Free, Mensal, Anual).
+
+### 🏠 Para o Morador
+- **Ocorrências Anônimas ou Identificadas:** Liberdade e segurança para relatar problemas sem exposição indesejada.
+- **Acompanhamento por Protocolo:** Rastreabilidade ponta a ponta do status de cada relato.
+- **Controle de Encomendas:** Visualização de pacotes recebidos, aguardando retirada e histórico de entregas.
+- **QR Code Seguro:** Recebimento automático por e-mail de um QR Code único para retirar encomendas com segurança na portaria.
+- **Anexos e Multimídia:** Envio de fotos e vídeos direto na ocorrência.
+- **Chat Integrado:** Comunicação direta com a administração dentro da própria plataforma.
+
+### 🛡️ Para a Portaria (Concierge)
+- **Registro Inteligente de Encomendas:** Leitura automática de códigos de rastreio de caixas via câmera (código de barras), evitando digitação, e disparo automático de notificação ao morador.
+- **Leitor de QR Code Integrado:** Validação de entregas através da câmera do celular/tablet para liberação de pacotes ao morador de forma infalível.
+- **Dashboard de Pendências:** Visão completa de quais pacotes ainda estão aguardando retirada no condomínio.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+O CondoFlow adota uma arquitetura moderna, escalável e segura:
+
+**Frontend:**
+- [Next.js (App Router)](https://nextjs.org/) - Framework React para SSR/SSG.
+- [TailwindCSS](https://tailwindcss.com/) & [shadcn/ui](https://ui.shadcn.com/) - Estilização elegante e componentes acessíveis.
+- [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/) - Proteção anti-bot sem fricção.
+
+**Backend:**
+- [Java 21](https://jdk.java.net/21/) & [Spring Boot 3.4](https://spring.io/projects/spring-boot) - API RESTful robusta.
+- [Spring Security](https://spring.io/projects/spring-security) & JWT - Autenticação e autorização seguras.
+- [Swagger / OpenAPI](https://swagger.io/) - Documentação automatizada de APIs.
+- [Bucket4j](https://bucket4j.com/) - Rate limiting para proteção de rotas públicas.
+
+**Infraestrutura & Banco de Dados:**
+- [PostgreSQL](https://www.postgresql.org/) & [Supabase](https://supabase.com/) - Banco de dados relacional em nuvem.
+- [Render](https://render.com/) & [Vercel](https://vercel.com/) - Deploy contínuo do backend e frontend.
+- [SonarCloud](https://sonarcloud.io/) - Análise estática de código e qualidade.
+
+---
+
+
+## ⚙️ Como Executar Localmente
+
+**1. Clone o repositório**
+```bash
+git clone https://github.com/jonathanspereira/condoflow.git
+cd condoflow
+```
+
+**2. Backend (Spring Boot)**
+```bash
+cd backend
+mvn clean install
+mvn spring-boot:run
+```
+*A API estará disponível em `http://localhost:8080` (Acesse o Swagger em `/swagger-ui.html`).*
+
+**3. Frontend (Next.js)**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+*A aplicação web estará disponível em `http://localhost:3000`.*
+
+---
+
+<p align="center">
+  Desenvolvido com ❤️ e ☕ por <a href="https://github.com/jonathanspereira">Jonathan Pereira</a>.
+</p>
