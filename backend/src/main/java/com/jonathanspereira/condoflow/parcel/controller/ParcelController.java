@@ -24,7 +24,7 @@ public class ParcelController {
     private final ParcelService parcelService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
     public ResponseEntity<ParcelResponseDTO> registerParcel(
             @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
             @Valid @RequestBody ParcelRequestDTO requestDTO,
@@ -35,7 +35,7 @@ public class ParcelController {
     }
 
     @GetMapping("/condominium")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
     public ResponseEntity<Page<ParcelResponseDTO>> getParcelsByCondominium(
             @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -43,7 +43,7 @@ public class ParcelController {
     }
 
     @GetMapping("/unit/{unitId}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SINDICO', 'CONCIERGE', 'PROPRIETARY', 'TENANT')")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE', 'PROPRIETARY', 'TENANT')")
     public ResponseEntity<Page<ParcelResponseDTO>> getParcelsByUnit(
             @PathVariable Long unitId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -51,7 +51,7 @@ public class ParcelController {
     }
 
     @PostMapping("/deliver")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
     public ResponseEntity<ParcelResponseDTO> deliverParcel(
             @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
             @Valid @RequestBody ParcelDeliveryRequestDTO requestDTO,
