@@ -58,4 +58,12 @@ public class ParcelController {
             Principal principal) {
         return ResponseEntity.ok(parcelService.deliverParcel(condominiumId, principal.getName(), requestDTO));
     }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'PROPRIETARY', 'TENANT')")
+    public ResponseEntity<Page<ParcelResponseDTO>> getMyParcels(
+            Principal principal,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(parcelService.getMyParcels(principal.getName(), pageable));
+    }
 }

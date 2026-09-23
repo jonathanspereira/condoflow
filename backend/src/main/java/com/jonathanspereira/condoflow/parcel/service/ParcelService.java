@@ -110,6 +110,20 @@ public class ParcelService {
         return toDTO(saved);
     }
 
+    public Page<ParcelResponseDTO> getMyParcels(String userEmail, Pageable pageable) {
+        org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(userEmail);
+        if (userDetails == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        User user = (User) userDetails;
+
+        Unit unit = unitRepository.findByOwnerId(user.getId())
+                .or(() -> unitRepository.findByTenantId(user.getId()))
+                .orElseThrow(() -> new IllegalArgumentException("Unidade não encontrada para este usuário"));
+
+        return getParcelsByUnit(unit.getId(), pageable);
+    }
+
     private ParcelResponseDTO toDTO(Parcel parcel) {
         return ParcelResponseDTO.builder()
                 .id(parcel.getId())
