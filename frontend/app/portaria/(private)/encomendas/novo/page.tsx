@@ -22,7 +22,7 @@ const formSchema = z.object({
 
 export default function RegistrarEncomendaPage() {
   const router = useRouter()
-  const [units, setUnits] = useState<{ value: string; label: string }[]>([])
+  const [units, setUnits] = useState<any[]>([])
   const [loadingUnits, setLoadingUnits] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -48,8 +48,15 @@ export default function RegistrarEncomendaPage() {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.ok) {
-          const data: { id: number; name: string }[] = await res.json()
-          setUnits(data.map((u) => ({ value: u.id.toString(), label: u.name })))
+          const data = await res.json()
+          setUnits(data.map((u: any) => ({ 
+            value: u.id.toString(), 
+            label: `${u.unit} ${u.ownerName} ${u.rented && u.tenantName ? u.tenantName : ''}`,
+            unit: u.unit,
+            ownerName: u.ownerName,
+            rented: u.rented,
+            tenantName: u.tenantName
+          })))
         }
       } catch (error) {
         toast.error("Erro ao carregar unidades")
@@ -92,6 +99,20 @@ export default function RegistrarEncomendaPage() {
     }
   }
 
+  const formatOptionLabel = (option: any) => (
+    <div className="flex items-center gap-1">
+      <span className="font-semibold text-slate-800">{option.unit}</span>
+      <span className="text-slate-500 mx-1">-</span>
+      <span className="text-slate-700">{option.ownerName}</span>
+      {option.rented && option.tenantName && (
+        <>
+          <span className="text-slate-400 mx-1">*</span>
+          <span className="text-emerald-600 font-medium">{option.tenantName}</span>
+        </>
+      )}
+    </div>
+  )
+
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
@@ -127,6 +148,7 @@ export default function RegistrarEncomendaPage() {
                         <Select
                           isLoading={loadingUnits}
                           options={units}
+                          formatOptionLabel={formatOptionLabel}
                           placeholder="Pesquisar unidade..."
                           noOptionsMessage={() => "Nenhuma unidade encontrada"}
                           onChange={(option: any) => field.onChange(option?.value || "")}
