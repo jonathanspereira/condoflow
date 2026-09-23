@@ -91,7 +91,6 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
     { name: "Encomendas", href: "/sindico/painel/encomendas", icon: Package },
     { name: "Moradores", href: "/sindico/moradores", icon: Users },
     { name: "Equipe / Portaria", href: "/sindico/painel/portaria", icon: Shield },
-    { name: "Unidades", href: "/sindico/unidades", icon: Building2 },
     { name: "Configurações", href: "/sindico/painel/configuracoes", icon: UserCog },
   ]
   
