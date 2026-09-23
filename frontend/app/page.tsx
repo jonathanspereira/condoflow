@@ -99,7 +99,7 @@ export default function LandingPage() {
               {/* QR Code Validation Floating Feature */}
               <motion.div 
                 initial={{ opacity: 0, x: 50, y: -50 }}
-                animate={{ opacity: 1, x: 0, y: 0, y: [-10, 10, -10] }}
+                animate={{ opacity: 1, x: 0, y: [-10, 10, -10] }}
                 transition={{ 
                   opacity: { duration: 1, delay: 0.3 },
                   x: { duration: 1, delay: 0.3 },
@@ -124,7 +124,7 @@ export default function LandingPage() {
               {/* Occurrence Resolved Floating Feature */}
               <motion.div 
                 initial={{ opacity: 0, x: -50, y: 50 }}
-                animate={{ opacity: 1, x: 0, y: 0, y: [10, -10, 10] }}
+                animate={{ opacity: 1, x: 0, y: [10, -10, 10] }}
                 transition={{ 
                   opacity: { duration: 1, delay: 0.6 },
                   x: { duration: 1, delay: 0.6 },
