@@ -59,6 +59,15 @@ public class Occurrence {
 
     private LocalDateTime updatedAt;
 
+    @Column(name = "in_progress_at")
+    private LocalDateTime inProgressAt;
+
+    @Column(name = "sla_first_response_breached")
+    private boolean slaFirstResponseBreached = false;
+
+    @Column(name = "sla_resolution_breached")
+    private boolean slaResolutionBreached = false;
+
     @OneToMany(mappedBy = "occurrence", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private java.util.List<OccurrenceMessage> messages = new java.util.ArrayList<>();
 

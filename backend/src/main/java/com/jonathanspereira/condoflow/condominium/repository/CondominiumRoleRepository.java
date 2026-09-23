@@ -10,4 +10,5 @@ public interface CondominiumRoleRepository extends JpaRepository<CondominiumRole
     List<CondominiumRole> findByUserId(String userId);
     Optional<CondominiumRole> findByCondominiumIdAndUserId(Long condominiumId, String userId);
     List<CondominiumRole> findByCondominiumId(Long condominiumId);
+    Optional<CondominiumRole> findByCondominiumIdAndRole(Long condominiumId, String role);
 }

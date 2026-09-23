@@ -256,10 +256,18 @@ export default function DetalheOcorrencia({ params }: { params: Promise<{ id: st
           <Card>
             <CardHeader><CardTitle className="text-lg">Relato Original e Histórico</CardTitle></CardHeader>
             <CardContent className="space-y-6">
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg flex gap-3 items-start text-sm mb-4">
-                <Info className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                <p><strong>Prazo de Resposta:</strong> O síndico ou administração possui um prazo de até 48 horas para responder a esta ocorrência.</p>
-              </div>
+              {occurrence.status === "OPEN" && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg flex gap-3 items-start text-sm mb-4">
+                  <Info className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                  <p><strong>Prazo de Resposta:</strong> A administração possui um prazo de até 48 horas para fornecer o primeiro atendimento.</p>
+                </div>
+              )}
+              {occurrence.status === "IN_PROGRESS" && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-lg flex gap-3 items-start text-sm mb-4">
+                  <Clock className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                  <p><strong>Prazo de Resolução:</strong> A administração possui um prazo de até 72 horas para solucionar esta ocorrência após o início do atendimento.</p>
+                </div>
+              )}
               <div className="flex gap-4">
                 <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
                   <User className="h-4 w-4 text-slate-500" />

@@ -307,6 +307,44 @@ public class EmailService {
     }
 
     /**
+     * Envia e-mail alertando o Síndico sobre o atraso no SLA de uma ocorrência.
+     */
+    @Async
+    public void sendSlaBreachEmail(String toEmail, String sindicoName, String protocol, String title, String phase, String hours) {
+        String occurrenceLink = frontendUrl + "/sindico/painel/ocorrencia/historico";
+        String subject = "⚠️ CondoFlow - Atraso no Prazo da Ocorrência #" + protocol;
+
+        String htmlContent = """
+            <div style='background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px;'>
+                <div style='max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;'>
+                    <div style='background: linear-gradient(135deg, #b91c1c, #dc2626); padding: 28px 32px; text-align: left;'>
+                        <h1 style='color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;'>CondoFlow</h1>
+                        <p style='color: #fca5a5; margin: 4px 0 0 0; font-size: 13px; font-weight: 500;'>Alerta de Atraso (SLA)</p>
+                    </div>
+                    <div style='padding: 32px; color: #334155;'>
+                        <h2 style='color: #0f172a; font-size: 18px; margin-top: 0; margin-bottom: 16px;'>Prazo Expirado!</h2>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 16px;'>Olá, <strong>%s</strong>!</p>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 20px;'>A ocorrência <strong>#%s</strong> excedeu o prazo estipulado para a fase: <strong>%s</strong> (%s horas).</p>
+                        <div style='background-color: #fef2f2; border: 1px solid #fecaca; padding: 18px 20px; border-radius: 8px; margin: 20px 0;'>
+                            <p style='margin: 0 0 8px 0; font-size: 14px; color: #991b1b;'><strong>Protocolo:</strong> #%s</p>
+                            <p style='margin: 0; font-size: 14px; color: #991b1b;'><strong>Título:</strong> %s</p>
+                        </div>
+                        <p style='font-size: 14px; color: #475569; line-height: 1.5;'>Acesse o painel o quanto antes para regularizar o atendimento desta ocorrência:</p>
+                        <div style='margin: 28px 0; text-align: center;'>
+                            <a href='%s' style='background-color: #dc2626; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);'>Acessar Ocorrências</a>
+                        </div>
+                    </div>
+                    <div style='background-color: #f8fafc; padding: 20px 32px; border-top: 1px solid #f1f5f9; text-align: center;'>
+                        <p style='margin: 0; font-size: 12px; color: #94a3b8;'>CondoFlow • Gestão Inteligente de Condomínios</p>
+                    </div>
+                </div>
+            </div>
+            """.formatted(sindicoName, protocol, phase, hours, protocol, title, occurrenceLink);
+
+        sendEmail(toEmail, subject, htmlContent, "Atraso SLA Ocorrência #" + protocol + " - " + phase, "SLA_BREACH");
+    }
+
+    /**
      * Método central de envio via API do Resend com fallback para log de console.
      */
     private void sendEmail(String toEmail, String subject, String htmlContent, String fallbackInfo, String action) {

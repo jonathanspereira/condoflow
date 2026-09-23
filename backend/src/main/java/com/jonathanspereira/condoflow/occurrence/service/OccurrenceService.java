@@ -140,6 +140,9 @@ public class OccurrenceService {
         
         if (dto.status() != null) {
             occurrence.setStatus(dto.status());
+            if (dto.status() == OccurrenceStatus.IN_PROGRESS && occurrence.getInProgressAt() == null) {
+                occurrence.setInProgressAt(java.time.LocalDateTime.now());
+            }
         }
         
         boolean hasMessage = dto.response() != null && !dto.response().isBlank();
