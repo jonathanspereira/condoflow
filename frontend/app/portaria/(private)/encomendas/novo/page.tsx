@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Package, Loader2 } from "lucide-react"
+import { ArrowLeft, Package, Loader2, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,7 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import Select from "react-select"
+import { Scanner } from "@yudiel/react-qr-scanner"
 
 const formSchema = z.object({
   unitId: z.string().min(1, "Selecione uma unidade"),
@@ -25,6 +26,7 @@ export default function RegistrarEncomendaPage() {
   const [units, setUnits] = useState<any[]>([])
   const [loadingUnits, setLoadingUnits] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -196,13 +198,49 @@ export default function RegistrarEncomendaPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Código de Rastreio *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: NL123456789BR" {...field} />
-                    </FormControl>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input placeholder="Ex: NL123456789BR" {...field} />
+                      </FormControl>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => setShowScanner(!showScanner)}
+                        title="Ler código de barras/QR"
+                      >
+                        <Camera className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {showScanner && (
+                <div className="w-full overflow-hidden rounded-lg bg-slate-900 relative">
+                  <Button 
+                    type="button"
+                    variant="secondary" 
+                    size="sm" 
+                    className="absolute top-2 right-2 z-10"
+                    onClick={() => setShowScanner(false)}
+                  >
+                    Fechar Câmera
+                  </Button>
+                  <Scanner 
+                    formats={["qr_code", "code_128", "code_39", "ean_13", "ean_8", "upc_a", "upc_e", "itf"]}
+                    onScan={(result) => {
+                      if (result && result.length > 0) {
+                        form.setValue("trackingCode", result[0].rawValue, { shouldValidate: true })
+                        setShowScanner(false)
+                        toast.success("Código lido com sucesso!")
+                      }
+                    }} 
+                    onError={(error) => console.log(error?.message)} 
+                  />
+                </div>
+              )}
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? (
