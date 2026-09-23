@@ -81,8 +81,6 @@ public class Occurrence {
     }
 
     private String generateProtocol() {
-        int year = LocalDateTime.now().getYear();
-        String suffix = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        return "CF-" + year + "-" + suffix;
+        return String.valueOf(java.util.concurrent.ThreadLocalRandom.current().nextInt(10000, 100000));
     }
 }
