@@ -64,6 +64,9 @@ export default function LoginPortariaPage() {
         }
 
         localStorage.setItem("condoflow_token", responseData.token)
+        if (responseData.condominiumId) {
+          localStorage.setItem("condoflow_selected_condo_id", responseData.condominiumId.toString())
+        }
         toast.success("Login realizado com sucesso!")
         
         if (responseData.forcePasswordChange) {

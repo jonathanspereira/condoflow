@@ -144,6 +144,10 @@ export default function PortariaLayout({ children }: Readonly<{ children: React.
             return
           }
           
+          if (data.condominiumId) {
+            localStorage.setItem("condoflow_selected_condo_id", data.condominiumId.toString())
+          }
+          
           setUserData(data)
         } else {
           localStorage.removeItem("condoflow_token")
