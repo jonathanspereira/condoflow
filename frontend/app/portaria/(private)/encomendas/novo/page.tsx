@@ -6,23 +6,23 @@ import { ArrowLeft, Package, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { z } from "zod"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import Select from "react-select"
 
 const formSchema = z.object({
   unitId: z.string().min(1, "Selecione uma unidade"),
   description: z.string().min(3, "Descrição muito curta"),
   recipientName: z.string().min(3, "Nome do destinatário muito curto"),
-  trackingCode: z.string().optional(),
+  trackingCode: z.string().min(3, "O código de rastreio é obrigatório"),
 })
 
 export default function RegistrarEncomendaPage() {
   const router = useRouter()
-  const [units, setUnits] = useState<{ id: number; name: string }[]>([])
+  const [units, setUnits] = useState<{ value: string; label: string }[]>([])
   const [loadingUnits, setLoadingUnits] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -48,8 +48,8 @@ export default function RegistrarEncomendaPage() {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.ok) {
-          const data = await res.json()
-          setUnits(data)
+          const data: { id: number; name: string }[] = await res.json()
+          setUnits(data.map((u) => ({ value: u.id.toString(), label: u.name })))
         }
       } catch (error) {
         toast.error("Erro ao carregar unidades")
@@ -77,7 +77,7 @@ export default function RegistrarEncomendaPage() {
           unitId: parseInt(values.unitId),
           description: values.description,
           recipientName: values.recipientName,
-          trackingCode: values.trackingCode || null,
+          trackingCode: values.trackingCode,
         }),
       })
 
@@ -123,20 +123,17 @@ export default function RegistrarEncomendaPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Unidade de Destino *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger disabled={loadingUnits}>
-                            <SelectValue placeholder={loadingUnits ? "Carregando..." : "Selecione a unidade"} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {units.map((unit) => (
-                            <SelectItem key={unit.id} value={unit.id.toString()}>
-                              {unit.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Select
+                          isLoading={loadingUnits}
+                          options={units}
+                          placeholder="Pesquisar unidade..."
+                          noOptionsMessage={() => "Nenhuma unidade encontrada"}
+                          onChange={(option: any) => field.onChange(option?.value || "")}
+                          value={units.find((u) => u.value === field.value) || null}
+                          className="text-sm"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -176,7 +173,7 @@ export default function RegistrarEncomendaPage() {
                 name="trackingCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Código de Rastreio (Opcional)</FormLabel>
+                    <FormLabel>Código de Rastreio *</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: NL123456789BR" {...field} />
                     </FormControl>

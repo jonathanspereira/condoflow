@@ -1,57 +1,24 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Loader2, QrCode } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Html5QrcodeScanner, Html5QrcodeScanType } from "html5-qrcode"
+import { Scanner } from "@yudiel/react-qr-scanner"
 
 export default function LeitorEncomendasPage() {
   const router = useRouter()
   const [scanResult, setScanResult] = useState<string | null>(null)
   const [isDelivering, setIsDelivering] = useState(false)
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null)
-
-  useEffect(() => {
-    // Configura o scanner
-    scannerRef.current = new Html5QrcodeScanner(
-      "reader",
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-      },
-      false
-    )
-
-    scannerRef.current.render(onScanSuccess, onScanError)
-
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(error => {
-          console.error("Failed to clear html5QrcodeScanner. ", error);
-        })
-      }
-    }
-  }, [])
 
   const onScanSuccess = async (decodedText: string) => {
     // Para evitar múltiplos scans seguidos do mesmo código
     if (scanResult === decodedText || isDelivering) return
     setScanResult(decodedText)
     
-    // Pausa o scanner enquanto processa
-    if (scannerRef.current) {
-      scannerRef.current.pause(true)
-    }
-    
     await processDelivery(decodedText)
-  }
-
-  const onScanError = (errorMessage: string) => {
-    // Ignorando erros de não encontrar QR code a cada frame
   }
 
   const processDelivery = async (deliveryCode: string) => {
@@ -86,9 +53,6 @@ export default function LeitorEncomendasPage() {
     } catch (error: any) {
       toast.error(error.message)
       setScanResult(null)
-      if (scannerRef.current) {
-        scannerRef.current.resume()
-      }
     } finally {
       setIsDelivering(false)
     }
@@ -109,7 +73,12 @@ export default function LeitorEncomendasPage() {
       <Card>
         <CardContent className="p-4">
           {!scanResult ? (
-            <div id="reader" className="w-full overflow-hidden rounded-lg bg-slate-900"></div>
+            <div className="w-full overflow-hidden rounded-lg bg-slate-900">
+              <Scanner 
+                onScan={(result) => onScanSuccess(result[0].rawValue)} 
+                onError={(error) => console.log(error?.message)} 
+              />
+            </div>
           ) : (
             <div className="py-12 flex flex-col items-center justify-center space-y-4">
               {isDelivering ? (
