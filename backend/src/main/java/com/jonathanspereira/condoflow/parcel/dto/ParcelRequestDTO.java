@@ -13,6 +13,7 @@ public class ParcelRequestDTO {
     @NotBlank(message = "Nome do destinatário é obrigatório")
     private String recipientName;
 
+    @NotBlank(message = "Código de rastreio é obrigatório")
     private String trackingCode;
 
     @NotNull(message = "ID da unidade é obrigatório")
