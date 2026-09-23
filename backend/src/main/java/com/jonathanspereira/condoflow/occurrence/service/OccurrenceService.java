@@ -82,7 +82,7 @@ public class OccurrenceService {
         Occurrence saved = occurrenceRepository.save(occurrence);
 
         // Notificar Síndico(s) do Condomínio via Sininho e E-mail
-        List<User> sindicos = condominiumRoleRepository.findByCondominiumId(condominium.getId()).stream().map(CondominiumRole::getUser).collect(Collectors.toList());
+        List<User> sindicos = userRepository.findByCondominiumIdAndRole(condominium.getId(), Role.SINDICO);
         for (User sindico : sindicos) {
             notificationService.createNotification(
                     sindico,
