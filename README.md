@@ -54,13 +54,6 @@ O CondoFlow adota uma arquitetura moderna, escalável e segura:
 
 ---
 
-## 🏗️ Arquitetura de Dados (UML)
-
-Abaixo o modelo conceitual do banco de dados relacional (Entity-Relationship Diagram):
-
-![Diagrama Entidade-Relacionamento](diagrama.png)
-
----
 
 ## ⚙️ Como Executar Localmente
 
