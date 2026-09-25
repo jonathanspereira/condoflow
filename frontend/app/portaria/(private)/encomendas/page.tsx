@@ -23,9 +23,12 @@ interface Parcel {
 export default function EncomendasPage() {
   const [parcels, setParcels] = useState<Parcel[]>([])
   const [loading, setLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState("ALL")
+  const [periodFilter, setPeriodFilter] = useState("ALL")
   const router = useRouter()
 
   const fetchParcels = async () => {
+    setLoading(true)
     const token = localStorage.getItem("condoflow_token")
     const condoId = localStorage.getItem("condoflow_selected_condo_id") || "1"
     
@@ -35,7 +38,23 @@ export default function EncomendasPage() {
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/parcels/condominium?size=100`, {
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/parcels/condominium?size=100`
+      if (statusFilter !== "ALL") {
+        url += `&status=${statusFilter}`
+      }
+
+      if (periodFilter !== "ALL") {
+        const now = new Date()
+        if (periodFilter === "7days") {
+          now.setDate(now.getDate() - 7)
+          url += `&startDate=${now.toISOString()}`
+        } else if (periodFilter === "30days") {
+          now.setDate(now.getDate() - 30)
+          url += `&startDate=${now.toISOString()}`
+        }
+      }
+
+      const res = await fetch(url, {
         headers: { 
           Authorization: `Bearer ${token}`,
           "X-Tenant-ID": condoId 
@@ -54,7 +73,7 @@ export default function EncomendasPage() {
 
   useEffect(() => {
     fetchParcels()
-  }, [router])
+  }, [router, statusFilter, periodFilter])
 
   const formatDate = (iso: string) => {
     const d = new Date(iso)
@@ -78,14 +97,32 @@ export default function EncomendasPage() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Gestão de Encomendas</h1>
           <p className="text-sm text-slate-500 mt-1">Controle de recebimento e entrega de pacotes.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <select 
+            className="text-sm border-slate-200 rounded-md py-1.5 px-3 bg-white border"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="ALL">Status: Todos</option>
+            <option value="PENDING_PICKUP">Aguardando Retirada</option>
+            <option value="DELIVERED">Entregue</option>
+          </select>
+          <select 
+            className="text-sm border-slate-200 rounded-md py-1.5 px-3 bg-white border"
+            value={periodFilter}
+            onChange={(e) => setPeriodFilter(e.target.value)}
+          >
+            <option value="ALL">Período: Todos</option>
+            <option value="7days">Últimos 7 dias</option>
+            <option value="30days">Últimos 30 dias</option>
+          </select>
           <Button onClick={() => router.push("/portaria/encomendas/novo")} className="gap-2">
             <Plus className="h-4 w-4" />
             Receber Pacote
           </Button>
           <Button onClick={() => router.push("/portaria/encomendas/leitor")} variant="secondary" className="gap-2">
             <QrCode className="h-4 w-4" />
-            Leitor de Liberação
+            Leitor
           </Button>
         </div>
       </div>

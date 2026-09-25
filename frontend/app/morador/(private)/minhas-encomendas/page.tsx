@@ -19,15 +19,34 @@ interface Parcel {
 export default function MinhasEncomendasPage() {
   const [parcels, setParcels] = useState<Parcel[]>([])
   const [loading, setLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState("ALL")
+  const [periodFilter, setPeriodFilter] = useState("ALL")
   const router = useRouter()
 
   useEffect(() => {
     const fetchParcels = async () => {
+      setLoading(true)
       const token = localStorage.getItem("condoflow_token")
       if (!token) return router.push("/morador/login")
 
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/parcels/me?size=50`, {
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/parcels/me?size=50`
+        if (statusFilter !== "ALL") {
+          url += `&status=${statusFilter}`
+        }
+
+        if (periodFilter !== "ALL") {
+          const now = new Date()
+          if (periodFilter === "7days") {
+            now.setDate(now.getDate() - 7)
+            url += `&startDate=${now.toISOString()}`
+          } else if (periodFilter === "30days") {
+            now.setDate(now.getDate() - 30)
+            url += `&startDate=${now.toISOString()}`
+          }
+        }
+
+        const res = await fetch(url, {
           headers: { Authorization: `Bearer ${token}` }
         })
 
@@ -42,7 +61,7 @@ export default function MinhasEncomendasPage() {
     }
 
     fetchParcels()
-  }, [router])
+  }, [router, statusFilter, periodFilter])
 
   const formatDate = (iso: string) => {
     const d = new Date(iso)
@@ -61,9 +80,31 @@ export default function MinhasEncomendasPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Minhas Encomendas</h1>
-        <p className="text-sm text-slate-500 mt-1">Acompanhe as encomendas recebidas na portaria.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Minhas Encomendas</h1>
+          <p className="text-sm text-slate-500 mt-1">Acompanhe as encomendas recebidas na portaria.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <select 
+            className="text-sm border-slate-200 rounded-md py-1.5 px-3 bg-white border"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="ALL">Status: Todos</option>
+            <option value="PENDING_PICKUP">Aguardando Retirada</option>
+            <option value="DELIVERED">Entregue</option>
+          </select>
+          <select 
+            className="text-sm border-slate-200 rounded-md py-1.5 px-3 bg-white border"
+            value={periodFilter}
+            onChange={(e) => setPeriodFilter(e.target.value)}
+          >
+            <option value="ALL">Período: Todos</option>
+            <option value="7days">Últimos 7 dias</option>
+            <option value="30days">Últimos 30 dias</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (

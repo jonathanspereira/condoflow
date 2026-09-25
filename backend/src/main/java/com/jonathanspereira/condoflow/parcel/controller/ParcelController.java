@@ -38,8 +38,11 @@ public class ParcelController {
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
     public ResponseEntity<Page<ParcelResponseDTO>> getParcelsByCondominium(
             @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
+            @RequestParam(required = false) com.jonathanspereira.condoflow.parcel.entity.ParcelStatus status,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(parcelService.getParcelsByCondominium(condominiumId, pageable));
+        return ResponseEntity.ok(parcelService.getParcelsByCondominium(condominiumId, status, startDate, endDate, pageable));
     }
 
     @GetMapping("/unit/{unitId}")
@@ -91,7 +94,10 @@ public class ParcelController {
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'PROPRIETARY', 'TENANT')")
     public ResponseEntity<Page<ParcelResponseDTO>> getMyParcels(
             Principal principal,
+            @RequestParam(required = false) com.jonathanspereira.condoflow.parcel.entity.ParcelStatus status,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(parcelService.getMyParcels(principal.getName(), pageable));
+        return ResponseEntity.ok(parcelService.getMyParcels(principal.getName(), status, startDate, endDate, pageable));
     }
 }

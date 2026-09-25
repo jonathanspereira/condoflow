@@ -26,6 +26,7 @@ export default function MinhaEncomendaPage() {
   const router = useRouter()
   const [parcel, setParcel] = useState<Parcel | null>(null)
   const [loading, setLoading] = useState(true)
+  const [batchCount, setBatchCount] = useState(1)
 
   useEffect(() => {
     const fetchParcel = async () => {
@@ -33,9 +34,6 @@ export default function MinhaEncomendaPage() {
       if (!token) return router.push("/morador/login")
 
       try {
-        // Aproveitamos a rota que retorna a lista, mas no backend não temos uma rota GET /id para morador
-        // Como não criamos, vamos buscar todas do morador e filtrar, ou deveríamos ter criado a rota.
-        // Vamos filtrar as encomendas do morador pela API existente:
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/parcels/me?size=100`, {
           headers: { Authorization: `Bearer ${token}` }
         })
@@ -46,6 +44,13 @@ export default function MinhaEncomendaPage() {
         
         if (!found) throw new Error("Encomenda não encontrada")
         setParcel(found)
+        
+        // Count how many pending parcels share this deliveryCode
+        const relatedParcels = data.content.filter((p: Parcel) => 
+          p.deliveryCode === found.deliveryCode && p.status === "PENDING_PICKUP"
+        )
+        setBatchCount(relatedParcels.length)
+        
       } catch (error) {
         toast.error("Não foi possível carregar os detalhes da encomenda.")
         router.push("/morador/minhas-encomendas")
@@ -134,7 +139,13 @@ export default function MinhaEncomendaPage() {
               <ShieldAlert className="h-5 w-5" />
               Código de Liberação
             </h3>
-            <p className="text-xs text-slate-500 mt-1">Apresente este código para o porteiro.</p>
+            {batchCount > 1 ? (
+              <p className="text-sm font-medium text-amber-600 mt-2 bg-amber-50 py-1.5 px-3 rounded-full inline-block border border-amber-200">
+                Este QR Code libera {batchCount} pacotes que estão aguardando retirada!
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500 mt-1">Apresente este código para o porteiro.</p>
+            )}
           </div>
           <CardContent className="p-8 flex flex-col items-center justify-center">
             <div className="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm inline-block">

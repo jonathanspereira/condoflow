@@ -127,13 +127,13 @@ public class ParcelService {
         return savedParcels.stream().map(this::toDTO).toList();
     }
 
-    public Page<ParcelResponseDTO> getParcelsByCondominium(Long condominiumId, Pageable pageable) {
-        return parcelRepository.findByCondominiumIdOrderByReceivedAtDesc(condominiumId, pageable)
+    public Page<ParcelResponseDTO> getParcelsByCondominium(Long condominiumId, ParcelStatus status, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return parcelRepository.findByCondominiumIdWithFilters(condominiumId, status, startDate, endDate, pageable)
                 .map(this::toDTO);
     }
 
-    public Page<ParcelResponseDTO> getParcelsByUnit(Long unitId, Pageable pageable) {
-        return parcelRepository.findByUnitIdOrderByReceivedAtDesc(unitId, pageable)
+    public Page<ParcelResponseDTO> getParcelsByUnit(Long unitId, ParcelStatus status, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return parcelRepository.findByUnitIdWithFilters(unitId, status, startDate, endDate, pageable)
                 .map(this::toDTO);
     }
 
@@ -200,7 +200,7 @@ public class ParcelService {
         return delivered;
     }
 
-    public Page<ParcelResponseDTO> getMyParcels(String userEmail, Pageable pageable) {
+    public Page<ParcelResponseDTO> getMyParcels(String userEmail, ParcelStatus status, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
         org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(userEmail);
         if (userDetails == null) {
             throw new IllegalArgumentException("User not found");
@@ -211,7 +211,7 @@ public class ParcelService {
                 .or(() -> unitRepository.findByTenantId(user.getId()))
                 .orElseThrow(() -> new IllegalArgumentException("Unidade não encontrada para este usuário"));
 
-        return getParcelsByUnit(unit.getId(), pageable);
+        return getParcelsByUnit(unit.getId(), status, startDate, endDate, pageable);
     }
 
     private ParcelResponseDTO toDTO(Parcel parcel) {
