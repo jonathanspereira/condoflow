@@ -37,6 +37,7 @@ import { toast } from "sonner"
 const MENU_MORADOR = [
   { name: "Minhas Ocorrências", href: "/morador/minhas-ocorrencias", icon: ClipboardList },
   { name: "Minhas Encomendas", href: "/morador/minhas-encomendas", icon: Package },
+  { name: "Meus Acessos", href: "/morador/acessos", icon: Users },
 ]
 
 // MENU PARA O SÍNDICO
