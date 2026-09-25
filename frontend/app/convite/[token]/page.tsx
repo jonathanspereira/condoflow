@@ -34,6 +34,10 @@ export default function ConvitePublicoPage() {
   const [photoBase64, setPhotoBase64] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const [showWebcam, setShowWebcam] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   async function fetchAuth() {
     setLoading(true)
@@ -55,7 +59,46 @@ export default function ConvitePublicoPage() {
 
   useEffect(() => {
     fetchAuth()
+    
+    // Stop webcam if component unmounts
+    return () => {
+      stopWebcam()
+    }
   }, [token])
+
+  const startWebcam = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+      setShowWebcam(true)
+    } catch (err) {
+      toast.error("Não foi possível acessar a câmera. Verifique as permissões.")
+    }
+  }
+
+  const stopWebcam = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream
+      stream.getTracks().forEach(track => track.stop())
+    }
+    setShowWebcam(false)
+  }
+
+  const takePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext("2d")
+      if (context) {
+        canvasRef.current.width = videoRef.current.videoWidth
+        canvasRef.current.height = videoRef.current.videoHeight
+        context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height)
+        const base64 = canvasRef.current.toDataURL("image/jpeg", 0.7)
+        setPhotoBase64(base64)
+        stopWebcam()
+      }
+    }
+  }
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -203,10 +246,25 @@ export default function ConvitePublicoPage() {
                         Refazer
                       </Button>
                     </div>
+                  ) : showWebcam ? (
+                    <div className="relative rounded-xl overflow-hidden bg-black flex flex-col items-center justify-center h-48">
+                      <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
+                      <canvas ref={canvasRef} className="hidden" />
+                      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-4">
+                        <Button type="button" variant="destructive" size="sm" onClick={stopWebcam}>Cancelar</Button>
+                        <Button type="button" variant="default" size="sm" onClick={takePhoto}>Capturar</Button>
+                      </div>
+                    </div>
                   ) : (
                     <div 
                       className="border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => {
+                        if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                          fileInputRef.current?.click()
+                        } else {
+                          startWebcam()
+                        }
+                      }}
                     >
                       <User className="h-10 w-10 text-slate-300 mb-2" />
                       <p className="text-sm font-medium text-slate-600">Toque para tirar uma foto</p>

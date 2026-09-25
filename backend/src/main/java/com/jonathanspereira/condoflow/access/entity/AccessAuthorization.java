@@ -49,6 +49,7 @@ public class AccessAuthorization {
     private String personName;
     private String personPhone;
     private String personCpf;
+    @Column(columnDefinition = "TEXT")
     private String personPhotoUrl;
 
     // Additional info for providers/delivery
