@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/saude").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
-
+                        .requestMatchers("/api/v1/access/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/*/attachments/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/occurrences/*/attachments").permitAll()

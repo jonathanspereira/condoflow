@@ -167,9 +167,6 @@ export default function MeusAcessosPage() {
                       Copiar Link
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon" onClick={() => router.push(`/morador/acessos/${auth.id}`)}>
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
-                  </Button>
                 </div>
               </CardContent>
             </Card>
