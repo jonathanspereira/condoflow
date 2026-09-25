@@ -28,11 +28,7 @@ export default function AcessosDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
 
-  useEffect(() => {
-    fetchAuthorizations()
-  }, [])
-
-  const fetchAuthorizations = async () => {
+  async function fetchAuthorizations() {
     setLoading(true)
     const token = localStorage.getItem("condoflow_token")
     const condoId = localStorage.getItem("condoflow_selected_condo_id") || "1"
@@ -56,6 +52,10 @@ export default function AcessosDashboardPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchAuthorizations()
+  }, [])
 
   const handleExit = async (accessCode: string) => {
     const token = localStorage.getItem("condoflow_token")

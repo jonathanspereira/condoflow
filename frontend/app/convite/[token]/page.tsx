@@ -35,11 +35,7 @@ export default function ConvitePublicoPage() {
   const [submitting, setSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    fetchAuth()
-  }, [token])
-
-  const fetchAuth = async () => {
+  async function fetchAuth() {
     setLoading(true)
     setErrorMsg("")
     try {
@@ -56,6 +52,10 @@ export default function ConvitePublicoPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchAuth()
+  }, [token])
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

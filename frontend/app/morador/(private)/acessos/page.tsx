@@ -25,11 +25,7 @@ export default function MeusAcessosPage() {
   const [copiedLink, setCopiedLink] = useState<number | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    fetchAuthorizations()
-  }, [])
-
-  const fetchAuthorizations = async () => {
+  async function fetchAuthorizations() {
     setLoading(true)
     const token = localStorage.getItem("condoflow_token")
     if (!token) return router.push("/morador/login")
@@ -48,6 +44,10 @@ export default function MeusAcessosPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchAuthorizations()
+  }, [])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
