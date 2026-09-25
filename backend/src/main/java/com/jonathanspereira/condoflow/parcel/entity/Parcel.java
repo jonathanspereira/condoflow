@@ -44,7 +44,7 @@ public class Parcel {
     @Column(nullable = false)
     private ParcelStatus status;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String deliveryCode;
 
     @CreationTimestamp
