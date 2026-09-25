@@ -1,21 +1,25 @@
 "use client"
 
-import { Metadata } from "next"
+import { useState } from "react"
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Building2, Clock, PlusCircle, Search, User, UserCog, ShieldCheck, QrCode, PackageCheck, Smartphone } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function LandingPage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen flex-col bg-white overflow-hidden">
       {/* Header Simples */}
-      <header className="flex h-16 items-center justify-between px-8 border-b relative z-50 bg-white/80 backdrop-blur-md">
+      <header className="flex h-16 items-center justify-between px-4 md:px-8 border-b relative z-50 bg-white/80 backdrop-blur-md">
         <div className="flex items-center gap-2 font-bold text-xl text-primary">
           <Building2 className="h-6 w-6" />
           <span>CondoFlow</span>
         </div>
-        <div className="flex items-center gap-2">
+        
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-2">
           <Button asChild variant="ghost">
             <Link href="/morador/login">
               <User className="mr-2 h-4 w-4" />
@@ -34,13 +38,52 @@ export default function LandingPage() {
               Área do Síndico
             </Link>
           </Button>
-          <Button asChild className="hidden sm:flex bg-emerald-600 hover:bg-emerald-700 text-white font-bold ml-2">
+          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold ml-2">
             <Link href="/sindico/cadastro">
               Cadastre-se Agora
             </Link>
           </Button>
         </div>
+
+        {/* Mobile Menu Button */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="md:hidden" 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        </Button>
       </header>
+
+      {/* Mobile Navigation Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden flex flex-col bg-white border-b px-4 py-4 space-y-2 relative z-40">
+          <Button asChild variant="ghost" className="justify-start">
+            <Link href="/morador/login">
+              <User className="mr-2 h-4 w-4" />
+              Área do Morador
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="justify-start">
+            <Link href="/portaria/login">
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Área da Portaria
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="justify-start">
+            <Link href="/sindico/login">
+              <UserCog className="mr-2 h-4 w-4" />
+              Área do Síndico
+            </Link>
+          </Button>
+          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold justify-start">
+            <Link href="/sindico/cadastro">
+              Cadastre-se Agora
+            </Link>
+          </Button>
+        </div>
+      )}
 
       <main className="flex-1">
         {/* Seção Hero */}

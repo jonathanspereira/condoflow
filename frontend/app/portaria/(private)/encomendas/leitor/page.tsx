@@ -163,30 +163,30 @@ export default function LeitorEncomendasPage() {
                   {parcels.map((parcel) => (
                     <div 
                       key={parcel.id} 
-                      className={`flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 cursor-pointer transition-colors ${selectedIds.includes(parcel.id) ? 'bg-emerald-50 border-emerald-200' : 'bg-white'}`}
+                      className={`flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 md:p-4 cursor-pointer transition-colors ${selectedIds.includes(parcel.id) ? 'bg-emerald-50 border-emerald-200' : 'bg-white'}`}
                       onClick={() => handleToggleParcel(parcel.id)}
                     >
                       <Checkbox 
                         checked={selectedIds.includes(parcel.id)}
                         onCheckedChange={() => handleToggleParcel(parcel.id)}
-                        className="mt-1"
+                        className="mt-1 shrink-0"
                       />
-                      <div className="space-y-1 leading-none">
-                        <Label className="font-semibold text-sm cursor-pointer">{parcel.description}</Label>
-                        <p className="text-xs text-slate-500">
-                          Para: {parcel.recipientName} • Recebido em: {formatarData(parcel.receivedAt)}
+                      <div className="space-y-1 leading-none flex-1 min-w-0">
+                        <Label className="font-semibold text-sm cursor-pointer truncate block">{parcel.description}</Label>
+                        <p className="text-xs text-slate-500 break-words">
+                          Para: {parcel.recipientName} <br className="sm:hidden" /><span className="hidden sm:inline">•</span> Recebido em: {formatarData(parcel.receivedAt)}
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-4 flex gap-3">
-                  <Button variant="outline" className="w-full" onClick={() => setScanResult(null)} disabled={isDelivering}>
+                <div className="pt-4 flex flex-col sm:flex-row gap-3">
+                  <Button variant="outline" className="w-full sm:w-1/2" onClick={() => setScanResult(null)} disabled={isDelivering}>
                     Cancelar
                   </Button>
                   <Button 
-                    className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" 
+                    className="w-full sm:w-1/2 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" 
                     onClick={processDelivery} 
                     disabled={isDelivering || selectedIds.length === 0}
                   >
