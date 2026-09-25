@@ -218,10 +218,10 @@ export default function NovoAcessoPage() {
             </div>
 
             <div className="pt-4 flex gap-3">
-              <Button type="button" variant="outline" className="w-full" onClick={() => router.push("/morador/acessos")} disabled={loading}>
+              <Button type="button" variant="outline" className="flex-1" onClick={() => router.push("/morador/acessos")} disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit" className="w-full bg-primary" disabled={loading}>
+              <Button type="submit" className="flex-1 bg-primary" disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Gerar Convite"}
               </Button>
             </div>

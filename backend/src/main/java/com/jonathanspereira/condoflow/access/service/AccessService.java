@@ -39,8 +39,7 @@ public class AccessService {
 
     @Transactional
     public AccessResponseDTO createAuthorization(Long condominiumId, String residentEmail, AccessRequestDTO request) {
-        Condominium condominium = condominiumRepository.findById(condominiumId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Condominium not found"));
+
 
         User resident = (User) userRepository.findByEmail(residentEmail);
         if (resident == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resident not found");
@@ -48,6 +47,10 @@ public class AccessService {
         Unit unit = unitRepository.findByOwnerId(resident.getId())
                 .or(() -> unitRepository.findByTenantId(resident.getId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unit not found for user"));
+
+        Long finalCondoId = condominiumId != null ? condominiumId : unit.getCondominiumId();
+        Condominium condominium = condominiumRepository.findById(finalCondoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Condominium not found"));
 
         AccessAuthorization auth = AccessAuthorization.builder()
                 .condominium(condominium)
