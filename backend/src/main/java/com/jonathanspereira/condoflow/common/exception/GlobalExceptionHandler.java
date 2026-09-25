@@ -39,7 +39,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(org.springframework.http.converter.HttpMessageNotReadableException ex) {
-        String message = "Dados inválidos ou incompletos foram enviados. Verifique os campos do formulário (ex: categoria vazia).";
+        log.error("HttpMessageNotReadableException: ", ex);
+        String message = "Dados inválidos: " + ex.getMessage();
         ErrorResponse errorResponse = new ErrorResponse(message, HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
