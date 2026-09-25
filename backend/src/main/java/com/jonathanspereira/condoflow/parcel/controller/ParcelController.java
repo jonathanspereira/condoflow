@@ -49,8 +49,11 @@ public class ParcelController {
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE', 'PROPRIETARY', 'TENANT')")
     public ResponseEntity<Page<ParcelResponseDTO>> getParcelsByUnit(
             @PathVariable Long unitId,
+            @RequestParam(required = false) com.jonathanspereira.condoflow.parcel.entity.ParcelStatus status,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(parcelService.getParcelsByUnit(unitId, pageable));
+        return ResponseEntity.ok(parcelService.getParcelsByUnit(unitId, status, startDate, endDate, pageable));
     }
 
     @PostMapping("/batch")
