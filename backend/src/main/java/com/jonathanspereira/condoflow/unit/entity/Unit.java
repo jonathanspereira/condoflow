@@ -5,8 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
+
 
 @Entity
 @Data

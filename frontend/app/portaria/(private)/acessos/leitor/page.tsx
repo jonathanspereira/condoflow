@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, QrCode, UserCheck, KeyRound, CheckCircle2 } from "l
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import { Label } from "@/components/ui/label"
@@ -31,7 +32,7 @@ export default function LeitorAcessosPage() {
   const [mode, setMode] = useState<"QR" | "PIN">("QR")
   const [pinInput, setPinInput] = useState("")
   const [auth, setAuth] = useState<AccessAuth | null>(null)
-  
+
   const [isLoading, setIsLoading] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
 
@@ -116,20 +117,20 @@ export default function LeitorAcessosPage() {
 
       <Card>
         <CardContent className="p-4 sm:p-6 space-y-6">
-          
+
           {!auth ? (
             <>
               <div className="flex bg-slate-100 p-1 rounded-lg">
-                <Button 
-                  variant={mode === "QR" ? "default" : "ghost"} 
+                <Button
+                  variant={mode === "QR" ? "default" : "ghost"}
                   className={`w-1/2 rounded-md ${mode === "QR" ? "bg-white text-slate-900 shadow-sm hover:bg-white" : ""}`}
                   onClick={() => setMode("QR")}
                 >
                   <QrCode className="h-4 w-4 mr-2" />
                   QR Code
                 </Button>
-                <Button 
-                  variant={mode === "PIN" ? "default" : "ghost"} 
+                <Button
+                  variant={mode === "PIN" ? "default" : "ghost"}
                   className={`w-1/2 rounded-md ${mode === "PIN" ? "bg-white text-slate-900 shadow-sm hover:bg-white" : ""}`}
                   onClick={() => setMode("PIN")}
                 >
@@ -145,26 +146,26 @@ export default function LeitorAcessosPage() {
                 </div>
               ) : mode === "QR" ? (
                 <div className="w-full overflow-hidden rounded-lg bg-slate-900 aspect-square flex items-center">
-                  <Scanner 
-                    onScan={(result) => handleValidate(result[0].rawValue)} 
-                    onError={(error) => console.log(error?.message)} 
+                  <Scanner
+                    onScan={(result) => handleValidate(result[0].rawValue)}
+                    onError={(error) => console.log(error?.message)}
                   />
                 </div>
               ) : (
                 <div className="space-y-4 py-8">
                   <div className="space-y-2 text-center">
                     <Label htmlFor="pin" className="text-base">Digite o PIN do visitante</Label>
-                    <Input 
-                      id="pin" 
+                    <Input
+                      id="pin"
                       value={pinInput}
                       onChange={(e) => setPinInput(e.target.value)}
-                      placeholder="0000" 
+                      placeholder="0000"
                       className="text-center text-3xl font-black tracking-[0.5em] h-16 uppercase"
                       maxLength={4}
                     />
                   </div>
-                  <Button 
-                    className="w-full h-12 text-lg" 
+                  <Button
+                    className="w-full h-12 text-lg"
                     onClick={() => handleValidate(pinInput)}
                     disabled={pinInput.length !== 4}
                   >
@@ -218,9 +219,9 @@ export default function LeitorAcessosPage() {
                 <Button variant="outline" className="w-full sm:w-1/2" onClick={() => setAuth(null)} disabled={isRegistering}>
                   Voltar
                 </Button>
-                <Button 
-                  className="w-full sm:w-1/2 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" 
-                  onClick={registerEntry} 
+                <Button
+                  className="w-full sm:w-1/2 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={registerEntry}
                   disabled={isRegistering}
                 >
                   {isRegistering ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}

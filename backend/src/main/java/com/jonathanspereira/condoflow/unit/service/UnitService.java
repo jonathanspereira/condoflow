@@ -4,14 +4,14 @@ import com.jonathanspereira.condoflow.common.exception.BusinessException;
 import com.jonathanspereira.condoflow.auth.entity.PasswordResetToken;
 import com.jonathanspereira.condoflow.auth.repository.PasswordResetTokenRepository;
 import com.jonathanspereira.condoflow.common.email.service.EmailService;
-import com.jonathanspereira.condoflow.condominium.entity.Condominium;
+
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
 import com.jonathanspereira.condoflow.unit.dto.UnitRequestDTO;
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
 import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.entity.User;
-import com.jonathanspereira.condoflow.user.entity.User;
+
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import com.jonathanspereira.condoflow.log.service.AuditLogService;
 import org.slf4j.Logger;
@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class UnitService {
 
     private static final Logger log = LoggerFactory.getLogger(UnitService.class);
@@ -123,7 +124,7 @@ public class UnitService {
     }
 
     private void checkPlanLimit(Long condominiumId, int requestedAmount) {
-        Condominium condo = condominiumRepository.findById(condominiumId)
+        condominiumRepository.findById(condominiumId)
                 .orElseThrow(() -> new IllegalArgumentException("Condomínio não encontrado"));
 
         // FREE, MENSAL and ANUAL are unlimited for now.

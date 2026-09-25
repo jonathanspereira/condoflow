@@ -7,7 +7,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;

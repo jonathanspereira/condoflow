@@ -1,7 +1,6 @@
 package com.jonathanspereira.condoflow.common.config;
 
 import jakarta.persistence.EntityManager;
-import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.hibernate.Session;

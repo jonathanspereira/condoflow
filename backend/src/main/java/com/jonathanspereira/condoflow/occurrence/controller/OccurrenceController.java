@@ -16,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/occurrences")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class OccurrenceController {
 
     private final OccurrenceService service;

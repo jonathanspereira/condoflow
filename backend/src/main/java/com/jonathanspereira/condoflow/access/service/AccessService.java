@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class AccessService {
 
     private final AccessAuthorizationRepository authorizationRepository;

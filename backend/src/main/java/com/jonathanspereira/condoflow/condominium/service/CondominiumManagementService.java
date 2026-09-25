@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class CondominiumManagementService {
 
     private static final List<OccurrenceCategory> URGENT_CATEGORIES =
@@ -171,14 +172,12 @@ public class CondominiumManagementService {
 
         UserDetails existingDetails = userRepository.findByEmail(dto.email());
         User newSindico;
-        boolean isNewUser = false;
 
         if (existingDetails != null) {
             newSindico = (User) existingDetails;
             newSindico.setRole(com.jonathanspereira.condoflow.user.entity.Role.SINDICO);
             userRepository.save(newSindico);
         } else {
-            isNewUser = true;
             newSindico = new User();
             newSindico.setName(dto.name());
             newSindico.setEmail(dto.email());

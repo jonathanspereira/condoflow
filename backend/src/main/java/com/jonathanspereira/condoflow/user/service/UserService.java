@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class UserService {
 
     private final UserRepository userRepository;
@@ -54,7 +55,7 @@ public class UserService {
         user.setRole(dto.getRole());
 
         if (dto.getCondominiumId() != null) {
-            Condominium condominium = condominiumRepository.findById(dto.getCondominiumId())
+            condominiumRepository.findById(dto.getCondominiumId())
                     .orElseThrow(() -> new RuntimeException("Condomínio não encontrado."));
         }
 
@@ -150,7 +151,7 @@ public class UserService {
         user.setRole(dto.getRole());
 
         if (dto.getCondominiumId() != null) {
-            Condominium condominium = condominiumRepository.findById(dto.getCondominiumId())
+            condominiumRepository.findById(dto.getCondominiumId())
                     .orElseThrow(() -> new RuntimeException("Condomínio não encontrado."));
         } else {
         }

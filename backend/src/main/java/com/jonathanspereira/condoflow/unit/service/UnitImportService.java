@@ -35,8 +35,8 @@ public class UnitImportService {
         try {
             if (filename.toLowerCase().endsWith(".csv")) {
                 Reader reader = new InputStreamReader(file.getInputStream());
-                CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT);
-                boolean isHeader = true;
+                try (CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT)) {
+                    boolean isHeader = true;
                 for (CSVRecord record : parser) {
                     if (isHeader) {
                         isHeader = false;
@@ -53,6 +53,7 @@ public class UnitImportService {
                             requests.add(parseRecord(unidade, nome, email, nomeInq, emailInq));
                         }
                     }
+                }
                 }
             } else if (filename.toLowerCase().endsWith(".xls") || filename.toLowerCase().endsWith(".xlsx")) {
                 Workbook workbook = WorkbookFactory.create(file.getInputStream());

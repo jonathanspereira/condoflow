@@ -41,7 +41,9 @@ public class TurnstileService {
 
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 
+            @SuppressWarnings("rawtypes")
             ResponseEntity<Map> response = restTemplate.postForEntity(TURNSTILE_VERIFY_URL, request, Map.class);
+            @SuppressWarnings("unchecked")
             Map<String, Object> body = response.getBody();
             
             if (body != null && Boolean.TRUE.equals(body.get("success"))) {

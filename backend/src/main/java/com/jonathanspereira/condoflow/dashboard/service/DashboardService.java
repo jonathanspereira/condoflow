@@ -154,7 +154,7 @@ public class DashboardService {
         List<DashboardStatsDTO.MonthlyTrendDTO> monthlyTrends = new ArrayList<>();
         for (int i = 5; i >= 0; i--) {
             LocalDateTime monthTime = now.minusMonths(i);
-            String monthName = monthTime.getMonth().getDisplayName(TextStyle.SHORT, new Locale("pt", "BR"));
+            String monthName = monthTime.getMonth().getDisplayName(TextStyle.SHORT, java.util.Locale.forLanguageTag("pt-BR"));
             int targetYear = monthTime.getYear();
             int targetMonth = monthTime.getMonthValue();
             
@@ -197,7 +197,7 @@ public class DashboardService {
 
     public SyndicDashboardDTO getSyndicDashboard(String email, Long condominiumId, Integer days) {
         org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(email);
-        if (!(userDetails instanceof User user)) {
+        if (!(userDetails instanceof User)) {
             throw new IllegalArgumentException("User not found or invalid type");
         }
 

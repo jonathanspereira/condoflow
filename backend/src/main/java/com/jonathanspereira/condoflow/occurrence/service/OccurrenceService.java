@@ -2,8 +2,8 @@ package com.jonathanspereira.condoflow.occurrence.service;
 
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
 import com.jonathanspereira.condoflow.condominium.repository.CondominiumRepository;
-import com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepository;
-import com.jonathanspereira.condoflow.condominium.entity.CondominiumRole;
+
+
 import com.jonathanspereira.condoflow.notification.service.NotificationService;
 
 import com.jonathanspereira.condoflow.occurrence.dto.OccurrenceRequestDTO;
@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@SuppressWarnings("null")
 public class OccurrenceService {
 
     private final OccurrenceRepository occurrenceRepository;
@@ -49,7 +50,7 @@ public class OccurrenceService {
     private final UnitRepository unitRepository;
     private final com.jonathanspereira.condoflow.common.email.service.EmailService emailService;
     private final NotificationService notificationService;
-    private final CondominiumRoleRepository condominiumRoleRepository;
+
     private final AuditLogService auditLogService;
 
     public OccurrenceResponseDTO create(String userEmail, OccurrenceRequestDTO dto) {
@@ -302,14 +303,6 @@ public class OccurrenceService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anexo não encontrado."));
     }
 
-    private String translateStatus(OccurrenceStatus status) {
-        if (status == null) return "Atualizado";
-        return switch (status) {
-            case OPEN -> "Aberto";
-            case IN_PROGRESS -> "Em Andamento";
-            case RESOLVED -> "Resolvido";
-        };
-    }
 
     private User getUserByEmail(String email) {
         UserDetails userDetails = userRepository.findByEmail(email);
