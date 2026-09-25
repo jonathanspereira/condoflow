@@ -50,6 +50,25 @@ public class ParcelController {
         return ResponseEntity.ok(parcelService.getParcelsByUnit(unitId, pageable));
     }
 
+    @PostMapping("/batch")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
+    public ResponseEntity<java.util.List<ParcelResponseDTO>> registerParcelBatch(
+            @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
+            @Valid @RequestBody com.jonathanspereira.condoflow.parcel.dto.ParcelBatchRequestDTO requestDTO,
+            Principal principal) {
+        
+        java.util.List<ParcelResponseDTO> response = parcelService.registerParcelBatch(condominiumId, principal.getName(), requestDTO);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/delivery-code/{code}")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
+    public ResponseEntity<java.util.List<ParcelResponseDTO>> getParcelsByDeliveryCode(
+            @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
+            @PathVariable String code) {
+        return ResponseEntity.ok(parcelService.getParcelsByDeliveryCode(condominiumId, code));
+    }
+
     @PostMapping("/deliver")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
     public ResponseEntity<ParcelResponseDTO> deliverParcel(
@@ -57,6 +76,15 @@ public class ParcelController {
             @Valid @RequestBody ParcelDeliveryRequestDTO requestDTO,
             Principal principal) {
         return ResponseEntity.ok(parcelService.deliverParcel(condominiumId, principal.getName(), requestDTO));
+    }
+
+    @PostMapping("/deliver-batch")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'SINDICO', 'CONCIERGE')")
+    public ResponseEntity<java.util.List<ParcelResponseDTO>> deliverParcelBatch(
+            @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
+            @Valid @RequestBody com.jonathanspereira.condoflow.parcel.dto.ParcelBatchDeliveryRequestDTO requestDTO,
+            Principal principal) {
+        return ResponseEntity.ok(parcelService.deliverParcelBatch(condominiumId, principal.getName(), requestDTO));
     }
 
     @GetMapping("/me")

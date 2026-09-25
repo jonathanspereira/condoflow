@@ -14,5 +14,7 @@ public interface ParcelRepository extends JpaRepository<Parcel, Long> {
     
     Page<Parcel> findByUnitIdOrderByReceivedAtDesc(Long unitId, Pageable pageable);
     
-    Optional<Parcel> findByDeliveryCodeAndCondominiumId(String deliveryCode, Long condominiumId);
+    List<Parcel> findByDeliveryCodeAndCondominiumId(String deliveryCode, Long condominiumId);
+    
+    Optional<Parcel> findFirstByUnitIdAndStatusOrderByReceivedAtDesc(Long unitId, com.jonathanspereira.condoflow.parcel.entity.ParcelStatus status);
 }

@@ -48,7 +48,9 @@ public class ParcelService {
         }
         User receivedBy = (User) userDetails;
 
-        String deliveryCode = UUID.randomUUID().toString();
+        String deliveryCode = parcelRepository.findFirstByUnitIdAndStatusOrderByReceivedAtDesc(unit.getId(), ParcelStatus.PENDING_PICKUP)
+                .map(Parcel::getDeliveryCode)
+                .orElseGet(() -> UUID.randomUUID().toString());
 
         Parcel parcel = Parcel.builder()
                 .description(requestDTO.getDescription())
@@ -77,6 +79,54 @@ public class ParcelService {
         return toDTO(saved);
     }
 
+    @Transactional
+    public java.util.List<ParcelResponseDTO> registerParcelBatch(Long condominiumId, String receivedByEmail, com.jonathanspereira.condoflow.parcel.dto.ParcelBatchRequestDTO requestDTO) {
+        Condominium condominium = condominiumRepository.findById(condominiumId)
+                .orElseThrow(() -> new IllegalArgumentException("Condominium not found"));
+
+        Unit unit = unitRepository.findById(requestDTO.getUnitId())
+                .orElseThrow(() -> new IllegalArgumentException("Unit not found"));
+
+        org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(receivedByEmail);
+        if (userDetails == null) {
+            throw new IllegalArgumentException("User (Concierge) not found");
+        }
+        User receivedBy = (User) userDetails;
+
+        String deliveryCode = parcelRepository.findFirstByUnitIdAndStatusOrderByReceivedAtDesc(unit.getId(), ParcelStatus.PENDING_PICKUP)
+                .map(Parcel::getDeliveryCode)
+                .orElseGet(() -> UUID.randomUUID().toString());
+
+        java.util.List<Parcel> savedParcels = new java.util.ArrayList<>();
+        for (com.jonathanspereira.condoflow.parcel.dto.ParcelItemDTO item : requestDTO.getParcels()) {
+            Parcel parcel = Parcel.builder()
+                    .description(item.getDescription())
+                    .recipientName(item.getRecipientName())
+                    .trackingCode(item.getTrackingCode())
+                    .unit(unit)
+                    .condominium(condominium)
+                    .status(ParcelStatus.PENDING_PICKUP)
+                    .deliveryCode(deliveryCode)
+                    .receivedBy(receivedBy)
+                    .build();
+            savedParcels.add(parcelRepository.save(parcel));
+        }
+
+        if (unit.getOwner() != null && !savedParcels.isEmpty()) {
+            String toEmail = unit.getOwner().getEmail();
+            String parcelDesc = savedParcels.size() + " pacote(s) aguardando retirada.";
+            emailService.sendNewParcelNotification(
+                    toEmail,
+                    unit.getOwner().getName(),
+                    parcelDesc,
+                    String.valueOf(savedParcels.get(0).getId()),
+                    deliveryCode
+            );
+        }
+
+        return savedParcels.stream().map(this::toDTO).toList();
+    }
+
     public Page<ParcelResponseDTO> getParcelsByCondominium(Long condominiumId, Pageable pageable) {
         return parcelRepository.findByCondominiumIdOrderByReceivedAtDesc(condominiumId, pageable)
                 .map(this::toDTO);
@@ -87,14 +137,23 @@ public class ParcelService {
                 .map(this::toDTO);
     }
 
+    public java.util.List<ParcelResponseDTO> getParcelsByDeliveryCode(Long condominiumId, String deliveryCode) {
+        return parcelRepository.findByDeliveryCodeAndCondominiumId(deliveryCode, condominiumId).stream()
+                .filter(p -> p.getStatus() == ParcelStatus.PENDING_PICKUP)
+                .map(this::toDTO)
+                .toList();
+    }
+
     @Transactional
     public ParcelResponseDTO deliverParcel(Long condominiumId, String deliveredByEmail, ParcelDeliveryRequestDTO requestDTO) {
-        Parcel parcel = parcelRepository.findByDeliveryCodeAndCondominiumId(requestDTO.getDeliveryCode(), condominiumId)
-                .orElseThrow(() -> new IllegalArgumentException("Código de liberação inválido ou encomenda não encontrada"));
-
-        if (parcel.getStatus() != ParcelStatus.PENDING_PICKUP) {
-            throw new IllegalStateException("Esta encomenda já foi entregue ou devolvida.");
+        java.util.List<Parcel> parcels = parcelRepository.findByDeliveryCodeAndCondominiumId(requestDTO.getDeliveryCode(), condominiumId);
+        
+        if (parcels.isEmpty()) {
+            throw new IllegalArgumentException("Código de liberação inválido ou encomenda não encontrada");
         }
+        
+        Parcel parcel = parcels.stream().filter(p -> p.getStatus() == ParcelStatus.PENDING_PICKUP).findFirst()
+                .orElseThrow(() -> new IllegalStateException("Esta encomenda já foi entregue ou devolvida."));
 
         org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(deliveredByEmail);
         if (userDetails == null) {
@@ -108,6 +167,37 @@ public class ParcelService {
 
         Parcel saved = parcelRepository.save(parcel);
         return toDTO(saved);
+    }
+
+    @Transactional
+    public java.util.List<ParcelResponseDTO> deliverParcelBatch(Long condominiumId, String deliveredByEmail, com.jonathanspereira.condoflow.parcel.dto.ParcelBatchDeliveryRequestDTO requestDTO) {
+        org.springframework.security.core.userdetails.UserDetails userDetails = userRepository.findByEmail(deliveredByEmail);
+        if (userDetails == null) {
+            throw new IllegalArgumentException("User (Concierge) not found");
+        }
+        User deliveredBy = (User) userDetails;
+
+        java.util.List<ParcelResponseDTO> delivered = new java.util.ArrayList<>();
+        for (Long id : requestDTO.getParcelIds()) {
+            Parcel parcel = parcelRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Encomenda não encontrada: " + id));
+
+            if (!parcel.getCondominium().getId().equals(condominiumId)) {
+                throw new IllegalArgumentException("Encomenda pertence a outro condomínio: " + id);
+            }
+
+            if (parcel.getStatus() != ParcelStatus.PENDING_PICKUP) {
+                continue;
+            }
+
+            parcel.setStatus(ParcelStatus.DELIVERED);
+            parcel.setDeliveredAt(LocalDateTime.now());
+            parcel.setDeliveredBy(deliveredBy);
+            
+            delivered.add(toDTO(parcelRepository.save(parcel)));
+        }
+
+        return delivered;
     }
 
     public Page<ParcelResponseDTO> getMyParcels(String userEmail, Pageable pageable) {
