@@ -54,6 +54,7 @@ export default function PortariaLayout({ children }: Readonly<{ children: React.
   const [userData, setUserData] = useState<HeaderUser | null>(null)
 
   const menuPortaria = [
+    { name: "Acessos", href: "/portaria/acessos", icon: User },
     { name: "Encomendas", href: "/portaria/encomendas", icon: Package },
   ]
   
