@@ -33,6 +33,7 @@ public class ParcelService {
     private final CondominiumRepository condominiumRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final com.jonathanspereira.condoflow.notification.service.NotificationService notificationService;
 
     @Transactional
     public ParcelResponseDTO registerParcel(Long condominiumId, String receivedByEmail, ParcelRequestDTO requestDTO) {
@@ -65,14 +66,21 @@ public class ParcelService {
 
         Parcel saved = parcelRepository.save(parcel);
 
-        if (unit.getOwner() != null) {
-            String toEmail = unit.getOwner().getEmail();
+        User resident = unit.isRented() && unit.getTenant() != null ? unit.getTenant() : unit.getOwner();
+        if (resident != null) {
+            String toEmail = resident.getEmail();
             emailService.sendNewParcelNotification(
                     toEmail,
-                    unit.getOwner().getName(),
+                    resident.getName(),
                     saved.getDescription(),
                     String.valueOf(saved.getId()),
                     deliveryCode
+            );
+            notificationService.createNotification(
+                    resident,
+                    "Nova Encomenda",
+                    "A encomenda '" + saved.getDescription() + "' chegou e aguarda retirada.",
+                    null // or saved.getId().toString() if we want them to click it
             );
         }
 
@@ -112,15 +120,22 @@ public class ParcelService {
             savedParcels.add(parcelRepository.save(parcel));
         }
 
-        if (unit.getOwner() != null && !savedParcels.isEmpty()) {
-            String toEmail = unit.getOwner().getEmail();
+        User resident = unit.isRented() && unit.getTenant() != null ? unit.getTenant() : unit.getOwner();
+        if (resident != null && !savedParcels.isEmpty()) {
+            String toEmail = resident.getEmail();
             String parcelDesc = savedParcels.size() + " pacote(s) aguardando retirada.";
             emailService.sendNewParcelNotification(
                     toEmail,
-                    unit.getOwner().getName(),
+                    resident.getName(),
                     parcelDesc,
                     String.valueOf(savedParcels.get(0).getId()),
                     deliveryCode
+            );
+            notificationService.createNotification(
+                    resident,
+                    "Nova Encomenda",
+                    "Você tem " + savedParcels.size() + " pacote(s) aguardando retirada na portaria.",
+                    null
             );
         }
 
