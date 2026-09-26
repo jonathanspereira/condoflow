@@ -6,6 +6,7 @@ import com.jonathanspereira.condoflow.access.dto.PublicAccessCompletionDTO;
 import com.jonathanspereira.condoflow.access.entity.AccessAuthorization;
 import com.jonathanspereira.condoflow.access.entity.AccessLog;
 import com.jonathanspereira.condoflow.access.entity.AccessStatus;
+import com.jonathanspereira.condoflow.access.entity.AccessType;
 import com.jonathanspereira.condoflow.access.repository.AccessAuthorizationRepository;
 import com.jonathanspereira.condoflow.access.repository.AccessLogRepository;
 import com.jonathanspereira.condoflow.condominium.entity.Condominium;
@@ -70,6 +71,12 @@ public class AccessService {
                 .linkToken(UUID.randomUUID().toString())
                 .linkExpiresAt(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).plusMinutes(15))
                 .build();
+
+        if (request.getType() == AccessType.DELIVERY) {
+            auth.setStatus(AccessStatus.CADASTRO_CONCLUIDO);
+            auth.setAccessCode(UUID.randomUUID().toString());
+            auth.setPin(generateUniquePin(condominium.getId()));
+        }
 
         auth = authorizationRepository.save(auth);
         return toDTO(auth);

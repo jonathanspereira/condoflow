@@ -17,6 +17,8 @@ interface AccessAuth {
   startTime: string
   endTime: string
   linkToken: string
+  pin?: string
+  accessCode?: string
 }
 
 export default function MeusAcessosPage() {
@@ -92,9 +94,14 @@ export default function MeusAcessosPage() {
     setTimeout(() => setCopiedLink(null), 2000)
   }
 
-  const shareWhatsApp = (name: string, token: string) => {
-    const link = `${window.location.origin}/convite/${token}`
-    const text = `Olá, ${name}! Segue o link para seu acesso: ${link}`
+  const shareWhatsApp = (name: string, token: string, pin?: string) => {
+    let text = "";
+    if (pin) {
+      text = `Olá, ${name}! Seu acesso foi liberado. Seu PIN de entrada na portaria é: *${pin}*`;
+    } else {
+      const link = `${window.location.origin}/convite/${token}`
+      text = `Olá, ${name}! Segue o link para seu acesso: ${link}`
+    }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
   }
 
@@ -181,29 +188,49 @@ export default function MeusAcessosPage() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 self-start mt-2 w-full pt-2 border-t border-slate-100">
-                  {auth.status === "AGUARDANDO_CADASTRO" && (
-                    <div className="flex w-full gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2 flex-1"
-                        onClick={() => copyToClipboard(auth.id, auth.linkToken)}
-                      >
-                        {copiedLink === auth.id ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-                        Copiar
-                      </Button>
+                <div className="flex flex-col gap-2 w-full pt-2 border-t border-slate-100 mt-2">
+                  {auth.status === "CADASTRO_CONCLUIDO" && auth.pin && (
+                    <div className="flex w-full items-center justify-between bg-slate-50 p-2 rounded-md border border-slate-100">
+                      <span className="text-xs text-slate-500 font-medium">PIN de Entrada:</span>
+                      <span className="text-sm font-bold tracking-widest text-slate-900">{auth.pin}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 w-full">
+                    {auth.status === "AGUARDANDO_CADASTRO" && (
+                      <div className="flex w-full gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-2 flex-1"
+                          onClick={() => copyToClipboard(auth.id, auth.linkToken)}
+                        >
+                          {copiedLink === auth.id ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                          Copiar Link
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="gap-2 flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
+                          onClick={() => shareWhatsApp(auth.personName, auth.linkToken)}
+                        >
+                          WhatsApp
+                        </Button>
+                      </div>
+                    )}
+
+                    {auth.status === "CADASTRO_CONCLUIDO" && auth.pin && (
                       <Button
                         variant="default"
                         size="sm"
-                        className="gap-2 flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
-                        onClick={() => shareWhatsApp(auth.personName, auth.linkToken)}
+                        className="gap-2 w-full bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
+                        onClick={() => shareWhatsApp(auth.personName, auth.linkToken, auth.pin)}
                       >
-                        WhatsApp
+                        Enviar PIN via WhatsApp
                       </Button>
-                    </div>
-                  )}
-                  {["LINK_EXPIRADO", "CREDENCIAL_EXPIRADA"].includes(auth.status) && (
+                    )}
+
+                    {["LINK_EXPIRADO", "CREDENCIAL_EXPIRADA"].includes(auth.status) && (
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -214,6 +241,7 @@ export default function MeusAcessosPage() {
                       Revalidar Link
                     </Button>
                   )}
+                </div>
                 </div>
               </CardContent>
             </Card>
