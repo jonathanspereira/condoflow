@@ -24,12 +24,17 @@ public class UserResponseDTO {
     private String tenantName;
     private String tenantEmail;
 
+    private boolean notifyOccurrences;
+    private boolean notifyTenantAlerts;
+
     public UserResponseDTO(User user) {
         this.id = user.getId();
         this.name = user.getName();
         this.email = user.getEmail();
         this.role = user.getRole();
         this.forcePasswordChange = user.isForcePasswordChange();
+        this.notifyOccurrences = user.isNotifyOccurrences();
+        this.notifyTenantAlerts = user.isNotifyTenantAlerts();
     }
 
     public UserResponseDTO(User user, Unit unit, String condominiumName) {

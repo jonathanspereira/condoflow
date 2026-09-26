@@ -19,6 +19,7 @@ interface AccessAuth {
   linkToken: string
   pin?: string
   accessCode?: string
+  createdAt?: string
 }
 
 export default function MeusAcessosPage() {
@@ -26,6 +27,8 @@ export default function MeusAcessosPage() {
   const [loading, setLoading] = useState(true)
   const [copiedLink, setCopiedLink] = useState<number | null>(null)
   const [renewing, setRenewing] = useState<number | null>(null)
+  const [statusFilter, setStatusFilter] = useState("AGUARDANDO_CADASTRO")
+  const [periodFilter, setPeriodFilter] = useState("ALL")
   const router = useRouter()
 
   async function fetchAuthorizations() {
@@ -137,10 +140,36 @@ export default function MeusAcessosPage() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Meus Acessos</h1>
           <p className="text-sm text-slate-500 mt-1">Gerencie os convites e autorizações para visitantes e prestadores.</p>
         </div>
-        <Button onClick={() => router.push("/morador/acessos/novo")} className="gap-2 shrink-0">
-          <PlusCircle className="h-4 w-4" />
-          Nova Autorização
-        </Button>
+        <div className="flex flex-col sm:flex-row items-center gap-2">
+          <select 
+            className="text-sm border-slate-200 rounded-md py-1.5 px-3 bg-white border w-full sm:w-auto"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="ALL">Status: Todos</option>
+            <option value="AGUARDANDO_CADASTRO">Aguardando Cadastro</option>
+            <option value="CADASTRO_CONCLUIDO">Cadastro Concluído</option>
+            <option value="DENTRO_DO_CONDOMINIO">Dentro do Condomínio</option>
+            <option value="FINALIZADA">Finalizada</option>
+            <option value="CANCELADA">Cancelada</option>
+            <option value="LINK_EXPIRADO">Link Expirado</option>
+          </select>
+
+          <select 
+            className="text-sm border-slate-200 rounded-md py-1.5 px-3 bg-white border w-full sm:w-auto"
+            value={periodFilter}
+            onChange={(e) => setPeriodFilter(e.target.value)}
+          >
+            <option value="ALL">Período: Todos</option>
+            <option value="7days">Últimos 7 dias</option>
+            <option value="30days">Últimos 30 dias</option>
+          </select>
+
+          <Button onClick={() => router.push("/morador/acessos/novo")} className="gap-2 shrink-0 w-full sm:w-auto">
+            <PlusCircle className="h-4 w-4" />
+            Nova Autorização
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -159,7 +188,23 @@ export default function MeusAcessosPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {authorizations.map((auth) => (
+          {authorizations.filter((auth) => {
+            if (statusFilter !== "ALL" && auth.status !== statusFilter) return false;
+            
+            if (periodFilter !== "ALL") {
+               const days = periodFilter === "7days" ? 7 : 30;
+               const dateLimit = new Date();
+               dateLimit.setDate(dateLimit.getDate() - days);
+               const authDate = new Date(auth.createdAt || auth.authorizedDate);
+               if (authDate < dateLimit) return false;
+            }
+            
+            return true;
+          }).map((auth) => {
+            const authDate = auth.createdAt ? new Date(auth.createdAt) : new Date(auth.authorizedDate);
+            const isSameDay = new Date().toDateString() === authDate.toDateString();
+            
+            return (
             <Card 
               key={auth.id}
               className={`hover:border-primary/50 transition-colors flex flex-col justify-between ${
@@ -230,7 +275,7 @@ export default function MeusAcessosPage() {
                       </Button>
                     )}
 
-                    {["LINK_EXPIRADO", "CREDENCIAL_EXPIRADA"].includes(auth.status) && (
+                    {["LINK_EXPIRADO", "CREDENCIAL_EXPIRADA"].includes(auth.status) && isSameDay && (
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -245,7 +290,8 @@ export default function MeusAcessosPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

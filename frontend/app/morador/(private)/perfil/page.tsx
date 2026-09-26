@@ -31,6 +31,8 @@ interface UserProfile {
   isRented?: boolean
   tenantName?: string
   tenantEmail?: string
+  notifyOccurrences?: boolean
+  notifyTenantAlerts?: boolean
 }
 
 export default function PerfilPage() {
@@ -49,12 +51,17 @@ export default function PerfilPage() {
     role: "",
     isRented: false,
     tenantName: "",
-    tenantEmail: ""
+    tenantEmail: "",
+    notifyOccurrences: true,
+    notifyTenantAlerts: true
   })
 
   const [novoEmail, setNovoEmail] = useState("")
   const [nomeInq, setNomeInq] = useState("")
   const [emailInq, setEmailInq] = useState("")
+  const [notifyOccurrences, setNotifyOccurrences] = useState(true)
+  const [notifyTenantAlerts, setNotifyTenantAlerts] = useState(true)
+  const [isSavingPrefs, setIsSavingPrefs] = useState(false)
 
   const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : ""
 
@@ -84,6 +91,8 @@ export default function PerfilPage() {
           setNovoEmail(data.email || "")
           setNomeInq(data.tenantName || "")
           setEmailInq(data.tenantEmail || "")
+          setNotifyOccurrences(data.notifyOccurrences ?? true)
+          setNotifyTenantAlerts(data.notifyTenantAlerts ?? true)
         } else {
           toast.error("Não foi possível carregar os dados do perfil.")
         }
@@ -214,6 +223,30 @@ export default function PerfilPage() {
       toast.error("Erro de conexão com o servidor.")
     } finally {
       setIsSavingPassword(false)
+    }
+  }
+
+  const handleUpdatePreferences = async (occurrences: boolean, alerts: boolean) => {
+    setIsSavingPrefs(true)
+    setNotifyOccurrences(occurrences)
+    setNotifyTenantAlerts(alerts)
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/preferences`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ notifyOccurrences: occurrences, notifyTenantAlerts: alerts })
+      })
+      if (!res.ok) throw new Error("Erro ao atualizar preferências")
+      toast.success("Preferências salvas!")
+    } catch (error) {
+      toast.error("Não foi possível salvar preferências.")
+      setNotifyOccurrences(!occurrences)
+      setNotifyTenantAlerts(!alerts)
+    } finally {
+      setIsSavingPrefs(false)
     }
   }
 
@@ -394,14 +427,22 @@ export default function PerfilPage() {
                   <Label className="text-base">E-mails de Ocorrências</Label>
                   <p className="text-sm text-muted-foreground">Receba atualizações de status e respostas do síndico.</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={notifyOccurrences} 
+                  onCheckedChange={(c) => handleUpdatePreferences(c, notifyTenantAlerts)}
+                  disabled={isSavingPrefs}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-base">Alertas de Unidade (Cópia)</Label>
                   <p className="text-sm text-muted-foreground">Receba cópia do que o seu inquilino relatar.</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={notifyTenantAlerts} 
+                  onCheckedChange={(c) => handleUpdatePreferences(notifyOccurrences, c)}
+                  disabled={isSavingPrefs}
+                />
               </div>
             </CardContent>
           </Card>

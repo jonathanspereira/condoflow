@@ -74,4 +74,12 @@ public class UserController {
         userService.changePassword(principal.getName(), dto.getOldPassword(), dto.getNewPassword());
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/me/preferences")
+    public ResponseEntity<UserResponseDTO> updatePreferences(
+            @RequestBody com.jonathanspereira.condoflow.user.dto.UpdatePreferencesDTO dto, 
+            Principal principal) {
+        UserResponseDTO response = userService.updatePreferences(principal.getName(), dto);
+        return ResponseEntity.ok(response);
+    }
 }

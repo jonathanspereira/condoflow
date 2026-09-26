@@ -39,6 +39,12 @@ public class User implements UserDetails {
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean active = true;
 
+    @Column(name = "notify_occurrences", nullable = false, columnDefinition = "boolean default true")
+    private boolean notifyOccurrences = true;
+
+    @Column(name = "notify_tenant_alerts", nullable = false, columnDefinition = "boolean default true")
+    private boolean notifyTenantAlerts = true;
+
     // --- MÉTODOS DO SPRING SECURITY (USER DETAILS) ---
 
     @Override

@@ -35,6 +35,21 @@ export default function NovoAcessoPage() {
     }
 
     try {
+      if (type === "DELIVERY" && (!company || !service)) {
+        toast.error("Por favor, informe a empresa e o serviço de entrega.")
+        setLoading(false)
+        return
+      } else if (type === "SERVICE_PROVIDER" && !company) {
+        toast.error("Por favor, informe a empresa do prestador de serviços.")
+        setLoading(false)
+        return
+      }
+
+      let finalPersonName = personName;
+      if (type === "DELIVERY" && !personName) {
+         finalPersonName = `Entregador - ${company}`;
+      }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access`, {
         method: "POST",
         headers: {
@@ -43,8 +58,8 @@ export default function NovoAcessoPage() {
         },
         body: JSON.stringify({
           type,
-          personName,
-          personPhone,
+          personName: finalPersonName,
+          personPhone: type === "DELIVERY" ? "" : personPhone,
           authorizedDate,
           startTime: startTime.length === 5 ? `${startTime}:00` : startTime,
           endTime: endTime.length === 5 ? `${endTime}:00` : endTime,
@@ -124,33 +139,38 @@ export default function NovoAcessoPage() {
             </div>
 
             <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="grid gap-2">
-                <Label htmlFor="personName">Nome completo da pessoa</Label>
-                <Input 
-                  id="personName" 
-                  required 
-                  value={personName} 
-                  onChange={(e) => setPersonName(e.target.value)} 
-                  placeholder="Ex: João da Silva" 
-                />
-              </div>
+              {type !== "DELIVERY" && (
+                <>
+                  <div className="grid gap-2">
+                    <Label htmlFor="personName">Nome completo da pessoa</Label>
+                    <Input 
+                      id="personName" 
+                      required 
+                      value={personName} 
+                      onChange={(e) => setPersonName(e.target.value)} 
+                      placeholder="Ex: João da Silva" 
+                    />
+                  </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="personPhone">Telefone (opcional)</Label>
-                <Input 
-                  id="personPhone" 
-                  value={personPhone} 
-                  onChange={(e) => setPersonPhone(e.target.value)} 
-                  placeholder="(00) 00000-0000" 
-                />
-              </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="personPhone">Telefone (opcional)</Label>
+                    <Input 
+                      id="personPhone" 
+                      value={personPhone} 
+                      onChange={(e) => setPersonPhone(e.target.value)} 
+                      placeholder="(00) 00000-0000" 
+                    />
+                  </div>
+                </>
+              )}
 
               {type !== "VISITOR" && (
                 <>
                   <div className="grid gap-2">
-                    <Label htmlFor="company">Empresa (opcional)</Label>
+                    <Label htmlFor="company">Empresa {type === "VISITOR" ? "(opcional)" : ""}</Label>
                     <Input 
                       id="company" 
+                      required={type === "SERVICE_PROVIDER" || type === "DELIVERY"}
                       value={company} 
                       onChange={(e) => setCompany(e.target.value)} 
                       placeholder="Ex: Vivo / Consertos LTDA" 
@@ -158,9 +178,10 @@ export default function NovoAcessoPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="service">Serviço/Entrega (opcional)</Label>
+                    <Label htmlFor="service">Serviço/Entrega {type === "DELIVERY" ? "" : "(opcional)"}</Label>
                     <Input 
                       id="service" 
+                      required={type === "DELIVERY"}
                       value={service} 
                       onChange={(e) => setService(e.target.value)} 
                       placeholder="Ex: Instalação de Internet" 

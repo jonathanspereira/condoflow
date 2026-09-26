@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
+import { toast } from "sonner"
+
 interface Notification {
   id: number
   title: string
@@ -24,10 +26,11 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const lastNotificationIdRef = React.useRef<number | null>(null)
 
   const getToken = () => typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : null
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (isInitial = false) => {
     const token = getToken()
     if (!token) return
 
@@ -39,6 +42,20 @@ export function NotificationBell() {
         const data: Notification[] = await res.json()
         setNotifications(data)
         setUnreadCount(data.filter(n => !n.read).length)
+        
+        if (data.length > 0) {
+          const maxId = Math.max(...data.map(n => n.id))
+          
+          if (!isInitial && lastNotificationIdRef.current !== null && maxId > lastNotificationIdRef.current) {
+            // Find new notifications
+            const newNotifs = data.filter(n => n.id > lastNotificationIdRef.current!)
+            newNotifs.forEach(n => {
+              toast.info(n.title, { description: n.message })
+            })
+          }
+          
+          lastNotificationIdRef.current = maxId
+        }
       }
     } catch (error) {
       console.error("Erro ao buscar notificações", error)
@@ -46,8 +63,8 @@ export function NotificationBell() {
   }
 
   useEffect(() => {
-    fetchNotifications()
-    const interval = setInterval(fetchNotifications, 15000)
+    fetchNotifications(true)
+    const interval = setInterval(() => fetchNotifications(false), 15000)
     return () => clearInterval(interval)
   }, [])
 

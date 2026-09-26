@@ -294,4 +294,30 @@ public class UserService {
         
         auditLogService.log("AUTH", "CHANGE_PASSWORD", email, "Senha alterada com sucesso");
     }
+
+    public UserResponseDTO updatePreferences(String email, com.jonathanspereira.condoflow.user.dto.UpdatePreferencesDTO dto) {
+        UserDetails userDetails = userRepository.findByEmail(email);
+        if (userDetails == null) {
+            throw new BusinessException("Usuário não encontrado.");
+        }
+        User user = (User) userDetails;
+
+        user.setNotifyOccurrences(dto.isNotifyOccurrences());
+        user.setNotifyTenantAlerts(dto.isNotifyTenantAlerts());
+
+        User updated = userRepository.save(user);
+        auditLogService.log("USER", "UPDATE_PREFS", email, "Preferências de notificação atualizadas");
+
+        Unit unit = unitRepository.findFirstByOwnerId(updated.getId())
+                .or(() -> unitRepository.findFirstByTenantId(updated.getId()))
+                .orElse(null);
+
+        if (unit != null) {
+            String condoName = condominiumRepository.findById(unit.getCondominiumId())
+                    .map(c -> c.getName())
+                    .orElse("");
+            return new UserResponseDTO(updated, unit, condoName, unit.getCondominiumId());
+        }
+        return new UserResponseDTO(updated);
+    }
 }

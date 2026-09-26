@@ -80,6 +80,8 @@ type RelatedUnitStatus = "idle" | "checking" | "valid" | "not_found" | "same_uni
 
 export default function MinhasOcorrencias() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("OPEN_IN_PROGRESS")
+  const [periodFilter, setPeriodFilter] = useState("ALL")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [categoria, setCategoria] = useState("")
   const [titulo, setTitulo] = useState("")
@@ -352,9 +354,24 @@ export default function MinhasOcorrencias() {
     }
   }
 
-  const filtered = occurrences.filter((o) =>
-    o.title.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filtered = occurrences.filter((o) => {
+    if (searchTerm && !o.title.toLowerCase().includes(searchTerm.toLowerCase()) && !o.protocol.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    
+    if (statusFilter === "OPEN_IN_PROGRESS") {
+      if (o.status !== "OPEN" && o.status !== "IN_PROGRESS") return false;
+    } else if (statusFilter !== "ALL") {
+      if (o.status !== statusFilter) return false;
+    }
+
+    if (periodFilter !== "ALL") {
+       const days = parseInt(periodFilter);
+       const dateLimit = new Date();
+       dateLimit.setDate(dateLimit.getDate() - days);
+       if (new Date(o.createdAt) < dateLimit) return false;
+    }
+
+    return true;
+  })
 
   const total = occurrences.length
   const emResolucao = occurrences.filter((o) => !STATUS_CONCLUIDOS.includes(o.status)).length
@@ -600,9 +617,33 @@ export default function MinhasOcorrencias() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-2 w-full md:w-auto">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todos os status</SelectItem>
+                  <SelectItem value="OPEN_IN_PROGRESS">Aberto / Em Andamento</SelectItem>
+                  <SelectItem value="OPEN">Aberto</SelectItem>
+                  <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                  <SelectItem value="RESOLVED">Resolvido</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="365">Últimos 12 meses</SelectItem>
+                  <SelectItem value="ALL">Todo o período</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
