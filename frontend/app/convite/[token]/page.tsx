@@ -57,15 +57,6 @@ export default function ConvitePublicoPage() {
     }
   }
 
-  useEffect(() => {
-    fetchAuth()
-    
-    // Stop webcam if component unmounts
-    return () => {
-      stopWebcam()
-    }
-  }, [token])
-
   const startWebcam = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
@@ -85,6 +76,15 @@ export default function ConvitePublicoPage() {
     }
     setShowWebcam(false)
   }
+
+  useEffect(() => {
+    fetchAuth()
+    
+    // Stop webcam if component unmounts
+    return () => {
+      stopWebcam()
+    }
+  }, [token])
 
   const takePhoto = () => {
     if (videoRef.current && canvasRef.current) {
