@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface AccessAuth {
   id: number
@@ -20,6 +21,8 @@ interface AccessAuth {
   unitName: string
   residentName: string
   accessCode: string
+  conciergeName?: string
+  entryTime?: string
 }
 
 export default function AcessosDashboardPage() {
@@ -101,6 +104,25 @@ export default function AcessosDashboardPage() {
     return `${day}/${month}/${year}`
   }
 
+  const formatDateTime = (isoDate: string) => {
+    if (!isoDate) return ""
+    const date = new Date(isoDate)
+    return date.toLocaleString('pt-BR')
+  }
+
+  const historyAcessos = authorizations.filter(a => a.status === "FINALIZADA" || a.status === "CANCELADA" || a.status === "CREDENCIAL_EXPIRADA" || a.status === "LINK_EXPIRADO")
+  const filteredHistory = historyAcessos.filter(a => 
+    a.personName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (a.unitName && a.unitName.includes(searchTerm))
+  )
+
+  const getTypeName = (type: string) => {
+    if (type === "VISITOR") return "Visitante"
+    if (type === "SERVICE_PROVIDER") return "Prestador"
+    if (type === "DELIVERY") return "Entregador"
+    return "Outro"
+  }
+
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -118,94 +140,147 @@ export default function AcessosDashboardPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        
-        {/* DENTRO DO CONDOMÍNIO */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold flex items-center gap-2 text-slate-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Dentro do Condomínio ({insideCondo.length})
-            </h2>
-          </div>
+      <Tabs defaultValue="painel" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="painel">Painel de Acessos</TabsTrigger>
+          <TabsTrigger value="historico">Histórico</TabsTrigger>
+        </TabsList>
 
-          <Input 
-            placeholder="Buscar por nome ou unidade..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-white"
-          />
+        <TabsContent value="painel">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* DENTRO DO CONDOMÍNIO */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold flex items-center gap-2 text-slate-800">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Dentro do Condomínio ({insideCondo.length})
+                </h2>
+              </div>
 
-          {loading ? (
-            <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div></div>
-          ) : filteredInside.length === 0 ? (
-            <Card className="border-dashed shadow-none bg-slate-50/50">
-              <CardContent className="flex flex-col items-center justify-center p-8 text-center text-slate-500">
-                <Users className="h-8 w-8 mb-2 opacity-20" />
-                <p className="text-sm">Ninguém registrado no momento.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {filteredInside.map(auth => (
-                <Card key={auth.id} className="border-emerald-200 bg-emerald-50/30">
-                  <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
-                      <p className="text-xs text-slate-500">Unidade: {auth.unitName} (Morador: {auth.residentName})</p>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="border-red-200 text-red-600 hover:bg-red-50 gap-2 shrink-0"
-                      onClick={() => handleExit(auth.accessCode)}
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Registrar Saída
-                    </Button>
+              <Input 
+                placeholder="Buscar por nome ou unidade..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-white"
+              />
+
+              {loading ? (
+                <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div></div>
+              ) : filteredInside.length === 0 ? (
+                <Card className="border-dashed shadow-none bg-slate-50/50">
+                  <CardContent className="flex flex-col items-center justify-center p-8 text-center text-slate-500">
+                    <Users className="h-8 w-8 mb-2 opacity-20" />
+                    <p className="text-sm">Ninguém registrado no momento.</p>
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                <div className="space-y-3">
+                  {filteredInside.map(auth => (
+                    <Card key={auth.id} className="border-emerald-200 bg-emerald-50/30">
+                      <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
+                          <p className="text-xs text-slate-500">Unidade: {auth.unitName} (Morador: {auth.residentName})</p>
+                          {auth.conciergeName && (
+                            <p className="text-xs text-slate-400 mt-1">Liberado por: {auth.conciergeName}</p>
+                          )}
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="border-red-200 text-red-600 hover:bg-red-50 gap-2 shrink-0"
+                          onClick={() => handleExit(auth.accessCode)}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Registrar Saída
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* AGENDADOS PARA HOJE */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold flex items-center gap-2 text-slate-800">
-              <Clock className="h-5 w-5 text-blue-500" />
-              Esperados para Hoje ({scheduledToday.length})
-            </h2>
-          </div>
+            {/* AGENDADOS PARA HOJE */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold flex items-center gap-2 text-slate-800">
+                  <Clock className="h-5 w-5 text-blue-500" />
+                  Esperados para Hoje ({scheduledToday.length})
+                </h2>
+              </div>
 
-          {loading ? (
-            <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div></div>
-          ) : scheduledToday.length === 0 ? (
-            <Card className="border-dashed shadow-none bg-slate-50/50">
-              <CardContent className="flex flex-col items-center justify-center p-8 text-center text-slate-500">
-                <Clock className="h-8 w-8 mb-2 opacity-20" />
-                <p className="text-sm">Nenhum acesso pendente para hoje.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {scheduledToday.map(auth => (
-                <Card key={auth.id} className="bg-white">
-                  <CardContent className="p-4 flex items-center justify-between gap-4">
-                    <div>
-                      <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
-                      <p className="text-xs text-slate-500">Unidade: {auth.unitName} - Período: {auth.startTime} às {auth.endTime}</p>
-                    </div>
-                    <Badge variant="secondary" className="shrink-0">{auth.type}</Badge>
+              {loading ? (
+                <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div></div>
+              ) : scheduledToday.length === 0 ? (
+                <Card className="border-dashed shadow-none bg-slate-50/50">
+                  <CardContent className="flex flex-col items-center justify-center p-8 text-center text-slate-500">
+                    <Clock className="h-8 w-8 mb-2 opacity-20" />
+                    <p className="text-sm">Nenhum acesso pendente para hoje.</p>
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                <div className="space-y-3">
+                  {scheduledToday.map(auth => (
+                    <Card key={auth.id} className="bg-white">
+                      <CardContent className="p-4 flex items-center justify-between gap-4">
+                        <div>
+                          <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
+                          <p className="text-xs text-slate-500">Unidade: {auth.unitName} - Período: {auth.startTime} às {auth.endTime}</p>
+                        </div>
+                        <Badge variant="secondary" className="shrink-0">{getTypeName(auth.type)}</Badge>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        </TabsContent>
 
-      </div>
+        <TabsContent value="historico">
+          <div className="space-y-4">
+            <Input 
+              placeholder="Filtrar histórico por nome ou unidade..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-white max-w-md"
+            />
+            {loading ? (
+              <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div></div>
+            ) : filteredHistory.length === 0 ? (
+              <Card className="border-dashed shadow-none bg-slate-50/50">
+                <CardContent className="flex flex-col items-center justify-center p-8 text-center text-slate-500">
+                  <Search className="h-8 w-8 mb-2 opacity-20" />
+                  <p className="text-sm">Nenhum registro encontrado no histórico.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredHistory.map(auth => (
+                  <Card key={auth.id} className="bg-white">
+                    <CardContent className="p-4 flex flex-col gap-2">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold text-slate-900 line-clamp-1">{auth.personName}</h3>
+                        <Badge variant={auth.status === "FINALIZADA" ? "default" : "secondary"}>
+                          {auth.status === "FINALIZADA" ? "Concluído" : "Cancelado/Expirado"}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-slate-500">Unidade: {auth.unitName}</p>
+                      {auth.conciergeName && auth.entryTime && (
+                        <div className="mt-2 text-xs bg-slate-50 p-2 rounded-md border border-slate-100">
+                          <p><span className="font-medium text-slate-700">Entrada:</span> {formatDateTime(auth.entryTime)}</p>
+                          <p><span className="font-medium text-slate-700">Liberado por:</span> {auth.conciergeName}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

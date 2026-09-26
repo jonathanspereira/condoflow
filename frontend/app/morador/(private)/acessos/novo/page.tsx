@@ -70,7 +70,7 @@ export default function NovoAcessoPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 pb-24 max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.push("/morador/acessos")}>
           <ArrowLeft className="h-5 w-5" />

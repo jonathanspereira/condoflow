@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -44,8 +45,8 @@ public class AccessService {
         User resident = (User) userRepository.findByEmail(residentEmail);
         if (resident == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resident not found");
 
-        Unit unit = unitRepository.findByOwnerId(resident.getId())
-                .or(() -> unitRepository.findByTenantId(resident.getId()))
+        Unit unit = unitRepository.findFirstByOwnerId(resident.getId())
+                .or(() -> unitRepository.findFirstByTenantId(resident.getId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unit not found for user"));
 
         Long finalCondoId = condominiumId != null ? condominiumId : unit.getCondominiumId();
@@ -67,7 +68,7 @@ public class AccessService {
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .linkToken(UUID.randomUUID().toString())
-                .linkExpiresAt(LocalDateTime.now().plusMinutes(15))
+                .linkExpiresAt(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).plusMinutes(15))
                 .build();
 
         auth = authorizationRepository.save(auth);
@@ -78,7 +79,7 @@ public class AccessService {
         AccessAuthorization auth = authorizationRepository.findByLinkToken(linkToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link inválido ou não encontrado"));
 
-        if (LocalDateTime.now().isAfter(auth.getLinkExpiresAt())) {
+        if (LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).isAfter(auth.getLinkExpiresAt())) {
             if (auth.getStatus() == AccessStatus.AGUARDANDO_CADASTRO) {
                 auth.setStatus(AccessStatus.LINK_EXPIRADO);
                 authorizationRepository.save(auth);
@@ -94,7 +95,7 @@ public class AccessService {
         AccessAuthorization auth = authorizationRepository.findByLinkToken(linkToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link inválido ou não encontrado"));
 
-        if (LocalDateTime.now().isAfter(auth.getLinkExpiresAt())) {
+        if (LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).isAfter(auth.getLinkExpiresAt())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Link expirado");
         }
 
@@ -140,7 +141,7 @@ public class AccessService {
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Autorização não encontrada para o código informado.")));
 
         // Validação de horário
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
         if (now.toLocalDate().isBefore(auth.getAuthorizedDate()) || 
             (now.toLocalDate().isEqual(auth.getAuthorizedDate()) && now.toLocalTime().isBefore(auth.getStartTime()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Horário de acesso ainda não iniciado.");
@@ -180,7 +181,7 @@ public class AccessService {
                 .condominium(auth.getCondominium())
                 .authorization(auth)
                 .concierge(concierge)
-                .entryTime(LocalDateTime.now())
+                .entryTime(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")))
                 .validationMethod("QR_CODE_OR_PIN")
                 .build();
         
@@ -202,7 +203,7 @@ public class AccessService {
         AccessLog log = logRepository.findFirstByAuthorizationIdAndExitTimeIsNullOrderByEntryTimeDesc(auth.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Registro de entrada não encontrado."));
 
-        log.setExitTime(LocalDateTime.now());
+        log.setExitTime(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")));
         logRepository.save(log);
     }
 
@@ -222,8 +223,39 @@ public class AccessService {
         authorizationRepository.save(auth);
     }
 
+    @Transactional
+    public AccessResponseDTO renewLink(Long id, String userEmail) {
+        AccessAuthorization auth = authorizationRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Autorização não encontrada"));
+        
+        User user = (User) userRepository.findByEmail(userEmail);
+        
+        if (!auth.getResident().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sem permissão para revalidar.");
+        }
+
+        if (auth.getStatus() == AccessStatus.CANCELADA || auth.getStatus() == AccessStatus.FINALIZADA || auth.getStatus() == AccessStatus.DENTRO_DO_CONDOMINIO) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível revalidar uma autorização cancelada, finalizada ou em andamento.");
+        }
+
+        // Renew expiration to 15 minutes from now
+        auth.setLinkExpiresAt(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).plusMinutes(15));
+        
+        // If it was expired, we reset to the original status before expiration
+        if (auth.getStatus() == AccessStatus.LINK_EXPIRADO || auth.getStatus() == AccessStatus.CREDENCIAL_EXPIRADA) {
+            if (auth.getPersonCpf() == null) {
+                auth.setStatus(AccessStatus.AGUARDANDO_CADASTRO);
+            } else {
+                auth.setStatus(AccessStatus.CADASTRO_CONCLUIDO);
+            }
+        }
+        
+        authorizationRepository.save(auth);
+        return toDTO(auth);
+    }
+
     private AccessResponseDTO toDTO(AccessAuthorization auth) {
-        return AccessResponseDTO.builder()
+        AccessResponseDTO dto = AccessResponseDTO.builder()
                 .id(auth.getId())
                 .personName(auth.getPersonName())
                 .personPhone(auth.getPersonPhone())
@@ -246,5 +278,22 @@ public class AccessService {
                 .residentName(auth.getResident() != null ? auth.getResident().getName() : null)
                 .createdAt(auth.getCreatedAt())
                 .build();
+                
+        if (auth.getStatus() == AccessStatus.DENTRO_DO_CONDOMINIO || auth.getStatus() == AccessStatus.FINALIZADA) {
+            logRepository.findFirstByAuthorizationIdAndExitTimeIsNullOrderByEntryTimeDesc(auth.getId())
+                .ifPresentOrElse(log -> {
+                    dto.setConciergeName(log.getConcierge() != null ? log.getConcierge().getName() : null);
+                    dto.setEntryTime(log.getEntryTime());
+                }, () -> {
+                    // Fallback to the latest log if there's no open log (e.g., if finalized)
+                    logRepository.findFirstByAuthorizationIdOrderByEntryTimeDesc(auth.getId())
+                        .ifPresent(log -> {
+                            dto.setConciergeName(log.getConcierge() != null ? log.getConcierge().getName() : null);
+                            dto.setEntryTime(log.getEntryTime());
+                        });
+                });
+        }
+        
+        return dto;
     }
 }

@@ -15,4 +15,6 @@ public interface AccessLogRepository extends JpaRepository<AccessLog, Long> {
     List<AccessLog> findByAuthorizationIdOrderByEntryTimeDesc(Long authorizationId);
 
     Optional<AccessLog> findFirstByAuthorizationIdAndExitTimeIsNullOrderByEntryTimeDesc(Long authorizationId);
+
+    Optional<AccessLog> findFirstByAuthorizationIdOrderByEntryTimeDesc(Long authorizationId);
 }

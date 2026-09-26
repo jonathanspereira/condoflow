@@ -40,5 +40,8 @@ public class AccessResponseDTO {
     private String unitName;
     private String residentName;
     
+    private String conciergeName;
+    private LocalDateTime entryTime;
+    
     private LocalDateTime createdAt;
 }

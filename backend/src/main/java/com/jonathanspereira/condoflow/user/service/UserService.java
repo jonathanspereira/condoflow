@@ -73,8 +73,8 @@ public class UserService {
 
 
 
-        Unit unit = unitRepository.findByOwnerId(user.getId())
-                .or(() -> unitRepository.findByTenantId(user.getId()))
+        Unit unit = unitRepository.findFirstByOwnerId(user.getId())
+                .or(() -> unitRepository.findFirstByTenantId(user.getId()))
                 .orElse(null);
 
         String condoName = null;
@@ -114,8 +114,8 @@ public class UserService {
 
         User updated = userRepository.save(user);
 
-        Unit unit = unitRepository.findByOwnerId(updated.getId())
-                .or(() -> unitRepository.findByTenantId(updated.getId()))
+        Unit unit = unitRepository.findFirstByOwnerId(updated.getId())
+                .or(() -> unitRepository.findFirstByTenantId(updated.getId()))
                 .orElse(null);
 
         String condoName = null;

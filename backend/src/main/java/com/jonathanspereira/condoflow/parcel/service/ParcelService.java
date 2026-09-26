@@ -223,8 +223,8 @@ public class ParcelService {
         }
         User user = (User) userDetails;
 
-        Unit unit = unitRepository.findByOwnerId(user.getId())
-                .or(() -> unitRepository.findByTenantId(user.getId()))
+        Unit unit = unitRepository.findFirstByOwnerId(user.getId())
+                .or(() -> unitRepository.findFirstByTenantId(user.getId()))
                 .orElseThrow(() -> new IllegalArgumentException("Unidade não encontrada para este usuário"));
 
         return getParcelsByUnit(unit.getId(), status, startDate, endDate, pageable);

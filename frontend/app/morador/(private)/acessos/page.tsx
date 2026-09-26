@@ -23,6 +23,7 @@ export default function MeusAcessosPage() {
   const [authorizations, setAuthorizations] = useState<AccessAuth[]>([])
   const [loading, setLoading] = useState(true)
   const [copiedLink, setCopiedLink] = useState<number | null>(null)
+  const [renewing, setRenewing] = useState<number | null>(null)
   const router = useRouter()
 
   async function fetchAuthorizations() {
@@ -91,6 +92,31 @@ export default function MeusAcessosPage() {
     setTimeout(() => setCopiedLink(null), 2000)
   }
 
+  const shareWhatsApp = (name: string, token: string) => {
+    const link = `${window.location.origin}/convite/${token}`
+    const text = `Olá, ${name}! Segue o link para seu acesso: ${link}`
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
+  }
+
+  const handleRenewLink = async (id: number) => {
+    setRenewing(id)
+    try {
+      const token = localStorage.getItem("condoflow_token")
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access/${id}/renew-link`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (!res.ok) throw new Error("Erro ao revalidar link")
+      toast.success("Link revalidado com sucesso!")
+      fetchAuthorizations()
+    } catch (error) {
+      toast.error("Não foi possível revalidar o link.")
+    } finally {
+      setRenewing(null)
+    }
+  }
+
   const formatDate = (isoDate: string) => {
     if (!isoDate) return ""
     const [year, month, day] = isoDate.split("-")
@@ -125,15 +151,15 @@ export default function MeusAcessosPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {authorizations.map((auth) => (
             <Card 
               key={auth.id}
-              className={`hover:border-primary/50 transition-colors ${
+              className={`hover:border-primary/50 transition-colors flex flex-col justify-between ${
                 auth.status === "AGUARDANDO_CADASTRO" ? "border-primary/30 shadow-sm bg-primary/5" : ""
               }`}
             >
-              <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <CardContent className="p-4 md:p-6 flex flex-col justify-between gap-4 h-full">
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-xl mt-1 shrink-0 ${
                     ["AGUARDANDO_CADASTRO", "CADASTRO_CONCLUIDO"].includes(auth.status) ? "bg-primary text-white" : "bg-slate-100 text-slate-400"
@@ -141,12 +167,12 @@ export default function MeusAcessosPage() {
                     {getTypeIcon(auth.type)}
                   </div>
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
-                      <span className="text-xs text-slate-400">({getTypeName(auth.type)})</span>
+                    <div className="flex flex-col">
+                      <h3 className="font-semibold text-slate-900 line-clamp-1">{auth.personName}</h3>
+                      <span className="text-xs text-slate-400">{getTypeName(auth.type)}</span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                      {getStatusBadge(auth.status)}
+                    <div className="flex flex-col gap-2 text-xs text-slate-500 pt-1">
+                      <div>{getStatusBadge(auth.status)}</div>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {formatDate(auth.authorizedDate)} das {auth.startTime} às {auth.endTime}
@@ -155,16 +181,37 @@ export default function MeusAcessosPage() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 self-end sm:self-center mt-2 sm:mt-0">
+                <div className="flex items-center gap-2 self-start mt-2 w-full pt-2 border-t border-slate-100">
                   {auth.status === "AGUARDANDO_CADASTRO" && (
+                    <div className="flex w-full gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2 flex-1"
+                        onClick={() => copyToClipboard(auth.id, auth.linkToken)}
+                      >
+                        {copiedLink === auth.id ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                        Copiar
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="gap-2 flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
+                        onClick={() => shareWhatsApp(auth.personName, auth.linkToken)}
+                      >
+                        WhatsApp
+                      </Button>
+                    </div>
+                  )}
+                  {["LINK_EXPIRADO", "CREDENCIAL_EXPIRADA"].includes(auth.status) && (
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="gap-2"
-                      onClick={() => copyToClipboard(auth.id, auth.linkToken)}
+                      className="w-full gap-2"
+                      disabled={renewing === auth.id}
+                      onClick={() => handleRenewLink(auth.id)}
                     >
-                      {copiedLink === auth.id ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-                      Copiar Link
+                      Revalidar Link
                     </Button>
                   )}
                 </div>

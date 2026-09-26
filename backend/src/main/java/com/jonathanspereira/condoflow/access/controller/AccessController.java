@@ -91,4 +91,10 @@ public class AccessController {
         accessService.cancelAuthorization(id, principal.getName());
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/renew-link")
+    @PreAuthorize("hasAnyAuthority('PROPRIETARY', 'TENANT')")
+    public ResponseEntity<AccessResponseDTO> renewLink(@PathVariable Long id, Principal principal) {
+        return ResponseEntity.ok(accessService.renewLink(id, principal.getName()));
+    }
 }
