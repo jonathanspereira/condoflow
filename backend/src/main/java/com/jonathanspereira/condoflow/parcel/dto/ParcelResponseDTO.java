@@ -15,6 +15,7 @@ public class ParcelResponseDTO {
     private String trackingCode;
     private ParcelStatus status;
     private String deliveryCode;
+    private String pin;
     private LocalDateTime receivedAt;
     private LocalDateTime deliveredAt;
     private Long unitId;

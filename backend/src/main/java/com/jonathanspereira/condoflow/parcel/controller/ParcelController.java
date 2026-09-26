@@ -29,7 +29,7 @@ public class ParcelController {
             @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
             @Valid @RequestBody ParcelRequestDTO requestDTO,
             Principal principal) {
-        
+
         ParcelResponseDTO response = parcelService.registerParcel(condominiumId, principal.getName(), requestDTO);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -42,7 +42,8 @@ public class ParcelController {
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(parcelService.getParcelsByCondominium(condominiumId, status, startDate, endDate, pageable));
+        return ResponseEntity
+                .ok(parcelService.getParcelsByCondominium(condominiumId, status, startDate, endDate, pageable));
     }
 
     @GetMapping("/unit/{unitId}")
@@ -62,8 +63,9 @@ public class ParcelController {
             @RequestHeader(value = "X-Tenant-ID", required = false) Long condominiumId,
             @Valid @RequestBody com.jonathanspereira.condoflow.parcel.dto.ParcelBatchRequestDTO requestDTO,
             Principal principal) {
-        
-        java.util.List<ParcelResponseDTO> response = parcelService.registerParcelBatch(condominiumId, principal.getName(), requestDTO);
+
+        java.util.List<ParcelResponseDTO> response = parcelService.registerParcelBatch(condominiumId,
+                principal.getName(), requestDTO);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 

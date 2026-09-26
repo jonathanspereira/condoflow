@@ -47,6 +47,9 @@ public class Parcel {
     @Column(nullable = false)
     private String deliveryCode;
 
+    @Column(length = 10)
+    private String pin;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime receivedAt;

@@ -54,6 +54,10 @@ public class ParcelService {
                 .map(Parcel::getDeliveryCode)
                 .orElseGet(() -> UUID.randomUUID().toString());
 
+        String pin = parcelRepository.findFirstByUnitIdAndStatusOrderByReceivedAtDesc(unit.getId(), ParcelStatus.PENDING_PICKUP)
+                .map(Parcel::getPin)
+                .orElseGet(() -> generateUniqueParcelPin(condominium.getId()));
+
         Parcel parcel = Parcel.builder()
                 .description(requestDTO.getDescription())
                 .recipientName(requestDTO.getRecipientName())
@@ -62,6 +66,7 @@ public class ParcelService {
                 .condominium(condominium)
                 .status(ParcelStatus.PENDING_PICKUP)
                 .deliveryCode(deliveryCode)
+                .pin(pin)
                 .receivedBy(receivedBy)
                 .build();
 
@@ -106,6 +111,10 @@ public class ParcelService {
                 .map(Parcel::getDeliveryCode)
                 .orElseGet(() -> UUID.randomUUID().toString());
 
+        String pin = parcelRepository.findFirstByUnitIdAndStatusOrderByReceivedAtDesc(unit.getId(), ParcelStatus.PENDING_PICKUP)
+                .map(Parcel::getPin)
+                .orElseGet(() -> generateUniqueParcelPin(condominium.getId()));
+
         java.util.List<Parcel> savedParcels = new java.util.ArrayList<>();
         for (com.jonathanspereira.condoflow.parcel.dto.ParcelItemDTO item : requestDTO.getParcels()) {
             Parcel parcel = Parcel.builder()
@@ -116,6 +125,7 @@ public class ParcelService {
                     .condominium(condominium)
                     .status(ParcelStatus.PENDING_PICKUP)
                     .deliveryCode(deliveryCode)
+                    .pin(pin)
                     .receivedBy(receivedBy)
                     .build();
             savedParcels.add(parcelRepository.save(parcel));
@@ -154,7 +164,11 @@ public class ParcelService {
     }
 
     public java.util.List<ParcelResponseDTO> getParcelsByDeliveryCode(Long condominiumId, String deliveryCode) {
-        return parcelRepository.findByDeliveryCodeAndCondominiumId(deliveryCode, condominiumId).stream()
+        java.util.List<Parcel> parcels = parcelRepository.findByDeliveryCodeAndCondominiumId(deliveryCode, condominiumId);
+        if (parcels.isEmpty()) {
+            parcels = parcelRepository.findByPinAndCondominiumId(deliveryCode, condominiumId);
+        }
+        return parcels.stream()
                 .filter(p -> p.getStatus() == ParcelStatus.PENDING_PICKUP)
                 .map(this::toDTO)
                 .toList();
@@ -163,6 +177,9 @@ public class ParcelService {
     @Transactional
     public ParcelResponseDTO deliverParcel(Long condominiumId, String deliveredByEmail, ParcelDeliveryRequestDTO requestDTO) {
         java.util.List<Parcel> parcels = parcelRepository.findByDeliveryCodeAndCondominiumId(requestDTO.getDeliveryCode(), condominiumId);
+        if (parcels.isEmpty()) {
+            parcels = parcelRepository.findByPinAndCondominiumId(requestDTO.getDeliveryCode(), condominiumId);
+        }
         
         if (parcels.isEmpty()) {
             throw new IllegalArgumentException("Código de liberação inválido ou encomenda não encontrada");
@@ -238,6 +255,7 @@ public class ParcelService {
                 .trackingCode(parcel.getTrackingCode())
                 .status(parcel.getStatus())
                 .deliveryCode(parcel.getDeliveryCode())
+                .pin(parcel.getPin())
                 .receivedAt(parcel.getReceivedAt())
                 .deliveredAt(parcel.getDeliveredAt())
                 .unitId(parcel.getUnit() != null ? parcel.getUnit().getId() : null)
@@ -245,5 +263,14 @@ public class ParcelService {
                 .receivedByName(parcel.getReceivedBy() != null ? parcel.getReceivedBy().getName() : null)
                 .deliveredByName(parcel.getDeliveredBy() != null ? parcel.getDeliveredBy().getName() : null)
                 .build();
+    }
+
+    private String generateUniqueParcelPin(Long condominiumId) {
+        java.util.Random random = new java.util.Random();
+        String pin;
+        do {
+            pin = String.format("%04d", random.nextInt(10000));
+        } while (!parcelRepository.findByPinAndCondominiumIdAndStatus(pin, condominiumId, ParcelStatus.PENDING_PICKUP).isEmpty());
+        return pin;
     }
 }

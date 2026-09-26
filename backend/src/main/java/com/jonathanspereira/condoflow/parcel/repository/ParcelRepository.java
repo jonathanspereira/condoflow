@@ -17,6 +17,10 @@ public interface ParcelRepository extends JpaRepository<Parcel, Long> {
     
     List<Parcel> findByDeliveryCodeAndCondominiumId(String deliveryCode, Long condominiumId);
     
+    List<Parcel> findByPinAndCondominiumId(String pin, Long condominiumId);
+    
+    Optional<Parcel> findByPinAndCondominiumIdAndStatus(String pin, Long condominiumId, com.jonathanspereira.condoflow.parcel.entity.ParcelStatus status);
+    
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Parcel p WHERE p.condominium.id = :condominiumId " +
            "AND (:status IS NULL OR p.status = :status) " +
            "AND (cast(:startDate as timestamp) IS NULL OR p.receivedAt >= :startDate) " +
