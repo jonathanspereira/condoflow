@@ -14,7 +14,11 @@ import com.jonathanspereira.condoflow.condominium.repository.CondominiumReposito
 import com.jonathanspereira.condoflow.unit.entity.Unit;
 import com.jonathanspereira.condoflow.unit.repository.UnitRepository;
 import com.jonathanspereira.condoflow.user.entity.User;
+import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
+import com.jonathanspereira.condoflow.notification.service.NotificationService;
+import com.jonathanspereira.condoflow.condominium.entity.CondominiumRole;
+import com.jonathanspereira.condoflow.condominium.repository.CondominiumRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -38,6 +42,8 @@ public class AccessService {
     private final CondominiumRepository condominiumRepository;
     private final UnitRepository unitRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final CondominiumRoleRepository condominiumRoleRepository;
 
     @Transactional
     public AccessResponseDTO createAuthorization(Long condominiumId, String residentEmail, AccessRequestDTO request) {
@@ -79,6 +85,15 @@ public class AccessService {
         }
 
         auth = authorizationRepository.save(auth);
+
+        List<CondominiumRole> concierges = condominiumRoleRepository.findByCondominiumId(condominium.getId())
+                .stream().filter(r -> r.getRole() == Role.CONCIERGE && r.isActive())
+                .collect(Collectors.toList());
+        for (CondominiumRole role : concierges) {
+            notificationService.createNotification(role.getUser(), "Novo Acesso Registrado",
+                "O morador da unidade " + unit.getUnit() + " registrou um acesso para " + request.getPersonName(), "ACCESS_" + auth.getId());
+        }
+
         return toDTO(auth);
     }
 

@@ -116,6 +116,7 @@ export default function HistoricoOcorrenciasPage() {
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("TODAS")
   const [unidadeFiltro, setUnidadeFiltro] = useState<string>("TODAS")
   const [abaStatus, setAbaStatus] = useState<string>("todas")
+  const [periodoFiltro, setPeriodoFiltro] = useState<string>("TODOS")
 
   // Modal de Detalhes / Resposta
   const [selectedOcorrencia, setSelectedOcorrencia] = useState<Occurrence | null>(null)
@@ -339,6 +340,21 @@ export default function HistoricoOcorrenciasPage() {
       return false
     }
 
+    if (periodoFiltro !== "TODOS") {
+      const createdAt = new Date(oc.createdAt);
+      const now = new Date();
+      if (periodoFiltro === "7days") {
+        now.setDate(now.getDate() - 7);
+        if (createdAt < now) return false;
+      } else if (periodoFiltro === "30days") {
+        now.setDate(now.getDate() - 30);
+        if (createdAt < now) return false;
+      } else if (periodoFiltro === "365days") {
+        now.setDate(now.getDate() - 365);
+        if (createdAt < now) return false;
+      }
+    }
+
     if (unidadeFiltro !== "TODAS") {
       const isOriginUnit = oc.unitName?.toLowerCase() === unidadeFiltro.toLowerCase()
       const isRelated = oc.relatedUnits?.toLowerCase().includes(unidadeFiltro.toLowerCase())
@@ -466,6 +482,20 @@ export default function HistoricoOcorrenciasPage() {
                     <SelectItem value="LIMPEZA">Limpeza</SelectItem>
                     <SelectItem value="SEGURANCA">Segurança</SelectItem>
                     <SelectItem value="OUTROS">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-full sm:w-44">
+                <Select value={periodoFiltro} onValueChange={setPeriodoFiltro}>
+                  <SelectTrigger className="h-9 text-xs bg-slate-50">
+                    <SelectValue placeholder="Período" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TODOS">Todo o Período</SelectItem>
+                    <SelectItem value="7days">Últimos 7 dias</SelectItem>
+                    <SelectItem value="30days">Últimos 30 dias</SelectItem>
+                    <SelectItem value="365days">Últimos 12 meses</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

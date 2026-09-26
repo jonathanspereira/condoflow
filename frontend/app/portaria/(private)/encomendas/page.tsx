@@ -23,8 +23,8 @@ interface Parcel {
 export default function EncomendasPage() {
   const [parcels, setParcels] = useState<Parcel[]>([])
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState("ALL")
-  const [periodFilter, setPeriodFilter] = useState("ALL")
+  const [statusFilter, setStatusFilter] = useState("PENDING_PICKUP")
+  const [periodFilter, setPeriodFilter] = useState("7days")
   const router = useRouter()
 
   const fetchParcels = async () => {
@@ -112,7 +112,7 @@ export default function EncomendasPage() {
             value={periodFilter}
             onChange={(e) => setPeriodFilter(e.target.value)}
           >
-            <option value="ALL">Período: Todos</option>
+            <option value="ALL">Todo o período</option>
             <option value="7days">Últimos 7 dias</option>
             <option value="30days">Últimos 30 dias</option>
           </select>

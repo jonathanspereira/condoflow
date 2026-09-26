@@ -46,7 +46,8 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
   const [ocorrencias, setOcorrencias] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [busca, setBusca] = useState("")
-  const [abaAtiva, setAbaAtiva] = useState("todas")
+  const [abaAtiva, setAbaAtiva] = useState("abertas")
+  const [periodo, setPeriodo] = useState("7days")
 
   const [selectedOcorrencia, setSelectedOcorrencia] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
@@ -204,8 +205,25 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
       String(oc.id).includes(busca)
     
     if (!matchBusca) return false;
+    
+    if (periodo !== "all") {
+      const createdAt = new Date(oc.createdAt);
+      const now = new Date();
+      if (periodo === "7days") {
+        now.setDate(now.getDate() - 7);
+        if (createdAt < now) return false;
+      } else if (periodo === "30days") {
+        now.setDate(now.getDate() - 30);
+        if (createdAt < now) return false;
+      } else if (periodo === "365days") {
+        now.setDate(now.getDate() - 365);
+        if (createdAt < now) return false;
+      }
+    }
+
     if (abaAtiva === "abertas") return oc.status === "OPEN";
     if (abaAtiva === "emandamento") return oc.status === "IN_PROGRESS";
+    if (abaAtiva === "concluidas") return oc.status === "RESOLVED";
     return true;
   })
 
@@ -289,9 +307,19 @@ export default function CondominioDetalhes({ params }: { params: Promise<{ id: s
             onChange={(e) => setBusca(e.target.value)}
           />
         </div>
-        <Button variant="outline" size="icon">
-          <Filter className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground hidden sm:block" />
+          <select 
+            className="text-sm border-slate-200 rounded-md py-1.5 px-3 bg-white border"
+            value={periodo}
+            onChange={(e) => setPeriodo(e.target.value)}
+          >
+            <option value="all">Todo o período</option>
+            <option value="7days">Últimos 7 dias</option>
+            <option value="30days">Últimos 30 dias</option>
+            <option value="365days">Últimos 12 meses</option>
+          </select>
+        </div>
       </div>
 
       {/* Abas e Lista de Ocorrências */}
