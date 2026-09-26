@@ -20,6 +20,7 @@
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/auth/repository/PasswordResetTokenRepository.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/auth/service/AuthService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/auth/service/TokenService.java
+/home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/config/DatabaseMigrationService.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/config/DatabaseSeeder.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/config/SwaggerConfig.java
 /home/jonathan/projetos/condoflow/backend/src/main/java/com/jonathanspereira/condoflow/common/config/TenantAspect.java
