@@ -23,6 +23,7 @@ interface AccessAuth {
   accessCode: string
   conciergeName?: string
   entryTime?: string
+  vehiclePlate?: string
 }
 
 export default function AcessosDashboardPage() {
@@ -181,6 +182,9 @@ export default function AcessosDashboardPage() {
                         <div>
                           <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
                           <p className="text-xs text-slate-500">Unidade: {auth.unitName} (Morador: {auth.residentName})</p>
+                          {auth.vehiclePlate && (
+                            <p className="text-xs text-slate-500">Placa: <span className="font-medium font-mono">{auth.vehiclePlate}</span></p>
+                          )}
                           {auth.conciergeName && (
                             <p className="text-xs text-slate-400 mt-1">Liberado por: {auth.conciergeName}</p>
                           )}
@@ -227,6 +231,9 @@ export default function AcessosDashboardPage() {
                         <div>
                           <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
                           <p className="text-xs text-slate-500">Unidade: {auth.unitName} - Período: {auth.startTime} às {auth.endTime}</p>
+                          {auth.vehiclePlate && (
+                            <p className="text-xs text-slate-500">Placa: <span className="font-medium font-mono">{auth.vehiclePlate}</span></p>
+                          )}
                         </div>
                         <Badge variant="secondary" className="shrink-0">{getTypeName(auth.type)}</Badge>
                       </CardContent>
@@ -267,6 +274,9 @@ export default function AcessosDashboardPage() {
                         </Badge>
                       </div>
                       <p className="text-xs text-slate-500">Unidade: {auth.unitName}</p>
+                      {auth.vehiclePlate && (
+                        <p className="text-xs text-slate-500">Placa: <span className="font-medium font-mono">{auth.vehiclePlate}</span></p>
+                      )}
                       {auth.conciergeName && auth.entryTime && (
                         <div className="mt-2 text-xs bg-slate-50 p-2 rounded-md border border-slate-100">
                           <p><span className="font-medium text-slate-700">Entrada:</span> {formatDateTime(auth.entryTime)}</p>

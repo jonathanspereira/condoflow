@@ -127,6 +127,9 @@ public class AccessService {
 
         auth.setPersonCpf(dto.getCpf());
         auth.setPersonPhotoUrl(dto.getPhotoBase64()); // No cenário ideal seria um URL do S3
+        if (dto.getVehiclePlate() != null && !dto.getVehiclePlate().trim().isEmpty()) {
+            auth.setVehiclePlate(dto.getVehiclePlate().trim().toUpperCase());
+        }
         auth.setStatus(AccessStatus.CADASTRO_CONCLUIDO);
         
         // Gerar Credenciais
@@ -288,6 +291,7 @@ public class AccessService {
                 .company(auth.getCompany())
                 .service(auth.getService())
                 .observation(auth.getObservation())
+                .vehiclePlate(auth.getVehiclePlate())
                 .authorizedDate(auth.getAuthorizedDate())
                 .startTime(auth.getStartTime())
                 .endTime(auth.getEndTime())

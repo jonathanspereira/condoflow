@@ -56,6 +56,7 @@ public class AccessAuthorization {
     private String company;
     private String service;
     private String observation;
+    private String vehiclePlate;
 
     // Schedule
     @Column(nullable = false)

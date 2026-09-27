@@ -11,4 +11,6 @@ public class PublicAccessCompletionDTO {
 
     @NotBlank(message = "A foto é obrigatória")
     private String photoBase64;
+
+    private String vehiclePlate;
 }

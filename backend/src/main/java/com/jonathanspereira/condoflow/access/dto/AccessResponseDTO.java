@@ -25,6 +25,7 @@ public class AccessResponseDTO {
     private String company;
     private String service;
     private String observation;
+    private String vehiclePlate;
 
     private LocalDate authorizedDate;
     private LocalTime startTime;

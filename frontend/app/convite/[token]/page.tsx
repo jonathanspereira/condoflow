@@ -31,6 +31,7 @@ export default function ConvitePublicoPage() {
   const [errorMsg, setErrorMsg] = useState("")
 
   const [cpf, setCpf] = useState("")
+  const [vehiclePlate, setVehiclePlate] = useState("")
   const [photoBase64, setPhotoBase64] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -123,7 +124,7 @@ export default function ConvitePublicoPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access/public/token/${token}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cpf, photoBase64 })
+        body: JSON.stringify({ cpf, photoBase64, vehiclePlate })
       })
 
       if (!res.ok) {
@@ -230,6 +231,19 @@ export default function ConvitePublicoPage() {
                     onChange={(e) => setCpf(e.target.value)}
                   />
                 </div>
+
+                {(auth.type === "VISITOR" || auth.type === "PROVIDER") && (
+                  <div className="space-y-2">
+                    <Label htmlFor="vehiclePlate">Placa do Veículo (se houver)</Label>
+                    <Input 
+                      id="vehiclePlate" 
+                      placeholder="ABC1234 ou ABC1D23" 
+                      value={vehiclePlate}
+                      onChange={(e) => setVehiclePlate(e.target.value.toUpperCase())}
+                      maxLength={7}
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Sua Foto (Selfie)</Label>

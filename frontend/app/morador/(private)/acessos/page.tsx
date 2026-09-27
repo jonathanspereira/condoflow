@@ -20,6 +20,7 @@ interface AccessAuth {
   pin?: string
   accessCode?: string
   createdAt?: string
+  vehiclePlate?: string
 }
 
 export default function MeusAcessosPage() {
@@ -229,6 +230,9 @@ export default function MeusAcessosPage() {
                         <Clock className="h-3 w-3" />
                         {formatDate(auth.authorizedDate)} das {auth.startTime} às {auth.endTime}
                       </span>
+                      {auth.vehiclePlate && (
+                        <span className="text-slate-500 font-medium">Placa: <span className="font-mono">{auth.vehiclePlate}</span></span>
+                      )}
                     </div>
                   </div>
                 </div>
