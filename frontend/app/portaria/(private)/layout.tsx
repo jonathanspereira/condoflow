@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -60,6 +60,7 @@ export default function PortariaLayout({ children }: Readonly<{ children: React.
   
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unreadCount, setUnreadCount] = useState<number>(0)
+  const prevUnreadCount = useRef(-1)
 
   const getToken = () => (typeof window !== "undefined" ? localStorage.getItem("condoflow_token") : "")
 
@@ -81,8 +82,14 @@ export default function PortariaLayout({ children }: Readonly<{ children: React.
       })
       if (res.ok) {
         const data = await res.json()
+        const newUnread = data.filter((n: any) => !n.read).length
+        if (newUnread > prevUnreadCount.current && prevUnreadCount.current !== -1) {
+          toast.info("Nova notificação recebida!")
+        }
+        prevUnreadCount.current = newUnread
+
         setNotifications(data)
-        setUnreadCount(data.filter((n: any) => !n.read).length)
+        setUnreadCount(newUnread)
       }
     } catch (err) {
       console.error("Erro ao buscar notificações:", err)

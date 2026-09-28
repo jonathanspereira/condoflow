@@ -200,7 +200,7 @@ export default function NovoAcessoPage() {
                   required 
                   value={authorizedDate} 
                   onChange={(e) => setAuthorizedDate(e.target.value)} 
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}
                 />
               </div>
 

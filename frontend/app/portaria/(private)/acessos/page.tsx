@@ -34,8 +34,8 @@ export default function AcessosDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
 
-  async function fetchAuthorizations() {
-    setLoading(true)
+  async function fetchAuthorizations(showLoading = true) {
+    if (showLoading) setLoading(true)
     const token = localStorage.getItem("condoflow_token")
     const condoId = localStorage.getItem("condoflow_selected_condo_id") || "1"
     
@@ -55,12 +55,16 @@ export default function AcessosDashboardPage() {
     } catch (error) {
       toast.error("Não foi possível carregar as autorizações.")
     } finally {
-      setLoading(false)
+      if (showLoading) setLoading(false)
     }
   }
 
   useEffect(() => {
     fetchAuthorizations()
+    const interval = setInterval(() => {
+      fetchAuthorizations(false)
+    }, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   const handleExit = async (accessCode: string) => {

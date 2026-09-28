@@ -251,7 +251,7 @@ export default function MeusAcessosPage() {
                 auth.status === "AGUARDANDO_CADASTRO" ? "border-primary/30 shadow-sm bg-primary/5" : ""
               }`}
             >
-              <CardContent className="p-4 md:p-6 flex flex-col justify-between gap-4 h-full">
+              <CardContent className="p-4 md:p-6 flex flex-col justify-between gap-4 flex-1">
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-xl mt-1 shrink-0 ${
                     ["AGUARDANDO_CADASTRO", "CADASTRO_CONCLUIDO"].includes(auth.status) ? "bg-primary text-white" : "bg-slate-100 text-slate-400"
@@ -359,7 +359,7 @@ export default function MeusAcessosPage() {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label>Data de Acesso</Label>
-              <Input type="date" value={renewDate} onChange={(e) => setRenewDate(e.target.value)} />
+              <Input type="date" value={renewDate} onChange={(e) => setRenewDate(e.target.value)} min={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
