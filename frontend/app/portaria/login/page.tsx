@@ -73,7 +73,7 @@ export default function LoginPortariaPage() {
           toast.warning("Por favor, altere sua senha padrão para continuar.")
           router.push("/portaria/perfil")
         } else {
-          router.push("/portaria/encomendas")
+          router.push("/portaria/acessos")
         }
       } else {
         const errorData = await response.json().catch(() => null)

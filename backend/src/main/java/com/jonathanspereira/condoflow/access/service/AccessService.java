@@ -3,6 +3,7 @@ package com.jonathanspereira.condoflow.access.service;
 import com.jonathanspereira.condoflow.access.dto.AccessRequestDTO;
 import com.jonathanspereira.condoflow.access.dto.AccessResponseDTO;
 import com.jonathanspereira.condoflow.access.dto.PublicAccessCompletionDTO;
+import com.jonathanspereira.condoflow.access.dto.RenewAccessDTO;
 import com.jonathanspereira.condoflow.access.entity.AccessAuthorization;
 import com.jonathanspereira.condoflow.access.entity.AccessLog;
 import com.jonathanspereira.condoflow.access.entity.AccessStatus;
@@ -86,12 +87,8 @@ public class AccessService {
 
         auth = authorizationRepository.save(auth);
 
-        List<CondominiumRole> concierges = condominiumRoleRepository.findByCondominiumId(condominium.getId())
-                .stream().filter(r -> r.getRole() == Role.CONCIERGE && r.isActive())
-                .collect(Collectors.toList());
-        for (CondominiumRole role : concierges) {
-            notificationService.createNotification(role.getUser(), "Novo Acesso Registrado",
-                "O morador da unidade " + unit.getUnit() + " registrou um acesso para " + request.getPersonName(), "ACCESS_" + auth.getId());
+        if (request.getType() == AccessType.DELIVERY) {
+            notifyConcierges(condominium.getId(), unit.getUnit(), request.getPersonName(), auth.getId());
         }
 
         return toDTO(auth);
@@ -137,7 +134,20 @@ public class AccessService {
         auth.setPin(generateUniquePin(auth.getCondominium().getId()));
 
         auth = authorizationRepository.save(auth);
+        
+        notifyConcierges(auth.getCondominium().getId(), auth.getUnit().getUnit(), auth.getPersonName(), auth.getId());
+
         return toDTO(auth);
+    }
+
+    private void notifyConcierges(Long condominiumId, String unitName, String personName, Long authId) {
+        List<CondominiumRole> concierges = condominiumRoleRepository.findByCondominiumId(condominiumId)
+                .stream().filter(r -> r.getRole() == Role.CONCIERGE && r.isActive())
+                .collect(Collectors.toList());
+        for (CondominiumRole role : concierges) {
+            notificationService.createNotification(role.getUser(), "Novo Acesso Registrado",
+                "O morador da unidade " + unitName + " registrou um acesso para " + personName, "ACCESS_" + authId);
+        }
     }
 
     private String generateUniquePin(Long condominiumId) {
@@ -152,12 +162,28 @@ public class AccessService {
     public List<AccessResponseDTO> getMyAuthorizations(String residentEmail) {
         User resident = (User) userRepository.findByEmail(residentEmail);
         return authorizationRepository.findByResidentIdOrderByCreatedAtDesc(resident.getId())
-                .stream().map(this::toDTO).collect(Collectors.toList());
+                .stream().map(this::checkAndMarkExpired).map(this::toDTO).collect(Collectors.toList());
     }
 
     public List<AccessResponseDTO> getCondominiumAuthorizations(Long condominiumId) {
         return authorizationRepository.findByCondominiumIdOrderByCreatedAtDesc(condominiumId)
-                .stream().map(this::toDTO).collect(Collectors.toList());
+                .stream().map(this::checkAndMarkExpired).map(this::toDTO).collect(Collectors.toList());
+    }
+
+    private AccessAuthorization checkAndMarkExpired(AccessAuthorization auth) {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
+        if (auth.getStatus() == AccessStatus.AGUARDANDO_CADASTRO && auth.getLinkExpiresAt() != null && now.isAfter(auth.getLinkExpiresAt())) {
+            auth.setStatus(AccessStatus.LINK_EXPIRADO);
+            return authorizationRepository.save(auth);
+        }
+        if (auth.getStatus() == AccessStatus.CADASTRO_CONCLUIDO) {
+            if (now.toLocalDate().isAfter(auth.getAuthorizedDate()) || 
+               (now.toLocalDate().isEqual(auth.getAuthorizedDate()) && now.toLocalTime().isAfter(auth.getEndTime()))) {
+                auth.setStatus(AccessStatus.CREDENCIAL_EXPIRADA);
+                return authorizationRepository.save(auth);
+            }
+        }
+        return auth;
     }
 
     public AccessResponseDTO validateAccess(Long condominiumId, String codeOrPin) {
@@ -249,7 +275,7 @@ public class AccessService {
     }
 
     @Transactional
-    public AccessResponseDTO renewLink(Long id, String userEmail) {
+    public AccessResponseDTO renewLink(Long id, RenewAccessDTO dto, String userEmail) {
         AccessAuthorization auth = authorizationRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Autorização não encontrada"));
         
@@ -261,6 +287,12 @@ public class AccessService {
 
         if (auth.getStatus() == AccessStatus.CANCELADA || auth.getStatus() == AccessStatus.FINALIZADA || auth.getStatus() == AccessStatus.DENTRO_DO_CONDOMINIO) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível revalidar uma autorização cancelada, finalizada ou em andamento.");
+        }
+
+        if (dto != null) {
+            if (dto.getAuthorizedDate() != null) auth.setAuthorizedDate(dto.getAuthorizedDate());
+            if (dto.getStartTime() != null) auth.setStartTime(dto.getStartTime());
+            if (dto.getEndTime() != null) auth.setEndTime(dto.getEndTime());
         }
 
         // Renew expiration to 15 minutes from now

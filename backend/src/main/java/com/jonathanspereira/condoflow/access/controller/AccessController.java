@@ -3,6 +3,7 @@ package com.jonathanspereira.condoflow.access.controller;
 import com.jonathanspereira.condoflow.access.dto.AccessRequestDTO;
 import com.jonathanspereira.condoflow.access.dto.AccessResponseDTO;
 import com.jonathanspereira.condoflow.access.dto.PublicAccessCompletionDTO;
+import com.jonathanspereira.condoflow.access.dto.RenewAccessDTO;
 import com.jonathanspereira.condoflow.access.service.AccessService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +95,7 @@ public class AccessController {
 
     @PutMapping("/{id}/renew-link")
     @PreAuthorize("hasAnyAuthority('PROPRIETARY', 'TENANT')")
-    public ResponseEntity<AccessResponseDTO> renewLink(@PathVariable Long id, Principal principal) {
-        return ResponseEntity.ok(accessService.renewLink(id, principal.getName()));
+    public ResponseEntity<AccessResponseDTO> renewLink(@PathVariable Long id, @RequestBody(required=false) RenewAccessDTO dto, Principal principal) {
+        return ResponseEntity.ok(accessService.renewLink(id, dto, principal.getName()));
     }
 }

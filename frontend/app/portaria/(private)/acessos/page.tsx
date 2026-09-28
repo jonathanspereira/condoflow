@@ -24,6 +24,8 @@ interface AccessAuth {
   conciergeName?: string
   entryTime?: string
   vehiclePlate?: string
+  observation?: string
+  personPhotoUrl?: string
 }
 
 export default function AcessosDashboardPage() {
@@ -179,15 +181,23 @@ export default function AcessosDashboardPage() {
                   {filteredInside.map(auth => (
                     <Card key={auth.id} className="border-emerald-200 bg-emerald-50/30">
                       <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
-                          <p className="text-xs text-slate-500">Unidade: {auth.unitName} (Morador: {auth.residentName})</p>
+                        <div className="flex gap-4 w-full">
+                          {auth.personPhotoUrl && (
+                            <img src={auth.personPhotoUrl} alt="Foto" className="w-16 h-16 rounded-full object-cover shrink-0" />
+                          )}
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
+                            <p className="text-xs text-slate-500">Unidade: {auth.unitName} (Morador: {auth.residentName})</p>
                           {auth.vehiclePlate && (
                             <p className="text-xs text-slate-500">Placa: <span className="font-medium font-mono">{auth.vehiclePlate}</span></p>
+                          )}
+                          {auth.observation && (
+                            <p className="text-xs text-slate-500 mt-1 italic">Obs: {auth.observation}</p>
                           )}
                           {auth.conciergeName && (
                             <p className="text-xs text-slate-400 mt-1">Liberado por: {auth.conciergeName}</p>
                           )}
+                          </div>
                         </div>
                         <Button 
                           variant="outline" 
@@ -228,12 +238,20 @@ export default function AcessosDashboardPage() {
                   {scheduledToday.map(auth => (
                     <Card key={auth.id} className="bg-white">
                       <CardContent className="p-4 flex items-center justify-between gap-4">
-                        <div>
-                          <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
-                          <p className="text-xs text-slate-500">Unidade: {auth.unitName} - Período: {auth.startTime} às {auth.endTime}</p>
+                        <div className="flex gap-4">
+                          {auth.personPhotoUrl && (
+                            <img src={auth.personPhotoUrl} alt="Foto" className="w-12 h-12 rounded-full object-cover shrink-0" />
+                          )}
+                          <div>
+                            <h3 className="font-semibold text-slate-900">{auth.personName}</h3>
+                            <p className="text-xs text-slate-500">Unidade: {auth.unitName} - Período: {auth.startTime} às {auth.endTime}</p>
                           {auth.vehiclePlate && (
                             <p className="text-xs text-slate-500">Placa: <span className="font-medium font-mono">{auth.vehiclePlate}</span></p>
                           )}
+                          {auth.observation && (
+                            <p className="text-xs text-slate-500 mt-1 italic">Obs: {auth.observation}</p>
+                          )}
+                          </div>
                         </div>
                         <Badge variant="secondary" className="shrink-0">{getTypeName(auth.type)}</Badge>
                       </CardContent>

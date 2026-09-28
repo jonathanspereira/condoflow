@@ -10,6 +10,8 @@ import com.jonathanspereira.condoflow.log.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,9 @@ public class CondominiumService {
 
     @Autowired
     private AuditLogService auditLogService;
+
+    @Autowired
+    private EntityManager entityManager;
 
     public List<Condominium> listarTodos() {
         return condominiumRepository.findAll();
@@ -70,7 +75,24 @@ public class CondominiumService {
                 .distinct()
                 .toList();
 
-        // Deleta o condomínio (as roles serão removidas por cascade)
+        // Exclusão em cascata das tabelas que referenciam o condomínio
+        String[] tables = {
+                "tb_access_logs",
+                "tb_access_authorizations",
+                "tb_occurrences",
+                "tb_parcels",
+                "tb_reservations",
+                "tb_facilities",
+                "tb_units",
+                "tb_condominium_roles"
+        };
+        for (String table : tables) {
+            Query q = entityManager.createNativeQuery("DELETE FROM " + table + " WHERE condominium_id = :id");
+            q.setParameter("id", id);
+            q.executeUpdate();
+        }
+
+        // Deleta o condomínio
         condominiumRepository.deleteById(id);
 
         // Após a deleção, verifica quais síndicos não têm mais nenhum condomínio ativo

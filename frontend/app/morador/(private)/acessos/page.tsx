@@ -7,6 +7,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface AccessAuth {
   id: number
@@ -30,6 +33,10 @@ export default function MeusAcessosPage() {
   const [renewing, setRenewing] = useState<number | null>(null)
   const [statusFilter, setStatusFilter] = useState("AGUARDANDO_CADASTRO")
   const [periodFilter, setPeriodFilter] = useState("ALL")
+  const [renewingAuthId, setRenewingAuthId] = useState<number | null>(null)
+  const [renewDate, setRenewDate] = useState("")
+  const [renewStart, setRenewStart] = useState("")
+  const [renewEnd, setRenewEnd] = useState("")
   const router = useRouter()
 
   async function fetchAuthorizations() {
@@ -109,17 +116,34 @@ export default function MeusAcessosPage() {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
   }
 
-  const handleRenewLink = async (id: number) => {
-    setRenewing(id)
+  const openRenewModal = (auth: AccessAuth) => {
+    setRenewingAuthId(auth.id)
+    setRenewDate(auth.authorizedDate)
+    setRenewStart(auth.startTime)
+    setRenewEnd(auth.endTime)
+  }
+
+  const handleRenewLink = async () => {
+    if (!renewingAuthId) return
+    setRenewing(renewingAuthId)
     try {
       const token = localStorage.getItem("condoflow_token")
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access/${id}/renew-link`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access/${renewingAuthId}/renew-link`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          authorizedDate: renewDate,
+          startTime: renewStart,
+          endTime: renewEnd
+        })
       })
 
       if (!res.ok) throw new Error("Erro ao revalidar link")
       toast.success("Link revalidado com sucesso!")
+      setRenewingAuthId(null)
       fetchAuthorizations()
     } catch (error) {
       toast.error("Não foi possível revalidar o link.")
@@ -128,6 +152,21 @@ export default function MeusAcessosPage() {
     }
   }
 
+  const handleCancel = async (id: number) => {
+    try {
+      const token = localStorage.getItem("condoflow_token")
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access/${id}/cancel`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (!res.ok) throw new Error("Erro ao cancelar autorização")
+      toast.success("Autorização cancelada com sucesso!")
+      fetchAuthorizations()
+    } catch (error) {
+      toast.error("Não foi possível cancelar a autorização.")
+    }
+  }
   const formatDate = (isoDate: string) => {
     if (!isoDate) return ""
     const [year, month, day] = isoDate.split("-")
@@ -272,20 +311,30 @@ export default function MeusAcessosPage() {
                       <Button
                         variant="default"
                         size="sm"
-                        className="gap-2 w-full bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
+                        className="gap-2 w-full bg-[#25D366] hover:bg-[#128C7E] text-white border-none mt-2"
                         onClick={() => shareWhatsApp(auth.personName, auth.linkToken, auth.pin)}
                       >
                         Enviar PIN via WhatsApp
                       </Button>
                     )}
 
-                    {["LINK_EXPIRADO", "CREDENCIAL_EXPIRADA"].includes(auth.status) && isSameDay && (
+                    {["AGUARDANDO_CADASTRO", "CADASTRO_CONCLUIDO"].includes(auth.status) && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="w-full mt-2"
+                        onClick={() => handleCancel(auth.id)}
+                      >
+                        Cancelar
+                      </Button>
+                    )}
+
+                    {["LINK_EXPIRADO", "CREDENCIAL_EXPIRADA", "CANCELADA"].includes(auth.status) && (
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="w-full gap-2"
-                      disabled={renewing === auth.id}
-                      onClick={() => handleRenewLink(auth.id)}
+                      className="w-full gap-2 mt-2"
+                      onClick={() => openRenewModal(auth)}
                     >
                       Revalidar Link
                     </Button>
@@ -298,6 +347,39 @@ export default function MeusAcessosPage() {
           })}
         </div>
       )}
+
+      <Dialog open={renewingAuthId !== null} onOpenChange={(open) => !open && setRenewingAuthId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Revalidar Acesso</DialogTitle>
+            <DialogDescription>
+              Escolha a nova data e horário para este acesso.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Data de Acesso</Label>
+              <Input type="date" value={renewDate} onChange={(e) => setRenewDate(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Horário Inicial</Label>
+                <Input type="time" value={renewStart} onChange={(e) => setRenewStart(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Horário Final</Label>
+                <Input type="time" value={renewEnd} onChange={(e) => setRenewEnd(e.target.value)} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenewingAuthId(null)}>Cancelar</Button>
+            <Button onClick={handleRenewLink} disabled={renewing !== null}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
