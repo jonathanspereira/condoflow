@@ -34,7 +34,7 @@ export default function AcessosDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
 
-  async function fetchAuthorizations(showLoading = true) {
+  const fetchAuthorizations = async (showLoading = true) => {
     if (showLoading) setLoading(true)
     const token = localStorage.getItem("condoflow_token")
     const condoId = localStorage.getItem("condoflow_selected_condo_id") || "1"
@@ -42,10 +42,11 @@ export default function AcessosDashboardPage() {
     if (!token) return router.push("/portaria/login")
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access/condominium`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access/condominium?_t=${Date.now()}`, {
         headers: { 
           Authorization: `Bearer ${token}`,
-          "X-Tenant-ID": condoId 
+          "X-Tenant-ID": condoId,
+          "Cache-Control": "no-cache"
         }
       })
 
@@ -53,7 +54,7 @@ export default function AcessosDashboardPage() {
       const data = await res.json()
       setAuthorizations(data || [])
     } catch (error) {
-      toast.error("Não foi possível carregar as autorizações.")
+      console.error("Não foi possível carregar as autorizações.", error)
     } finally {
       if (showLoading) setLoading(false)
     }

@@ -232,7 +232,7 @@ export default function ConvitePublicoPage() {
                   />
                 </div>
 
-                {(auth.type === "VISITOR" || auth.type === "PROVIDER") && (
+                {(auth.type === "VISITOR" || auth.type === "SERVICE_PROVIDER") && (
                   <div className="space-y-2">
                     <Label htmlFor="vehiclePlate">Placa do Veículo (se houver)</Label>
                     <Input 

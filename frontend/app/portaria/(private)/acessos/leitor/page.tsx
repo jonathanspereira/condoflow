@@ -36,6 +36,15 @@ export default function LeitorAcessosPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
 
+  const getTypeName = (t: string) => {
+    switch (t) {
+      case "VISITOR": return "Visitante"
+      case "SERVICE_PROVIDER": return "Prestador de Serviço"
+      case "DELIVERY": return "Entregador"
+      default: return t
+    }
+  }
+
   const handleValidate = async (codeOrPin: string) => {
     if (!codeOrPin) return
     setIsLoading(true)
@@ -181,7 +190,7 @@ export default function LeitorAcessosPage() {
                   <CheckCircle2 className="h-10 w-10" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">Acesso Autorizado</h2>
-                <Badge className="bg-emerald-100 text-emerald-800">{auth.type}</Badge>
+                <Badge className="bg-emerald-100 text-emerald-800">{getTypeName(auth.type)}</Badge>
               </div>
 
               <div className="flex flex-col items-center gap-4">

@@ -284,7 +284,7 @@ export default function MeusAcessosPage() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 w-full">
+                  <div className="flex flex-col gap-2 w-full">
                     {auth.status === "AGUARDANDO_CADASTRO" && (
                       <div className="flex w-full gap-2">
                         <Button 
@@ -311,7 +311,7 @@ export default function MeusAcessosPage() {
                       <Button
                         variant="default"
                         size="sm"
-                        className="gap-2 w-full bg-[#25D366] hover:bg-[#128C7E] text-white border-none mt-2"
+                        className="gap-2 w-full bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
                         onClick={() => shareWhatsApp(auth.personName, auth.linkToken, auth.pin)}
                       >
                         Enviar PIN via WhatsApp
@@ -322,7 +322,7 @@ export default function MeusAcessosPage() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="w-full mt-2"
+                        className="w-full"
                         onClick={() => handleCancel(auth.id)}
                       >
                         Cancelar
@@ -333,7 +333,7 @@ export default function MeusAcessosPage() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="w-full gap-2 mt-2"
+                      className="w-full gap-2"
                       onClick={() => openRenewModal(auth)}
                     >
                       Revalidar Link
