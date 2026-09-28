@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Users, LogOut, CheckCircle, Clock, Search, QrCode } from "lucide-react"
+import { Users, LogOut, CheckCircle, Clock, Search, QrCode, RefreshCw } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -95,7 +95,7 @@ export default function AcessosDashboardPage() {
 
   const insideCondo = authorizations.filter(a => a.status === "DENTRO_DO_CONDOMINIO")
   
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
   const scheduledToday = authorizations.filter(a => 
     a.authorizedDate === today && 
     (a.status === "CADASTRO_CONCLUIDO" || a.status === "QR_CODE_GERADO")
@@ -138,14 +138,26 @@ export default function AcessosDashboardPage() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Painel de Acessos</h1>
           <p className="text-sm text-slate-500 mt-1">Gerencie a entrada e saída de visitantes e prestadores.</p>
         </div>
-        <Button 
-          onClick={() => router.push("/portaria/acessos/leitor")} 
-          className="gap-2 shrink-0 bg-emerald-600 hover:bg-emerald-700"
-          size="lg"
-        >
-          <QrCode className="h-5 w-5" />
-          Validar Acesso
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => fetchAuthorizations(true)} 
+            variant="outline"
+            className="gap-2 shrink-0"
+            size="lg"
+            title="Atualizar painel"
+          >
+            <RefreshCw className="h-5 w-5" />
+            Atualizar
+          </Button>
+          <Button 
+            onClick={() => router.push("/portaria/acessos/leitor")} 
+            className="gap-2 shrink-0 bg-emerald-600 hover:bg-emerald-700"
+            size="lg"
+          >
+            <QrCode className="h-5 w-5" />
+            Validar Acesso
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="painel" className="w-full">
