@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 
 interface AccessAuth {
   id: number
@@ -62,10 +64,23 @@ export default function AcessosDashboardPage() {
 
   useEffect(() => {
     fetchAuthorizations()
-    const interval = setInterval(() => {
-      fetchAuthorizations(false)
-    }, 5000)
-    return () => clearInterval(interval)
+    
+    const condoId = localStorage.getItem("condoflow_selected_condo_id") || "1"
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}/ws`),
+      onConnect: () => {
+        client.subscribe(`/topic/condominium/${condoId}/accesses`, (message) => {
+          if (message.body) {
+            fetchAuthorizations(false)
+          }
+        })
+      }
+    })
+    client.activate()
+
+    return () => {
+      client.deactivate()
+    }
   }, [])
 
   const handleExit = async (accessCode: string) => {

@@ -15,6 +15,7 @@ interface Parcel {
   status: string
   trackingCode?: string
   deliveryCode: string
+  pin?: string
   receivedAt: string
   deliveredAt: string | null
   receivedByName: string
@@ -160,6 +161,14 @@ export default function MinhaEncomendaPage() {
             <p className="mt-6 text-xs text-slate-400 font-mono tracking-widest break-all px-4 text-center">
               {parcel.deliveryCode}
             </p>
+            {parcel.pin && (
+              <div className="mt-6 flex flex-col items-center">
+                <span className="text-xs text-slate-500 mb-1 uppercase tracking-wider font-semibold">Ou digite o PIN na portaria:</span>
+                <span className="text-4xl font-black text-slate-800 tracking-[0.5em] ml-[0.5em]">
+                  {parcel.pin}
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

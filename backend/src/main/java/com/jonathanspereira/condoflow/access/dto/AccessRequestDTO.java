@@ -32,4 +32,5 @@ public class AccessRequestDTO {
     private String company;
     private String service;
     private String observation;
+    private String vehiclePlate;
 }

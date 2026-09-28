@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/saude").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/occurrences").permitAll()
                         .requestMatchers("/api/v1/access/public/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/protocol/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/occurrences/*/attachments/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/occurrences/*/attachments").permitAll()

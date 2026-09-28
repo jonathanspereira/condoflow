@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -45,6 +46,7 @@ public class AccessService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final CondominiumRoleRepository condominiumRoleRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public AccessResponseDTO createAuthorization(Long condominiumId, String residentEmail, AccessRequestDTO request) {
@@ -72,6 +74,7 @@ public class AccessService {
                 .company(request.getCompany())
                 .service(request.getService())
                 .observation(request.getObservation())
+                .vehiclePlate(request.getVehiclePlate())
                 .authorizedDate(request.getAuthorizedDate())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
@@ -136,8 +139,11 @@ public class AccessService {
         auth = authorizationRepository.save(auth);
         
         notifyConcierges(auth.getCondominium().getId(), auth.getUnit().getUnit(), auth.getPersonName(), auth.getId());
+        
+        AccessResponseDTO responseDTO = toDTO(auth);
+        messagingTemplate.convertAndSend("/topic/condominium/" + auth.getCondominium().getId() + "/accesses", responseDTO);
 
-        return toDTO(auth);
+        return responseDTO;
     }
 
     private void notifyConcierges(Long condominiumId, String unitName, String personName, Long authId) {
@@ -237,6 +243,8 @@ public class AccessService {
                 .build();
         
         logRepository.save(log);
+
+        messagingTemplate.convertAndSend("/topic/condominium/" + auth.getCondominium().getId() + "/accesses", toDTO(auth));
     }
 
     @Transactional
@@ -250,6 +258,8 @@ public class AccessService {
 
         auth.setStatus(AccessStatus.FINALIZADA);
         authorizationRepository.save(auth);
+
+        messagingTemplate.convertAndSend("/topic/condominium/" + auth.getCondominium().getId() + "/accesses", toDTO(auth));
 
         AccessLog log = logRepository.findFirstByAuthorizationIdAndExitTimeIsNullOrderByEntryTimeDesc(auth.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Registro de entrada não encontrado."));

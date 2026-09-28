@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 interface Parcel {
   id: number;
@@ -24,6 +25,8 @@ export default function LeitorEncomendasPage() {
   const [isDelivering, setIsDelivering] = useState(false)
   const [parcels, setParcels] = useState<Parcel[]>([])
   const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [mode, setMode] = useState<"QR" | "PIN">("QR")
+  const [pinInput, setPinInput] = useState("")
 
   const onScanSuccess = async (decodedText: string) => {
     if (scanResult === decodedText || isLoading) return
@@ -136,15 +139,57 @@ export default function LeitorEncomendasPage() {
       <Card>
         <CardContent className="p-4">
           {!scanResult ? (
-            <div className="w-full overflow-hidden rounded-lg bg-slate-900">
-              <Scanner 
-                onScan={(result) => onScanSuccess(result[0].rawValue)} 
-                onError={(error) => console.log(error?.message)} 
-              />
-              <p className="text-center text-xs text-slate-400 mt-2 pb-2">
-                Aponte a câmera para a tela do celular do morador.
-              </p>
-            </div>
+            <>
+              <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-lg">
+                <Button 
+                  variant={mode === "QR" ? "default" : "ghost"} 
+                  className={`flex-1 gap-2 ${mode === "QR" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                  onClick={() => setMode("QR")}
+                >
+                  Câmera
+                </Button>
+                <Button 
+                  variant={mode === "PIN" ? "default" : "ghost"} 
+                  className={`flex-1 gap-2 ${mode === "PIN" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                  onClick={() => setMode("PIN")}
+                >
+                  Digitar PIN
+                </Button>
+              </div>
+
+              {mode === "QR" ? (
+                <div className="w-full overflow-hidden rounded-lg bg-slate-900">
+                  <Scanner 
+                    onScan={(result) => onScanSuccess(result[0].rawValue)} 
+                    onError={(error) => console.log(error?.message)} 
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4 py-8">
+                  <div className="space-y-2 text-center">
+                    <Label htmlFor="pin" className="text-base">Digite o PIN do morador</Label>
+                    <Input
+                      id="pin"
+                      value={pinInput}
+                      onChange={(e) => setPinInput(e.target.value.toUpperCase())}
+                      placeholder="0000"
+                      className="text-center text-3xl font-black tracking-[0.5em] h-16 uppercase"
+                      maxLength={4}
+                    />
+                  </div>
+                  <Button
+                    className="w-full h-12 text-lg"
+                    onClick={() => {
+                      setScanResult(pinInput)
+                      fetchParcels(pinInput)
+                    }}
+                    disabled={pinInput.length !== 4}
+                  >
+                    Buscar
+                  </Button>
+                </div>
+              )}
+            </>
           ) : isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center space-y-4">
               <Loader2 className="h-10 w-10 text-primary animate-spin" />
