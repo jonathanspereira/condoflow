@@ -1,52 +1,47 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: condoflow_postgres
-    restart: always
-    environment:
-      POSTGRES_DB: condoflow_db
-      POSTGRES_USER: condoflow_user
-      POSTGRES_PASSWORD: condoflow_password
-      TZ: America/Sao_Paulo
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    # --- CONFIGURAÇÃO PARA AWS (Docker Hub) ---
+    image: jonathanspereira/condoflow-backend:latest
+    # build:
+    #   context: ./backend
+    #   dockerfile: Dockerfile
     container_name: condoflow_backend
     restart: always
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/condoflow_db
-      - SPRING_DATASOURCE_USERNAME=condoflow_user
-      - SPRING_DATASOURCE_PASSWORD=condoflow_password
+      - DB_URL=jdbc:postgresql://aws-0-us-west-2.pooler.supabase.com:5432/postgres?user=postgres.oupexkpckyymcqeiihyu&password=SUA_SENHA_AQUI
+      - DB_USER=postgres.oupexkpckyymcqeiihyu
+      - DB_PASSWORD=SUA_SENHA_AQUI
+      - ADMIN_EMAIL=jonathanpereira.jsp@outlook.com
+      - ADMIN_PASSWORD=SEU_ADMIN_PASSWORD
+      - API_SECURITY_TOKEN_SECRET=SEU_TOKEN_SECRET
+      - CLOUDFLARE_TURNSTILE_SECRET=SEU_TURNSTILE_SECRET
+      - APP_FRONTEND_URL=https://www.condoflow.fun
+      - RESEND_API_KEY=re_SUA_API_KEY_DO_RESEND
+      - RESEND_FROM_EMAIL=noreply@condoflow.fun
       - TZ=America/Sao_Paulo
-    env_file:
-      - ./backend/.env
-    depends_on:
-      - db
+    # env_file:
+    #   - ./backend/.env
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    # --- CONFIGURAÇÃO PARA AWS (Docker Hub) ---
+    image: jonathanspereira/condoflow-frontend:latest
+    # build:
+    #   context: ./frontend
+    #   dockerfile: Dockerfile
     container_name: condoflow_frontend
     restart: always
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
-      - NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+      # --- CONFIGURAÇÃO PARA AWS (Substitua pelo IP público da AWS ou domínio) ---
+      - NEXT_PUBLIC_API_URL=https://api.condoflow.fun/api/v1
+
+      # --- CONFIGURAÇÃO LOCAL (Descomente para rodar localmente) ---
+      # - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+      - NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAEjdiZSn29NU4l8Z
       - TZ=America/Sao_Paulo
     depends_on:
       - backend
-
-volumes:
-  postgres_data:

@@ -94,7 +94,10 @@ public class AccessService {
             notifyConcierges(condominium.getId(), unit.getUnit(), request.getPersonName(), auth.getId());
         }
 
-        return toDTO(auth);
+        AccessResponseDTO responseDTO = toDTO(auth);
+        messagingTemplate.convertAndSend("/topic/condominium/" + condominium.getId() + "/accesses", responseDTO);
+
+        return responseDTO;
     }
 
     public AccessResponseDTO getPublicInfoByToken(String linkToken) {
@@ -282,6 +285,8 @@ public class AccessService {
 
         auth.setStatus(AccessStatus.CANCELADA);
         authorizationRepository.save(auth);
+        
+        messagingTemplate.convertAndSend("/topic/condominium/" + auth.getCondominium().getId() + "/accesses", toDTO(auth));
     }
 
     @Transactional
