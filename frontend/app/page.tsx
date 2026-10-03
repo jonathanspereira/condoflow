@@ -39,9 +39,9 @@ export default function LandingPage() {
             </Link>
           </Button>
           <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold ml-2">
-            <Link href="/sindico/cadastro">
-              Cadastre-se Agora
-            </Link>
+            <a href="https://wa.me/5581986942302?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20CondoFlow%20para%20o%20meu%20condom%C3%ADnio." target="_blank" rel="noopener noreferrer">
+              Solicitar Demonstração
+            </a>
           </Button>
         </div>
 
@@ -78,9 +78,9 @@ export default function LandingPage() {
             </Link>
           </Button>
           <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold justify-start">
-            <Link href="/sindico/cadastro">
-              Cadastre-se Agora
-            </Link>
+            <a href="https://wa.me/5581986942302?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20CondoFlow%20para%20o%20meu%20condom%C3%ADnio." target="_blank" rel="noopener noreferrer">
+              Solicitar Demonstração
+            </a>
           </Button>
         </div>
       )}
@@ -236,11 +236,11 @@ export default function LandingPage() {
               className="flex flex-col items-center text-center p-8 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-3xl transition-all duration-300 transform-style-3d cursor-pointer"
             >
               <div className="mb-6 p-4 bg-purple-50 rounded-2xl ring-1 ring-purple-100" style={{ transform: "translateZ(20px)" }}>
-                <Building2 className="h-8 w-8 text-purple-600" />
+                <Smartphone className="h-8 w-8 text-purple-600" />
               </div>
-              <h3 className="font-bold text-xl mb-3 text-slate-800" style={{ transform: "translateZ(30px)" }}>Gestão Multi-Prédios</h3>
+              <h3 className="font-bold text-xl mb-3 text-slate-800" style={{ transform: "translateZ(30px)" }}>Controle de Acesso Inteligente</h3>
               <p className="text-sm text-slate-500 leading-relaxed" style={{ transform: "translateZ(10px)" }}>
-                A solução definitiva para Síndicos Profissionais. Troque de condomínio com um clique e tenha a visão geral de todos os seus clientes numa única tela.
+                Chega de cadernos na portaria! Moradores geram links e QR Codes de convite, permitindo uma liberação rápida e em tempo real de visitantes e entregadores.
               </p>
             </motion.div>
           </div>

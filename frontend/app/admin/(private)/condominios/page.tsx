@@ -229,7 +229,16 @@ export default function GestaoCondominios() {
 
   const [name, setName] = useState("")
   const [cnpj, setCnpj] = useState("")
-  const [address, setAddress] = useState("")
+  const [zipCode, setZipCode] = useState("")
+  const [street, setStreet] = useState("")
+  const [number, setNumber] = useState("")
+  const [neighborhood, setNeighborhood] = useState("")
+  const [city, setCity] = useState("")
+  const [state, setState] = useState("")
+  
+  // Campos do sindico na criacao
+  const [newSindicoName, setNewSindicoName] = useState("")
+  const [newSindicoEmail, setNewSindicoEmail] = useState("")
 
   const [emailSindico, setEmailSindico] = useState("")
   const [nomeSindico, setNomeSindico] = useState("")
@@ -296,6 +305,7 @@ export default function GestaoCondominios() {
 
   const handleCreateCondominium = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSavingSindico(true)
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums`, {
         method: "POST",
@@ -303,18 +313,44 @@ export default function GestaoCondominios() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`
         },
-        body: JSON.stringify({ name, cnpj, address })
+        body: JSON.stringify({ name, cnpj, zipCode, street, number, neighborhood, city, state })
       })
 
       if (response.ok) {
+        const novoCondominio = await response.json()
+        
+        if (newSindicoEmail) {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/condominiums/${novoCondominio.id}/sindico`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getToken()}`
+            },
+            body: JSON.stringify({ email: newSindicoEmail, name: newSindicoName || undefined })
+          })
+        }
+
         setIsNewOpen(false)
         setName("")
         setCnpj("")
-        setAddress("")
+        setZipCode("")
+        setStreet("")
+        setNumber("")
+        setNeighborhood("")
+        setCity("")
+        setState("")
+        setNewSindicoName("")
+        setNewSindicoEmail("")
         fetchCondominiums()
+
+        if (newSindicoEmail) {
+           alert(`Condomínio criado com sucesso e Síndico vinculado!`)
+        }
       }
     } catch (error) {
       console.error("Erro ao criar condomínio:", error)
+    } finally {
+      setIsSavingSindico(false)
     }
   }
 
@@ -322,7 +358,12 @@ export default function GestaoCondominios() {
     setSelectedCondo(condo)
     setName(condo.name)
     setCnpj(condo.cnpj)
-    setAddress(condo.street ? `${condo.street}, ${condo.number}` : (condo.address || ""))
+    setZipCode(condo.zipCode || "")
+    setStreet(condo.street || "")
+    setNumber(condo.number || "")
+    setNeighborhood(condo.neighborhood || "")
+    setCity(condo.city || "")
+    setState(condo.state || "")
     setIsEditOpen(true)
   }
 
@@ -462,7 +503,7 @@ export default function GestaoCondominios() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`
         },
-        body: JSON.stringify({ name, cnpj, address })
+        body: JSON.stringify({ name, cnpj, zipCode, street, number, neighborhood, city, state })
       })
 
       if (response.ok) {
@@ -470,7 +511,12 @@ export default function GestaoCondominios() {
         setSelectedCondo(null)
         setName("")
         setCnpj("")
-        setAddress("")
+        setZipCode("")
+        setStreet("")
+        setNumber("")
+        setNeighborhood("")
+        setCity("")
+        setState("")
         fetchCondominiums()
       }
     } catch (error) {
@@ -598,6 +644,24 @@ export default function GestaoCondominios() {
     item.tenantName?.toLowerCase().includes(buscaProprietario.toLowerCase())
   )
 
+  const fetchAddress = async (cep: string) => {
+    const cleanZip = cep.replace(/\D/g, "");
+    if (cleanZip.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cleanZip}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setStreet(data.logradouro);
+          setNeighborhood(data.bairro);
+          setCity(data.localidade);
+          setState(data.uf);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar o CEP:", error);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -609,20 +673,21 @@ export default function GestaoCondominios() {
         <Dialog open={isNewOpen} onOpenChange={setIsNewOpen}>
           <DialogTrigger asChild>
             <Button 
-              onClick={() => { setName(""); setCnpj(""); setAddress(""); setIsNewOpen(true); }}
+              onClick={() => { setName(""); setCnpj(""); setZipCode(""); setStreet(""); setNumber(""); setNeighborhood(""); setCity(""); setState(""); setNewSindicoName(""); setNewSindicoEmail(""); setIsNewOpen(true); }}
               className="bg-emerald-600 hover:bg-emerald-700 gap-2 font-bold shadow-lg shadow-emerald-600/20 uppercase text-xs tracking-widest"
             >
               <Plus size={18} /> Novo Condomínio
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Cadastrar Nova Instância</DialogTitle>
-              <DialogDescription>Defina as informações base para o novo condomínio.</DialogDescription>
+              <DialogTitle>Cadastrar Nova Instância (Setup B2B)</DialogTitle>
+              <DialogDescription>Preencha os dados do condomínio e defina o primeiro síndico.</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreateCondominium} className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="nome">Nome do Condomínio</Label>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1 mt-2">Dados do Condomínio</h3>
+                <Label htmlFor="nome">Nome Fantasia do Condomínio</Label>
                 <Input 
                   id="nome" 
                   placeholder="Ex: Edf. Mirante do Sol" 
@@ -631,7 +696,7 @@ export default function GestaoCondominios() {
                   required 
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="cnpj">CNPJ</Label>
                   <Input 
@@ -643,19 +708,98 @@ export default function GestaoCondominios() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="address">Endereço</Label>
+                  <Label htmlFor="zipCode">CEP</Label>
                   <Input 
-                    id="address" 
-                    placeholder="Rua Exemplo, 123" 
-                    value={address} 
-                    onChange={(e) => setAddress(e.target.value)} 
+                    id="zipCode" 
+                    placeholder="00000-000" 
+                    value={zipCode} 
+                    onChange={(e) => {
+                      setZipCode(e.target.value);
+                      const clean = e.target.value.replace(/\D/g, "");
+                      if (clean.length === 8) fetchAddress(clean);
+                    }} 
                     required 
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid gap-2 md:col-span-3">
+                  <Label htmlFor="street">Rua/Avenida</Label>
+                  <Input 
+                    id="street" 
+                    value={street} 
+                    onChange={(e) => setStreet(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="number">Número</Label>
+                  <Input 
+                    id="number" 
+                    value={number} 
+                    onChange={(e) => setNumber(e.target.value)} 
+                    required 
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid gap-2 md:col-span-3">
+                  <Label htmlFor="neighborhood">Bairro</Label>
+                  <Input 
+                    id="neighborhood" 
+                    value={neighborhood} 
+                    onChange={(e) => setNeighborhood(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="state">UF</Label>
+                  <Input 
+                    id="state" 
+                    value={state} 
+                    onChange={(e) => setState(e.target.value)}
+                    maxLength={2} 
+                    required 
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="city">Cidade</Label>
+                <Input 
+                  id="city" 
+                  value={city} 
+                  onChange={(e) => setCity(e.target.value)} 
+                  required 
+                />
+              </div>
+
+              <div className="grid gap-2 mt-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">Acesso do Síndico</h3>
+                <p className="text-xs text-slate-500 mb-2">Se informado, um e-mail será enviado ao síndico com a senha temporária.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="newSindicoName">Nome do Síndico</Label>
+                  <Input 
+                    id="newSindicoName" 
+                    value={newSindicoName} 
+                    onChange={(e) => setNewSindicoName(e.target.value)} 
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="newSindicoEmail">E-mail Corporativo</Label>
+                  <Input 
+                    id="newSindicoEmail" 
+                    type="email"
+                    value={newSindicoEmail} 
+                    onChange={(e) => setNewSindicoEmail(e.target.value)} 
+                  />
+                </div>
+              </div>
+
               <DialogFooter className="pt-4">
-                <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 w-full font-bold">
-                  Finalizar e Criar
+                <Button type="submit" disabled={isSavingSindico} className="bg-emerald-600 hover:bg-emerald-700 w-full font-bold">
+                  {isSavingSindico ? "Processando Setup..." : "Finalizar Setup da Instância"}
                 </Button>
               </DialogFooter>
             </form>
@@ -665,7 +809,7 @@ export default function GestaoCondominios() {
 
       {/* Modal de Editar Condomínio */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Instância</DialogTitle>
             <DialogDescription>Atualize os dados cadastrais do condomínio.</DialogDescription>
@@ -680,7 +824,7 @@ export default function GestaoCondominios() {
                 required 
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-cnpj">CNPJ</Label>
                 <Input 
@@ -691,14 +835,42 @@ export default function GestaoCondominios() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-address">Endereço</Label>
+                <Label htmlFor="edit-zipCode">CEP</Label>
                 <Input 
-                  id="edit-address" 
-                  value={address} 
-                  onChange={(e) => setAddress(e.target.value)} 
+                  id="edit-zipCode" 
+                  value={zipCode} 
+                  onChange={(e) => {
+                    setZipCode(e.target.value);
+                    const clean = e.target.value.replace(/\D/g, "");
+                    if (clean.length === 8) fetchAddress(clean);
+                  }} 
                   required 
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid gap-2 md:col-span-3">
+                <Label htmlFor="edit-street">Rua/Avenida</Label>
+                <Input id="edit-street" value={street} onChange={(e) => setStreet(e.target.value)} required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-number">Número</Label>
+                <Input id="edit-number" value={number} onChange={(e) => setNumber(e.target.value)} required />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid gap-2 md:col-span-3">
+                <Label htmlFor="edit-neighborhood">Bairro</Label>
+                <Input id="edit-neighborhood" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-state">UF</Label>
+                <Input id="edit-state" value={state} onChange={(e) => setState(e.target.value)} maxLength={2} required />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-city">Cidade</Label>
+              <Input id="edit-city" value={city} onChange={(e) => setCity(e.target.value)} required />
             </div>
             <DialogFooter className="pt-4">
               <Button type="submit" className="bg-blue-600 hover:bg-blue-700 w-full font-bold text-white">
