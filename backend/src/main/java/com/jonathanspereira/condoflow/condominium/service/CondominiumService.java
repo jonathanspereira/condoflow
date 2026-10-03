@@ -75,16 +75,20 @@ public class CondominiumService {
                 .distinct()
                 .toList();
 
-        // Exclusão em cascata das tabelas que referenciam o condomínio
+        // 1. Apaga dependências de occurrences
+        entityManager.createNativeQuery("DELETE FROM occurrence_message WHERE occurrence_id IN (SELECT id FROM occurrence WHERE condominium_id = :id)")
+                .setParameter("id", id).executeUpdate();
+        entityManager.createNativeQuery("DELETE FROM occurrence_attachment WHERE occurrence_id IN (SELECT id FROM occurrence WHERE condominium_id = :id)")
+                .setParameter("id", id).executeUpdate();
+
+        // 2. Apaga as tabelas seguindo a ordem de Foreign Keys para evitar violacões (constraints)
         String[] tables = {
-                "tb_access_logs",
-                "tb_access_authorizations",
-                "tb_occurrences",
-                "tb_parcels",
-                "tb_reservations",
-                "tb_facilities",
+                "access_logs",
+                "access_authorizations",
+                "occurrence",
+                "parcel",
                 "tb_units",
-                "tb_condominium_roles"
+                "condominium_roles"
         };
         for (String table : tables) {
             Query q = entityManager.createNativeQuery("DELETE FROM " + table + " WHERE condominium_id = :id");
