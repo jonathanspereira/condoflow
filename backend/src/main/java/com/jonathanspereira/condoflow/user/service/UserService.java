@@ -15,12 +15,16 @@ import com.jonathanspereira.condoflow.user.entity.Role;
 import com.jonathanspereira.condoflow.user.entity.User;
 import com.jonathanspereira.condoflow.user.repository.UserRepository;
 import com.jonathanspereira.condoflow.log.service.AuditLogService;
+import com.jonathanspereira.condoflow.common.email.service.EmailService;
+import com.jonathanspereira.condoflow.auth.entity.PasswordResetToken;
+import com.jonathanspereira.condoflow.auth.repository.PasswordResetTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -36,6 +40,8 @@ public class UserService {
     private final UnitRepository unitRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
+    private final EmailService emailService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     
     @Transactional
@@ -232,6 +238,7 @@ public class UserService {
         UserDetails existing = userRepository.findByEmail(dto.email());
         User user;
         String temporaryPassword = null;
+        boolean isNewUser = false;
 
         if (existing != null) {
             user = (User) existing;
@@ -249,6 +256,7 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(temporaryPassword));
             user.setRole(Role.SINDICO);
             user = userRepository.save(user);
+            isNewUser = true;
         }
 
         List<CondominiumRole> existingManagers = condominiumRoleRepository.findByCondominiumId(condominiumId);
@@ -266,6 +274,15 @@ public class UserService {
             management.setActive(true);
             management.setFocusModeEnabled(false);
             condominiumRoleRepository.save(management);
+        }
+
+        if (isNewUser) {
+            passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
+            String token = java.util.UUID.randomUUID().toString();
+            PasswordResetToken resetToken = new PasswordResetToken(token, user, LocalDateTime.now().plusHours(48));
+            passwordResetTokenRepository.save(resetToken);
+
+            emailService.sendSindicoInviteEmail(user.getEmail(), user.getName(), token, condominium.getName());
         }
 
         auditLogService.log("USER", "LINK_SINDICO", dto.email(), "Síndico vinculado ao condomínio ID " + condominiumId);
