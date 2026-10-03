@@ -49,8 +49,12 @@ interface Condominium {
   name: string
   cnpj: string
   address?: string
+  zipCode?: string
   street?: string
   number?: string
+  neighborhood?: string
+  city?: string
+  state?: string
 }
 
 // Bate com o UnitResponseDTO do backend
