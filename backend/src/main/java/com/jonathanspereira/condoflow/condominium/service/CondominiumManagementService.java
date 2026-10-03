@@ -40,8 +40,8 @@ public class CondominiumManagementService {
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
 
-    public List<SindicoCondominiumDTO> listMyCondominiums(String sindicoEmail) {
-        User sindico = getUserByEmail(sindicoEmail);
+    public List<SindicoCondominiumDTO> listMyCondominiums(String requesterEmail) {
+        User sindico = getUserByEmail(requesterEmail);
         List<CondominiumRole> managements = condominiumRoleRepository.findByUserId(sindico.getId());
 
         YearMonth currentMonth = YearMonth.now();
@@ -74,8 +74,8 @@ public class CondominiumManagementService {
     }
 
     @org.springframework.transaction.annotation.Transactional
-    public com.jonathanspereira.condoflow.condominium.entity.Condominium createAndLinkCondominium(String sindicoEmail, com.jonathanspereira.condoflow.condominium.dto.CondominiumRequestDTO dto) {
-        User sindico = getUserByEmail(sindicoEmail);
+    public com.jonathanspereira.condoflow.condominium.entity.Condominium createAndLinkCondominium(String requesterEmail, com.jonathanspereira.condoflow.condominium.dto.CondominiumRequestDTO dto) {
+        User sindico = getUserByEmail(requesterEmail);
 
         com.jonathanspereira.condoflow.condominium.entity.Condominium condo = new com.jonathanspereira.condoflow.condominium.entity.Condominium();
         condo.setName(dto.getName());
@@ -99,13 +99,13 @@ public class CondominiumManagementService {
         
         condominiumRoleRepository.save(management);
 
-        auditLogService.log("CONDOMINIO", "CREATE_CONDOMINIUM", sindicoEmail, "Condomínio criado: " + savedCondo.getName());
+        auditLogService.log("CONDOMINIO", "CREATE_CONDOMINIUM", requesterEmail, "Condomínio criado: " + savedCondo.getName());
 
         return savedCondo;
     }
 
-    public void setFocusMode(String sindicoEmail, Long condominiumId, boolean enabled) {
-        User sindico = getUserByEmail(sindicoEmail);
+    public void setFocusMode(String requesterEmail, Long condominiumId, boolean enabled) {
+        User sindico = getUserByEmail(requesterEmail);
 
         CondominiumRole management = condominiumRoleRepository
                 .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
@@ -114,11 +114,11 @@ public class CondominiumManagementService {
         management.setFocusModeEnabled(enabled);
         condominiumRoleRepository.save(management);
         
-        auditLogService.log("CONDOMINIO", "FOCUS_MODE", sindicoEmail, "Modo foco " + (enabled ? "ativado" : "desativado") + " para condomínio ID: " + condominiumId);
+        auditLogService.log("CONDOMINIO", "FOCUS_MODE", requesterEmail, "Modo foco " + (enabled ? "ativado" : "desativado") + " para condomínio ID: " + condominiumId);
     }
 
-    public void setPlan(String sindicoEmail, Long condominiumId, com.jonathanspereira.condoflow.condominium.dto.PlanSelectionRequestDTO dto) {
-        User sindico = getUserByEmail(sindicoEmail);
+    public void setPlan(String requesterEmail, Long condominiumId, com.jonathanspereira.condoflow.condominium.dto.PlanSelectionRequestDTO dto) {
+        User sindico = getUserByEmail(requesterEmail);
 
         CondominiumRole management = condominiumRoleRepository
                 .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
@@ -131,11 +131,11 @@ public class CondominiumManagementService {
         }
         condominiumRepository.save(condo);
         
-        auditLogService.log("CONDOMINIO", "CHANGE_PLAN", sindicoEmail, "Plano do condomínio '" + condo.getName() + "' alterado para: " + dto.plan());
+        auditLogService.log("CONDOMINIO", "CHANGE_PLAN", requesterEmail, "Plano do condomínio '" + condo.getName() + "' alterado para: " + dto.plan());
     }
 
-    public void setFocusModeForAll(String sindicoEmail, boolean enabled) {
-        User sindico = getUserByEmail(sindicoEmail);
+    public void setFocusModeForAll(String requesterEmail, boolean enabled) {
+        User sindico = getUserByEmail(requesterEmail);
 
         List<CondominiumRole> managements = condominiumRoleRepository.findByUserId(sindico.getId());
         managements.forEach(m -> m.setFocusModeEnabled(enabled));
@@ -242,18 +242,22 @@ public class CondominiumManagementService {
     }
 
     @org.springframework.transaction.annotation.Transactional
-    public UserResponseDTO addConcierge(Long condominiumId, String sindicoEmail, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
-        User sindico = getUserByEmail(sindicoEmail);
+    public UserResponseDTO addConcierge(Long condominiumId, String requesterEmail, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
+        User requester = getUserByEmail(requesterEmail);
+        com.jonathanspereira.condoflow.condominium.entity.Condominium condominium;
 
-        CondominiumRole currentManagement = condominiumRoleRepository
-                .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
-                .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
+        if (requester.getRole() == com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN) {
+            condominium = condominiumRepository.findById(condominiumId).orElseThrow(() -> new RuntimeException("Condomínio não encontrado"));
+        } else {
+            CondominiumRole currentManagement = condominiumRoleRepository
+                    .findByCondominiumIdAndUserId(condominiumId, requester.getId())
+                    .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
 
-        if (!currentManagement.isActive() || (currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO && currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN)) {
-            throw new BusinessException("Apenas o administrador pode cadastrar porteiros.");
+            if (!currentManagement.isActive() || currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO) {
+                throw new BusinessException("Apenas o administrador pode cadastrar porteiros.");
+            }
+            condominium = currentManagement.getCondominium();
         }
-
-        com.jonathanspereira.condoflow.condominium.entity.Condominium condominium = currentManagement.getCondominium();
 
         UserDetails existingDetails = userRepository.findByEmail(dto.getEmail());
         User newConcierge;
@@ -289,19 +293,21 @@ public class CondominiumManagementService {
             condominiumRoleRepository.save(newRole);
         }
 
-        auditLogService.log("CONCIERGE", "ADD_CONCIERGE", sindicoEmail, "Porteiro " + newConcierge.getEmail() + " adicionado ao condomínio: " + condominium.getName());
+        auditLogService.log("CONCIERGE", "ADD_CONCIERGE", requesterEmail, "Porteiro " + newConcierge.getEmail() + " adicionado ao condomínio: " + condominium.getName());
         return new UserResponseDTO(newConcierge);
     }
 
-    public void removeConcierge(Long condominiumId, String sindicoEmail, String conciergeId) {
-        User sindico = getUserByEmail(sindicoEmail);
+    public void removeConcierge(Long condominiumId, String requesterEmail, String conciergeId) {
+        User requester = getUserByEmail(requesterEmail);
 
-        CondominiumRole currentManagement = condominiumRoleRepository
-                .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
-                .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
+        if (requester.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN) {
+            CondominiumRole currentManagement = condominiumRoleRepository
+                    .findByCondominiumIdAndUserId(condominiumId, requester.getId())
+                    .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
 
-        if (!currentManagement.isActive() || (currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO && currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN)) {
-            throw new BusinessException("Apenas o administrador pode remover porteiros.");
+            if (!currentManagement.isActive() || currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO) {
+                throw new BusinessException("Apenas o administrador pode remover porteiros.");
+            }
         }
 
         CondominiumRole conciergeRole = condominiumRoleRepository
@@ -313,18 +319,20 @@ public class CondominiumManagementService {
         }
 
         condominiumRoleRepository.delete(conciergeRole);
-        auditLogService.log("CONCIERGE", "REMOVE_CONCIERGE", sindicoEmail, "Porteiro removido do condomínio ID: " + condominiumId);
+        auditLogService.log("CONCIERGE", "REMOVE_CONCIERGE", requesterEmail, "Porteiro removido do condomínio ID: " + condominiumId);
     }
 
-    public UserResponseDTO updateConcierge(Long condominiumId, String sindicoEmail, String conciergeId, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
-        User sindico = getUserByEmail(sindicoEmail);
+    public UserResponseDTO updateConcierge(Long condominiumId, String requesterEmail, String conciergeId, com.jonathanspereira.condoflow.user.dto.UserRequestDTO dto) {
+        User requester = getUserByEmail(requesterEmail);
 
-        CondominiumRole currentManagement = condominiumRoleRepository
-                .findByCondominiumIdAndUserId(condominiumId, sindico.getId())
-                .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
+        if (requester.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN) {
+            CondominiumRole currentManagement = condominiumRoleRepository
+                    .findByCondominiumIdAndUserId(condominiumId, requester.getId())
+                    .orElseThrow(() -> new RuntimeException("Você não administra este condomínio."));
 
-        if (!currentManagement.isActive() || (currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO && currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SUPER_ADMIN)) {
-            throw new BusinessException("Apenas o administrador pode editar porteiros.");
+            if (!currentManagement.isActive() || currentManagement.getRole() != com.jonathanspereira.condoflow.user.entity.Role.SINDICO) {
+                throw new BusinessException("Apenas o administrador pode editar porteiros.");
+            }
         }
 
         CondominiumRole conciergeRole = condominiumRoleRepository
@@ -345,7 +353,7 @@ public class CondominiumManagementService {
         }
 
         User updated = userRepository.save(concierge);
-        auditLogService.log("CONCIERGE", "UPDATE_CONCIERGE", sindicoEmail, "Porteiro atualizado no condomínio ID: " + condominiumId);
+        auditLogService.log("CONCIERGE", "UPDATE_CONCIERGE", requesterEmail, "Porteiro atualizado no condomínio ID: " + condominiumId);
         return new UserResponseDTO(updated);
     }
 
