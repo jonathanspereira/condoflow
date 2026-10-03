@@ -282,7 +282,7 @@ public class UserService {
             PasswordResetToken resetToken = new PasswordResetToken(token, user, LocalDateTime.now().plusHours(48));
             passwordResetTokenRepository.save(resetToken);
 
-            emailService.sendSindicoInviteEmail(user.getEmail(), user.getName(), token, condominium.getName());
+            emailService.sendNewSindicoWelcomeEmail(user.getEmail(), user.getName(), token, condominium.getName());
         }
 
         auditLogService.log("USER", "LINK_SINDICO", dto.email(), "Síndico vinculado ao condomínio ID " + condominiumId);

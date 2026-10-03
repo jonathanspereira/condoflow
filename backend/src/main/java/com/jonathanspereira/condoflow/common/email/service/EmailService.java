@@ -274,6 +274,40 @@ public class EmailService {
     }
 
     /**
+     * Envia e-mail de boas-vindas para Síndico recém-cadastrado pela Administração.
+     */
+    @Async
+    public void sendNewSindicoWelcomeEmail(String toEmail, String newSindicoName, String token, String condominiumName) {
+        String resetLink = frontendUrl + "/redefinir-senha?token=" + token;
+        String subject = "Bem-vindo ao CondoFlow - Acesso ao Condomínio " + condominiumName;
+
+        String htmlContent = """
+            <div style='background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px;'>
+                <div style='max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;'>
+                    <div style='background: linear-gradient(135deg, #0ea5e9, #0284c7); padding: 28px 32px; text-align: left;'>
+                        <h1 style='color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;'>CondoFlow</h1>
+                        <p style='color: #e0f2fe; margin: 4px 0 0 0; font-size: 13px; font-weight: 500;'>Acesso à Gestão de Condomínio</p>
+                    </div>
+                    <div style='padding: 32px; color: #334155;'>
+                        <h2 style='color: #0f172a; font-size: 18px; margin-top: 0; margin-bottom: 16px;'>Acesso Liberado</h2>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 16px;'>Olá, <strong>%s</strong>!</p>
+                        <p style='font-size: 15px; line-height: 1.6; margin-bottom: 20px;'>A administração da plataforma CondoFlow vinculou o seu perfil como Síndico do condomínio <strong>%s</strong>.</p>
+                        <p style='font-size: 14px; color: #475569; line-height: 1.5;'>Para assumir o cargo e acessar o painel do condomínio, por favor defina a sua senha clicando no botão abaixo:</p>
+                        <div style='margin: 28px 0; text-align: center;'>
+                            <a href='%s' style='background-color: #0284c7; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);'>Acessar Painel e Criar Senha</a>
+                        </div>
+                    </div>
+                    <div style='background-color: #f8fafc; padding: 20px 32px; border-top: 1px solid #f1f5f9; text-align: center;'>
+                        <p style='margin: 0; font-size: 12px; color: #94a3b8;'>CondoFlow • Gestão Inteligente de Condomínios</p>
+                    </div>
+                </div>
+            </div>
+            """.formatted(newSindicoName, condominiumName, resetLink);
+
+        sendEmail(toEmail, subject, htmlContent, "Acesso Síndico: " + resetLink, "SINDICO_WELCOME");
+    }
+
+    /**
      * Envia e-mail de notificação de chegada de encomenda.
      */
     @Async
